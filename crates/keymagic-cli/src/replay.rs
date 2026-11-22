@@ -98,9 +98,10 @@ pub fn load_keyboard(path: &Path) -> Result<Keyboard, String> {
             let src = fs::read_to_string(path)
                 .map_err(|error| format!("cannot read {}: {error}", path.display()))?;
             keymagic_kms::compile(&src, &DirResolver::beside(path)).map_err(|errors| {
-                let first = errors
-                    .first()
-                    .map_or_else(|| "no diagnostics".to_owned(), |error| error.message.clone());
+                let first = errors.first().map_or_else(
+                    || "no diagnostics".to_owned(),
+                    |error| error.message.clone(),
+                );
                 format!("{}: {first}", path.display())
             })
         }

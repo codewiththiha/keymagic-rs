@@ -1,8 +1,8 @@
 //! Command-line tools for KMS compilation, KM2 inspection and corpus replay.
 
 mod compile;
-mod replay;
 mod repl;
+mod replay;
 mod resolver;
 mod style;
 
@@ -71,9 +71,7 @@ enum Command {
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
-        Command::Compile { input, output } => {
-            compile::compile(&input, output.as_deref(), cli.json)
-        }
+        Command::Compile { input, output } => compile::compile(&input, output.as_deref(), cli.json),
         Command::Check { input } => compile::check(&input, cli.json),
         Command::Fmt {
             input,

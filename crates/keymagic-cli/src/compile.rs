@@ -78,8 +78,15 @@ pub fn fmt(input: &Path, write: bool, check: bool, json: bool) -> Result<ExitCod
         write_file(input, formatted.as_bytes())?;
     }
     if json {
-        let shown = if write { None } else { Some(formatted.as_str()) };
-        println!("{}", json!({"path": name, "changed": changed, "formatted": shown}));
+        let shown = if write {
+            None
+        } else {
+            Some(formatted.as_str())
+        };
+        println!(
+            "{}",
+            json!({"path": name, "changed": changed, "formatted": shown})
+        );
     } else if write {
         if changed {
             println!("formatted {name}");
@@ -102,10 +109,10 @@ pub fn fmt(input: &Path, write: bool, check: bool, json: bool) -> Result<ExitCod
 
 /// Summarizes a KM2 file: its info, rule and string counts, and options.
 pub fn dump(input: &Path, json: bool) -> Result<ExitCode, String> {
-    let bytes = fs::read(input)
-        .map_err(|error| format!("cannot read {}: {error}", input.display()))?;
-    let keyboard = keymagic_km2::parse(&bytes)
-        .map_err(|error| format!("{}: {error}", input.display()))?;
+    let bytes =
+        fs::read(input).map_err(|error| format!("cannot read {}: {error}", input.display()))?;
+    let keyboard =
+        keymagic_km2::parse(&bytes).map_err(|error| format!("{}: {error}", input.display()))?;
     let info = &keyboard.info;
     let options = &keyboard.options;
     if json {

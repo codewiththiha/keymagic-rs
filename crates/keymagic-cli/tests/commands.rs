@@ -53,10 +53,7 @@ fn compile_writes_km2_that_dump_reads() -> TestResult {
 
 #[test]
 fn compile_reports_errors_and_fails() -> TestResult {
-    let output = keymagic()
-        .arg("compile")
-        .arg(fixture("bad.kms"))
-        .output()?;
+    let output = keymagic().arg("compile").arg(fixture("bad.kms")).output()?;
     assert_eq!(output.status.code(), Some(1));
     assert!(text(&output.stderr).contains("undefined variable '$b'"));
     Ok(())
