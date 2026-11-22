@@ -49,3 +49,29 @@ fn trace_records_the_first_match_then_the_capped_recursion() -> Result<(), Box<d
     assert_eq!(steps.last(), Some(&TraceStep::Capped));
     Ok(())
 }
+
+#[test]
+fn identity_rule_of_two_chars_hits_the_cap_and_keeps_its_text() -> Result<(), Box<dyn Error>> {
+    let rule = Rule {
+        lhs: vec![PatternElement::Text("ab".into())],
+        rhs: vec![OutputElement::Text("ab".into())],
+        source: None,
+    };
+    let keyboard = Keyboard {
+        rules: vec![rule],
+        ..Keyboard::default()
+    };
+    let mut engine = Engine::new(Arc::new(keyboard))?;
+    engine.process(KeyEvent {
+        ch: Some('a'),
+        ..KeyEvent::default()
+    });
+    let output = engine.process(KeyEvent {
+        ch: Some('b'),
+        ..KeyEvent::default()
+    });
+    assert_eq!(output.composing, "ab");
+    let steps = output.trace.ok_or("trace missing")?.steps;
+    assert_eq!(steps.last(), Some(&TraceStep::Capped));
+    Ok(())
+}
