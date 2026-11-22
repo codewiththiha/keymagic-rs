@@ -170,3 +170,129 @@ virtual_keys! {
     IcoHelp = 100 => "VK_ICO_HELP";
     Ico00 = 101 => "VK_ICO_00";
 }
+
+impl VirtualKey {
+    /// Display name for the FFI; `NULL` has none.
+    #[must_use]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one arm per key keeps the table exhaustive"
+    )]
+    pub const fn display_name(self) -> Option<&'static str> {
+        match self {
+            Self::Null => None,
+            Self::Back => Some("Backspace"),
+            Self::Tab => Some("Tab"),
+            Self::Return => Some("Enter"),
+            Self::Shift => Some("Shift"),
+            Self::Control => Some("Ctrl"),
+            Self::Menu => Some("Alt"),
+            Self::Pause => Some("Pause"),
+            Self::Capital => Some("CapsLock"),
+            Self::Kanji => Some("Kanji"),
+            Self::Escape => Some("Esc"),
+            Self::Space => Some("Space"),
+            Self::Prior => Some("PageUp"),
+            Self::Next => Some("PageDown"),
+            Self::Delete => Some("Delete"),
+            Self::Key0 => Some("0"),
+            Self::Key1 => Some("1"),
+            Self::Key2 => Some("2"),
+            Self::Key3 => Some("3"),
+            Self::Key4 => Some("4"),
+            Self::Key5 => Some("5"),
+            Self::Key6 => Some("6"),
+            Self::Key7 => Some("7"),
+            Self::Key8 => Some("8"),
+            Self::Key9 => Some("9"),
+            Self::KeyA => Some("A"),
+            Self::KeyB => Some("B"),
+            Self::KeyC => Some("C"),
+            Self::KeyD => Some("D"),
+            Self::KeyE => Some("E"),
+            Self::KeyF => Some("F"),
+            Self::KeyG => Some("G"),
+            Self::KeyH => Some("H"),
+            Self::KeyI => Some("I"),
+            Self::KeyJ => Some("J"),
+            Self::KeyK => Some("K"),
+            Self::KeyL => Some("L"),
+            Self::KeyM => Some("M"),
+            Self::KeyN => Some("N"),
+            Self::KeyO => Some("O"),
+            Self::KeyP => Some("P"),
+            Self::KeyQ => Some("Q"),
+            Self::KeyR => Some("R"),
+            Self::KeyS => Some("S"),
+            Self::KeyT => Some("T"),
+            Self::KeyU => Some("U"),
+            Self::KeyV => Some("V"),
+            Self::KeyW => Some("W"),
+            Self::KeyX => Some("X"),
+            Self::KeyY => Some("Y"),
+            Self::KeyZ => Some("Z"),
+            Self::Numpad0 => Some("Num0"),
+            Self::Numpad1 => Some("Num1"),
+            Self::Numpad2 => Some("Num2"),
+            Self::Numpad3 => Some("Num3"),
+            Self::Numpad4 => Some("Num4"),
+            Self::Numpad5 => Some("Num5"),
+            Self::Numpad6 => Some("Num6"),
+            Self::Numpad7 => Some("Num7"),
+            Self::Numpad8 => Some("Num8"),
+            Self::Numpad9 => Some("Num9"),
+            Self::Multiply => Some("Multiply"),
+            Self::Add => Some("Add"),
+            Self::Separator => Some("Separator"),
+            Self::Subtract => Some("Subtract"),
+            Self::Decimal => Some("Decimal"),
+            Self::Divide => Some("Divide"),
+            Self::F1 => Some("F1"),
+            Self::F2 => Some("F2"),
+            Self::F3 => Some("F3"),
+            Self::F4 => Some("F4"),
+            Self::F5 => Some("F5"),
+            Self::F6 => Some("F6"),
+            Self::F7 => Some("F7"),
+            Self::F8 => Some("F8"),
+            Self::F9 => Some("F9"),
+            Self::F10 => Some("F10"),
+            Self::F11 => Some("F11"),
+            Self::F12 => Some("F12"),
+            Self::LShift => Some("LShift"),
+            Self::RShift => Some("RShift"),
+            Self::LControl => Some("LCtrl"),
+            Self::RControl => Some("RCtrl"),
+            Self::LMenu => Some("LAlt"),
+            Self::RMenu => Some("RAlt"),
+            Self::Oem1 => Some(";"),
+            Self::OemPlus => Some("+"),
+            Self::OemComma => Some(","),
+            Self::OemMinus => Some("-"),
+            Self::OemPeriod => Some("."),
+            Self::Oem2 => Some("/"),
+            Self::Oem3 => Some("`"),
+            Self::Oem4 => Some("["),
+            Self::Oem5 => Some("\\"),
+            Self::Oem6 => Some("]"),
+            Self::Oem7 => Some("'"),
+            Self::Oem8 => Some("OEM8"),
+            Self::OemAx => Some("AX"),
+            Self::Oem102 => Some("OEM102"),
+            Self::IcoHelp => Some("Help"),
+            Self::Ico00 => Some("00"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::VirtualKey;
+
+    #[test]
+    fn every_key_but_null_has_a_display_name() {
+        for key in VirtualKey::ALL {
+            assert_eq!(key.display_name().is_none(), *key == VirtualKey::Null);
+        }
+    }
+}
