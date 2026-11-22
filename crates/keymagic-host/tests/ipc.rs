@@ -118,9 +118,8 @@ fn local_socket_carries_a_message_both_ways() -> TestResult {
     let dir = tempfile::tempdir()?;
     let path = dir.path().join("keymagic.sock");
     let server = ipc::Server::bind(&path)?;
-    let client_path = path.clone();
     let client = std::thread::spawn(move || -> io::Result<Message> {
-        let mut connection = ipc::connect(&client_path, [Duration::from_millis(10)])?;
+        let mut connection = ipc::connect(&path, [Duration::from_millis(10)])?;
         connection.send(&Message::SetActive {
             id: "myanmar3".to_owned(),
         })?;
