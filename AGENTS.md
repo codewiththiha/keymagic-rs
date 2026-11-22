@@ -15,7 +15,7 @@ Read this entire file before changing the project. Source plan: [KeyMagic Rust L
 - GitHub-hosted Linux/macOS/Windows runners are reserved for cross-platform verification and release builds. They are separate from routine fast development checks. Manual machine matrices, benchmarks, signing and notarization require explicit evidence and cannot be inferred from compilation.
 - The self-hosted runner must have stable Rust with rustfmt/clippy and `cargo-deny`, and be trusted/configured for this repository. Never execute untrusted fork PR code on it. Branch protections and runner isolation remain repository-owner responsibilities.
 - Routine target commands on the runner:
-  `cargo fmt --all -- --check`; `cargo clippy --workspace --all-targets -- -D warnings`; `cargo test --workspace`; `cargo deny check`. Add corpus, differential, fuzz and header checks as their tasks land; do not pretend a missing check ran. The workspace skeleton is unverified until these checks run, and CI deliberately fails if Cargo.toml is absent.
+  `cargo metadata --locked --no-deps --format-version 1`; `cargo fmt --all -- --check`; `cargo clippy --locked --workspace --all-targets -- -D warnings`; `cargo test --locked --workspace`; `cargo deny check`. Run the manual self-hosted Generate lockfile workflow to update `Cargo.lock`, review and retrieve its artifact, and commit it with dependency changes. Add corpus, differential, fuzz and header checks as their tasks land; do not pretend a missing check ran. CI deliberately fails if Cargo.toml is absent.
 
 ## Git and review
 
