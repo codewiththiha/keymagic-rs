@@ -57,6 +57,17 @@ typedef struct ProcessKeyOutput {
   int is_processed;
 } ProcessKeyOutput;
 
+/**
+ * Parsed hotkey; `key_code` is the `VirtualKey` ID.
+ */
+typedef struct HotkeyInfo {
+  int key_code;
+  int ctrl;
+  int alt;
+  int shift;
+  int meta;
+} HotkeyInfo;
+
 struct EngineHandle *keymagic_engine_new(void);
 
 void keymagic_engine_free(struct EngineHandle *handle);
@@ -86,6 +97,24 @@ enum KeyMagicResult keymagic_engine_process_key_test(struct EngineHandle *handle
                                                      int caps_lock,
                                                      struct ProcessKeyOutput *output);
 
+enum KeyMagicResult keymagic_engine_process_key_win(struct EngineHandle *handle,
+                                                    int vk_code,
+                                                    char character,
+                                                    int shift,
+                                                    int ctrl,
+                                                    int alt,
+                                                    int caps_lock,
+                                                    struct ProcessKeyOutput *output);
+
+enum KeyMagicResult keymagic_engine_process_key_test_win(struct EngineHandle *handle,
+                                                         int vk_code,
+                                                         char character,
+                                                         int shift,
+                                                         int ctrl,
+                                                         int alt,
+                                                         int caps_lock,
+                                                         struct ProcessKeyOutput *output);
+
 enum KeyMagicResult keymagic_engine_reset(struct EngineHandle *handle);
 
 char *keymagic_engine_get_composition(struct EngineHandle *handle);
@@ -93,6 +122,14 @@ char *keymagic_engine_get_composition(struct EngineHandle *handle);
 enum KeyMagicResult keymagic_engine_set_composition(struct EngineHandle *handle, const char *text);
 
 void keymagic_free_string(char *text);
+
+char *keymagic_engine_get_composing_text(struct EngineHandle *handle);
+
+void keymagic_engine_free_string(char *text);
+
+char *keymagic_virtual_key_to_string(int key_code);
+
+int keymagic_parse_hotkey(const char *hotkey, struct HotkeyInfo *info);
 
 const char *keymagic_get_version(void);
 
