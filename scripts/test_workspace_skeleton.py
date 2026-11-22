@@ -1,4 +1,4 @@
-"""Static checks for the phase 00 workspace layout; these do not replace Cargo."""
+"""Check workspace layout without invoking Cargo."""
 from pathlib import Path
 import tomllib
 import unittest
@@ -77,7 +77,7 @@ class WorkspaceSkeletonTests(unittest.TestCase):
         toolchain = read_toml(ROOT / 'rust-toolchain.toml')['toolchain']
         self.assertEqual(toolchain['channel'], 'stable')
         self.assertTrue({'rustfmt', 'clippy'} <= set(toolchain['components']))
-        self.assertEqual(read_toml(ROOT / 'rustfmt.toml')['max_width'], 110)
+        self.assertEqual(read_toml(ROOT / 'rustfmt.toml')['max_width'], 100)
         self.assertTrue((ROOT / '.editorconfig').is_file())
         self.assertIn('licenses', read_toml(ROOT / 'deny.toml'))
 

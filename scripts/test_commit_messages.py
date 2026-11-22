@@ -4,12 +4,16 @@ from check_commit_messages import problems
 
 class CommitPolicyTests(unittest.TestCase):
     def test_valid(self):
-        self.assertEqual(problems('a' * 50), [])
-        self.assertEqual(problems('မြန်မာ'), [])
-        self.assertEqual(problems('subject\n'), [])
+        for message in ('feat: add keys', 'fix(engine): handle input',
+                        'feat!: change API', 'docs: မြန်မာ', 'chore: ' + 'a' * 43,
+                        'docs: first line\n'):
+            with self.subTest(message=message):
+                self.assertEqual(problems(message), [])
 
     def test_invalid(self):
-        for message in ('', '   ', 'a' * 51, 'subject\n\nbody', 'hello\rworld'):
+        for message in ('', '   ', 'feat: ' + 'a' * 45, 'feat: title\n\nbody',
+                        'plain message', 'feat:add keys', 'feat: ',
+                        'feat(): add keys', 'hello\rworld'):
             with self.subTest(message=message):
                 self.assertTrue(problems(message))
 

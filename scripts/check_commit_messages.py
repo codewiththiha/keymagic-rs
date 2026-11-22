@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Enforce one-line commit messages of no more than 50 Unicode characters."""
+"""Enforce one-line Conventional Commit messages of up to 50 characters."""
 import argparse
+import re
 import subprocess
 import sys
 
@@ -14,6 +15,8 @@ def problems(message: str) -> list[str]:
         errors.append('message must be a single line')
     if len(message) > 50:
         errors.append(f'message is {len(message)} characters (maximum 50)')
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9-]*(?:\([^()\r\n]+\))?!?: \S(?:.*\S)?', message):
+        errors.append('message must use type(scope): description or type: description')
     return errors
 
 
