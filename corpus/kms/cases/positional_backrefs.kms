@@ -1,0 +1,3 @@
+$row1K = "qwerty"
+$row1U = "ဆတနမအပ"
+$row1K[*] => $row1U[$1]

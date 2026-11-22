@@ -62,6 +62,65 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_backspace_cases_preserve_upstream_sequences(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/backspace.toml')['case']}
+        self.assertEqual(set(cases), {'smart_undo', 'plain_delete', 'empty_backspace',
+                                     'successive_deletes', 'normal_key_with_smart',
+                                     'smart_without_history'})
+        self.assertEqual(cases['smart_undo']['events'][-2:], [
+            {'vk': 2, 'composing': 'k', 'action': 'replace', 'delete': 1, 'text': 'k', 'processed': True},
+            {'vk': 2, 'composing': '', 'action': 'delete', 'delete': 1, 'processed': True},
+        ])
+        self.assertEqual(cases['empty_backspace']['events'],
+                         [{'vk': 2, 'composing': '', 'action': 'none', 'processed': False}])
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            self.assertIn('fn ' + case['upstream_test'].split('::')[1] + '()',
+                          (ROOT / 'reference/km3/auto_backspace_test.rs').read_text())
+
+    def test_state_cases_preserve_upstream_sequences(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/states.toml')['case']}
+        self.assertEqual(set(cases), {'state_lifetime', 'multiple_states', 'state_any',
+                                     'state_digits', 'active_states', 'state_priority'})
+        self.assertEqual(cases['state_lifetime']['events'], [
+            {'key': '1', 'action': 'insert', 'text': '1', 'composing': '1'},
+            {'vk': 92, 'action': 'none', 'composing': '1'},
+            {'key': '1', 'action': 'insert', 'text': '၁', 'composing': '1၁'},
+            {'key': '1', 'action': 'insert', 'text': '1', 'composing': '1၁1'},
+        ])
+        self.assertEqual(cases['state_any']['events'][-1],
+                         {'key': 'x', 'action': 'insert', 'text': 'xx', 'composing': 'xx'})
+        self.assertEqual(cases['active_states']['events'][-1],
+                         {'key': 'x', 'action': 'insert', 'text': 'BOTH', 'composing': 'xBOTH'})
+        self.assertEqual(cases['state_priority']['events'][-1],
+                         {'key': 't', 'action': 'insert', 'text': 'state'})
+        self.assertEqual(cases['state_digits']['events'][-1],
+                         {'key': '2', 'action': 'insert', 'text': 'ဎ္ဎ', 'composing': '၁၂ဍ္ဍ၂ဎ္ဎ'})
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            self.assertIn('fn ' + case['upstream_test'].split('::')[1] + '()',
+                          (ROOT / 'reference/km3/state_tests.rs').read_text())
+
+    def test_backreference_cases_preserve_upstream_sequences(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/backrefs.toml')['case']}
+        self.assertEqual(set(cases), {'positional_backrefs', 'multiple_backrefs'})
+        self.assertEqual(cases['positional_backrefs']['events'], [
+            {'key': 'q', 'action': 'insert', 'text': 'ဆ'},
+            {'key': 'w', 'action': 'insert', 'text': 'တ'},
+            {'key': 'e', 'action': 'insert', 'text': 'န'},
+            {'key': 'y', 'action': 'insert', 'text': 'ပ'},
+        ])
+        self.assertEqual(cases['multiple_backrefs']['events'], [
+            {'key': 'k', 'action': 'insert', 'text': 'k'},
+            {'key': 'a', 'action': 'replace', 'delete': 1, 'text': 'ကာ'},
+            {'key': 'g', 'action': 'insert', 'text': 'g'},
+            {'key': 'i', 'action': 'replace', 'delete': 1, 'text': 'ဂိ'},
+        ])
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            self.assertIn('fn ' + case['upstream_test'].split('::')[1] + '()',
+                          (ROOT / 'reference/km3/variable_backref_test.rs').read_text())
+
     def test_basic_cases_preserve_upstream_actions(self):
         data = load(ROOT / 'cases/basic_rules.toml')
         cases = {case['name']: case for case in data['case']}

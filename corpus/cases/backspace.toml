@@ -1,0 +1,54 @@
+[[case]]
+name = "smart_undo"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_enabled"
+events = [
+  { key = "k", vk = 36, composing = "k", action = "insert", text = "k", processed = true },
+  { key = "a", vk = 26, composing = "က", action = "replace", delete = 1, text = "က", processed = true },
+  { vk = 2, composing = "k", action = "replace", delete = 1, text = "k", processed = true },
+  { vk = 2, composing = "", action = "delete", delete = 1, processed = true },
+]
+
+[[case]]
+name = "plain_delete"
+keyboard = "kms/cases/simple_mapping.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_disabled"
+events = [
+  { key = "k", vk = 36, composing = "k", action = "insert", text = "k", processed = true },
+  { key = "a", vk = 26, composing = "က", action = "replace", delete = 1, text = "က", processed = true },
+  { vk = 2, composing = "", action = "delete", delete = 1, processed = true },
+]
+
+[[case]]
+name = "empty_backspace"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_empty_buffer"
+events = [{ vk = 2, composing = "", action = "none", processed = false }]
+
+[[case]]
+name = "successive_deletes"
+keyboard = "kms/cases/simple_mapping.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_disabled_simple_delete"
+events = [
+  { key = "t" }, { key = "e" }, { key = "s" }, { key = "t", composing = "test" },
+  { vk = 2, composing = "tes", action = "delete", delete = 1, processed = true },
+  { vk = 2, composing = "te", action = "delete", delete = 1, processed = true },
+]
+
+[[case]]
+name = "normal_key_with_smart"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_with_normal_character"
+events = [
+  { key = "k", vk = 36 },
+  { key = "x", vk = 49, composing = "kx", action = "insert", text = "x", processed = true },
+]
+
+[[case]]
+name = "smart_without_history"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_enabled_without_history"
+events = [
+  { key = "t" }, { key = "e" }, { key = "s" }, { key = "t", composing = "test" },
+  { vk = 2, composing = "tes", action = "delete", delete = 1, processed = true },
+]

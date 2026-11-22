@@ -1,0 +1,5 @@
+$cons = "kg"
+$vowels = "ai"
+$cons_out = "ကဂ"
+$vowels_out = "ာိ"
+$cons[*] + $vowels[*] => $cons_out[$1] + $vowels_out[$2]

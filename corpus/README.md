@@ -26,15 +26,26 @@ and tests embedded elsewhere in the upstream repository are not included.
 
 ## Derived cases
 
-[`cases/basic_rules.toml`](cases/basic_rules.toml) transcribes 18 input
-scenarios from the pinned `basic_rule_tests.rs` and `variable_tests.rs` source
-references. The accompanying `kms/cases/` scripts express the rules those tests
-construct in memory. They are derived test inputs, not copied upstream fixtures.
-Each case starts with a fresh engine. An event may omit composing text or action
-when the original test did not assert it; do not interpret omission as an empty
-value. The single-character case uses U+200B followed by `test`. These cases are
-data only: no engine runs them yet, and neither the scripts nor parity have been
-validated by a KMS compiler.
+[`cases/basic_rules.toml`](cases/basic_rules.toml) transcribes 18 scenarios from
+`basic_rule_tests.rs` and `variable_tests.rs`; [`cases/backrefs.toml`](cases/backrefs.toml)
+transcribes two sequences from `variable_backref_test.rs`, and
+[`cases/states.toml`](cases/states.toml) six from `state_tests.rs`, and
+[`cases/backspace.toml`](cases/backspace.toml) six from `auto_backspace_test.rs`.
+The accompanying
+`kms/cases/` scripts express rules constructed in memory by those tests. They
+are derived test inputs, not copied upstream fixtures. Each case starts with a
+fresh engine. An event may omit composing text or action when the original test
+did not assert it; do not interpret omission as an empty value. The
+single-character case uses U+200B followed by `test`.
+
+The self-hosted reference workflow compiles these scripts and compares each
+asserted event against the separately fetched, pinned upstream compiler and
+engine. It verifies a transcription, not parity with this project's unimplemented
+engine. All 32 cases, including asserted processed flags, passed in
+[run 44985002579](https://github.com/codewiththiha/keymagic-rs/actions/runs/44985002579).
+The upstream reference is
+external code and includes unsafe FFI; it is not a workspace crate or a claim
+that dependencies are unsafe-free.
 
 `python3 -m unittest discover -s scripts -p test_corpus.py` verifies fixture
 SHA-256 and Git blob hashes, case references, and selected transcribed
@@ -52,9 +63,15 @@ may have separate authors or terms. The separate
 includes user submissions and grants distribution permissions to the collection;
 it does not clearly grant this project redistribution rights. Neither those
 layouts nor the bundled production binaries are copied here until their
-individual provenance and redistribution terms are verified.
+individual provenance and redistribution terms are verified. A
+[Debian ITP report](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933071)
+claims GPL2 for a separate IBus package and lists similarly named layouts, but
+it does not establish that these exact bundled KM2 bytes are covered. A
+[Keyman Malayalam Mozhi keyboard](https://keyman.com/en/keyboards/mozhi_malayalam)
+is MIT-licensed, but is a different implementation, not evidence of the
+KeyMagic binary's terms.
 
-There are 18 transcribed behavioral scenarios, 15 derived KMS case scripts,
+There are 32 transcribed behavioral scenarios, 24 derived KMS case scripts,
 three upstream KMS fixtures and one upstream KM2 fixture, alongside the source
 references. The derived scripts are not a substitute for the lab's real keyboard
 corpus. The targets of four bundled KM2 files, ten KMS files, and 150 cases are

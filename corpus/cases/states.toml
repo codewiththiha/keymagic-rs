@@ -1,0 +1,64 @@
+[[case]]
+name = "state_lifetime"
+keyboard = "kms/cases/state_lifetime.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_basic_state_toggle"
+events = [
+  { key = "1", action = "insert", text = "1", composing = "1" },
+  { vk = 92, action = "none", composing = "1" },
+  { key = "1", action = "insert", text = "၁", composing = "1၁" },
+  { key = "1", action = "insert", text = "1", composing = "1၁1" },
+]
+
+[[case]]
+name = "multiple_states"
+keyboard = "kms/cases/multiple_states.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_multiple_states"
+events = [
+  { vk = 68 },
+  { key = "a", action = "insert", text = "A1", composing = "A1" },
+  { key = "a", action = "insert", text = "a", composing = "A1a" },
+  { vk = 69 },
+  { key = "a", action = "insert", text = "A2", composing = "A1aA2" },
+]
+
+[[case]]
+name = "state_any"
+keyboard = "kms/cases/state_any.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_state_with_any_wildcard"
+events = [
+  { vk = 70 },
+  { key = "x", action = "insert", text = "xx", composing = "xx" },
+]
+
+[[case]]
+name = "state_digits"
+keyboard = "kms/cases/state_digits.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_state_based_digit_conversion"
+events = [
+  { key = "1", action = "insert", text = "၁" },
+  { key = "2", action = "insert", text = "၂", composing = "၁၂" },
+  { vk = 92 },
+  { key = "1", action = "insert", text = "ဍ္ဍ", composing = "၁၂ဍ္ဍ" },
+  { key = "2", action = "insert", text = "၂", composing = "၁၂ဍ္ဍ၂" },
+  { vk = 92 },
+  { key = "2", action = "insert", text = "ဎ္ဎ", composing = "၁၂ဍ္ဍ၂ဎ္ဎ" },
+]
+
+[[case]]
+name = "active_states"
+keyboard = "kms/cases/active_states.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_multiple_active_states"
+events = [
+  { key = "x", action = "insert", text = "x" },
+  { vk = 72 },
+  { key = "x", action = "insert", text = "BOTH", composing = "xBOTH" },
+]
+
+[[case]]
+name = "state_priority"
+keyboard = "kms/cases/state_priority.kms"
+upstream_test = "keymagic-core/tests/state_tests.rs::test_state_priority_in_rule_sorting"
+events = [
+  { vk = 71 },
+  { key = "t", action = "insert", text = "state" },
+]

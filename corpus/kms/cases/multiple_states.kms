@@ -1,0 +1,5 @@
+<VK_F1> => ('state1')
+<VK_F2> => ('state2')
+('state1') + "a" => "A1"
+('state2') + "a" => "A2"
+"a" => "a"

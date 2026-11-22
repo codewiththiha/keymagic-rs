@@ -1,0 +1,21 @@
+[[case]]
+name = "positional_backrefs"
+keyboard = "kms/cases/positional_backrefs.kms"
+upstream_test = "keymagic-core/tests/variable_backref_test.rs::test_variable_positional_matching"
+events = [
+  { key = "q", action = "insert", text = "ဆ" },
+  { key = "w", action = "insert", text = "တ" },
+  { key = "e", action = "insert", text = "န" },
+  { key = "y", action = "insert", text = "ပ" },
+]
+
+[[case]]
+name = "multiple_backrefs"
+keyboard = "kms/cases/multiple_backrefs.kms"
+upstream_test = "keymagic-core/tests/variable_backref_test.rs::test_multiple_variable_references"
+events = [
+  { key = "k", action = "insert", text = "k" },
+  { key = "a", action = "replace", delete = 1, text = "ကာ" },
+  { key = "g", action = "insert", text = "g" },
+  { key = "i", action = "replace", delete = 1, text = "ဂိ" },
+]

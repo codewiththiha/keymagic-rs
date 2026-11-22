@@ -1,0 +1,4 @@
+<VK_F5> => ('state1') + ('state2')
+('state1') + ('state2') + "x" => "BOTH"
+('state1') + "x" => "S1"
+"x" => "x"

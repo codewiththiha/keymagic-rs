@@ -1,0 +1,45 @@
+name: Verify corpus against upstream
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'corpus/**'
+      - 'scripts/reference_cases.py'
+      - 'tools/reference_driver.rs'
+      - '.github/workflows/reference-corpus.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: thantthet/keymagic-3
+          ref: 2db30dc8e8a5f091d1434a2bc1702b29cf113804
+          path: upstream
+          persist-credentials: false
+      - name: Check reference driver formatting
+        run: rustfmt --edition 2024 --check tools/reference_driver.rs
+      - name: Build pinned reference driver
+        shell: bash
+        run: |
+          test "$(git -C upstream rev-parse HEAD)" = '2db30dc8e8a5f091d1434a2bc1702b29cf113804'
+          cp tools/reference_driver.rs upstream/kms2km2/src/bin/corpus_reference_driver.rs
+          cargo build --locked --manifest-path upstream/Cargo.toml --package kms2km2 --bin corpus_reference_driver
+      - name: Lint reference driver
+        shell: bash
+        run: |
+          mkdir -p reference-driver/src
+          cp tools/reference_driver.rs reference-driver/src/main.rs
+          cp upstream/Cargo.lock reference-driver/Cargo.lock
+          printf '%s\n' '[package]' 'name = "corpus-reference-driver"' 'version = "0.1.0"' 'edition = "2024"' '[workspace]' '[dependencies]' 'keymagic-core = { path = "../upstream/keymagic-core" }' 'kms2km2 = { path = "../upstream/kms2km2" }' > reference-driver/Cargo.toml
+          cargo check --offline --manifest-path reference-driver/Cargo.toml
+          cargo clippy --locked --offline --manifest-path reference-driver/Cargo.toml -- -D warnings -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::unwrap_used -D clippy::expect_used
+      - name: Compare corpus cases
+        run: python3 scripts/reference_cases.py upstream/target/debug/corpus_reference_driver

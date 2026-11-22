@@ -11,11 +11,11 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 | p0-1 workspace | In progress | [Linux, macOS and Windows checks passed](https://github.com/codewiththiha/keymagic-rs/actions/runs/44983376072) at `be3800b`; product crates remain placeholders. |
 | p0-2 agent and docs | Complete for the documentation card | Required documentation and the sourced virtual-key reference exist; platform manual tests remain future work. |
 | p0-3 CI | In progress | Self-hosted checks and an intentional Clippy failure probe pass; main protection could not be inspected (API returned 403). PR-oriented steps conflict with the direct-main policy. |
-| p0-4 corpus | In progress | Sync tooling works; corpus has 18 transcribed scenarios, 3 upstream KMS fixtures and 1 upstream KM2 fixture. Verify layout licensing and add the remaining cases. |
+| p0-4 corpus | In progress | Sync tooling works; 32 scenarios pass against pinned upstream ([run](https://github.com/codewiththiha/keymagic-rs/actions/runs/44985002579)). Verify bundled-layout rights and add at least 118 distinct cases. |
 
 [Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling and stubs, not a working input method. Corpus source references are not runnable engine tests.
 
-**Working rule:** Aim to finish each phase end-to-end in a session when feasible; do not report it as complete until its applicable gates pass. If a gate is blocked or superseded by a user instruction, say exactly which and why. Update this status and the external progress record when work ends.
+**Working rule:** Finish each phase end-to-end. Before ending, reread its entire phase file, compare every card, ordered step and completion gate against actual work and evidence, fill gaps, and repeat until complete. Ordinary remaining work is not a blocker. If an external dependency or a conflicting user instruction genuinely blocks an item, finish unblocked work and report the exact blocker. Update this status and the external progress record when work ends.
 
 Critical path: 00 → 01 → 02 → 03 → 04 → 05 → (06 ∥ 07 ∥ 08) → 09. Do not start platform work before p2-4 differential CI is green.
 

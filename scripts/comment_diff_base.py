@@ -21,9 +21,10 @@ def main():
         if result.returncode:
             print('No common ancestor for comment checks.', file=sys.stderr)
             return 1
+    elif event != 'workflow_dispatch':
+        print('Previous commit unavailable; checking the entire tree.', file=sys.stderr)
+        result = git('hash-object', '-t', 'tree', '/dev/null')
     else:
-        if event != 'workflow_dispatch':
-            print('Previous commit unavailable; checking the last commit.', file=sys.stderr)
         result = git('rev-parse', '--verify', f'{head}^')
         if result.returncode:
             result = git('hash-object', '-t', 'tree', '/dev/null')

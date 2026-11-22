@@ -46,10 +46,10 @@ class CommentDiffBaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), self.root)
 
-    def test_missing_base_uses_head_parent(self):
+    def test_missing_base_checks_entire_tree(self):
         result = self.base('push', '0' * 40, self.old)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.strip(), self.root)
+        self.assertEqual(result.stdout.strip(), self.git('hash-object', '-t', 'tree', '/dev/null'))
 
     def test_dispatch_uses_head_parent(self):
         result = self.base('workflow_dispatch', self.old, self.old)
