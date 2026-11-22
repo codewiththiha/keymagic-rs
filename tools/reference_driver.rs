@@ -21,9 +21,15 @@ fn hex(text: &str) -> Result<String, std::fmt::Error> {
 fn run() -> Result<(), Box<dyn Error>> {
     let mut args = env::args().skip(1);
     let keyboard = args.next().ok_or("missing keyboard")?;
-    let file = kms2km2::compile_kms_file(Path::new(&keyboard))?;
-    let mut bytes = Vec::new();
-    kms2km2::binary::Km2Writer::new(&mut bytes).write_km2_file(&file)?;
+    let path = Path::new(&keyboard);
+    let bytes = if path.extension().is_some_and(|ext| ext == "km2") {
+        std::fs::read(path)?
+    } else {
+        let file = kms2km2::compile_kms_file(path)?;
+        let mut bytes = Vec::new();
+        kms2km2::binary::Km2Writer::new(&mut bytes).write_km2_file(&file)?;
+        bytes
+    };
     let keyboard = Km2Loader::load(&bytes)?;
     let mut engine = KeyMagicEngine::new(keyboard)?;
     for key in args {

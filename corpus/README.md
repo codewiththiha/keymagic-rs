@@ -53,9 +53,9 @@ when the original test did not assert it; omission is not an empty value. Events
 can include physical keys, modifiers, reset, composing-text replacement and
 non-mutating preview. The self-hosted reference workflow compiles the scripts
 and compares asserted fields against the separately fetched, pinned upstream
-compiler and engine. [Run 44987233685](https://github.com/codewiththiha/keymagic-rs/actions/runs/44987233685)
-checked 158 cases with zero differences. This validates the inputs and transcriptions, not parity with this
-project's unimplemented engine. The upstream reference is external code
+compiler and engine. [Run 44988672272](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988672272)
+checked 165 cases with zero differences. This validates the selected inputs and
+transcriptions, not parity with this project's unimplemented engine. The upstream reference is external code
 and includes unsafe FFI; it is not a workspace crate or a claim that dependencies
 are unsafe-free.
 
@@ -65,7 +65,40 @@ expectations without network access. On the self-hosted runner, `cargo xtask cor
 commit using Git and verifies each source blob before restoring changed fixtures.
 `--dry-run` lists differences without writing; `--check` fails on differences.
 The sync command verifies Git blob IDs; the Python test independently verifies
-SHA-256. All downloads are checked before any destination files are written.
+SHA-256. Downloads are checked before writing within each manifest, but a later
+manifest can fail after earlier manifest changes have been written.
+
+## Licensed alternative layouts
+
+At the user's direction these are alternatives, not the original four KeyMagic 3
+bundled binaries, and their parity with those layouts is not claimed. The three
+Karen layouts and their matching KMS files are from
+[Myanmar Linux Keyboards](https://github.com/kokoye2007/myanmar-linux-keyboards/tree/07464582f16c9976d0521ebfad1d93fe6c6ba44a),
+whose [MIT license](licenses/myanmar-linux-keyboards-MIT.txt) includes the
+copyright notice. The same maintainer published highly similar KMS scripts in
+the KeyMagic community collection in August 2025; the source and binaries here
+are the separately pinned MIT repository versions. The claimed source-to-binary
+relationship has not been verified byte-for-byte.
+
+The my-Win KMS and KM2 are from the
+[community collection](https://github.com/thantthet/keymagic-keyboards/tree/61da86297fdb99da56b2892190f73009dfe8bc07/myWin).
+The [source file](kms/alternatives/myWin.kms) names Keith Stribley, Martin
+Hosken and SIL and explicitly grants LGPL 2.1-or-later; it also identifies
+Thant Thet Khin Zaw's KeyMagic conversion. The full license is in
+[LGPL-2.1.txt](licenses/LGPL-2.1.txt). The binary appears alongside that source;
+it is not established that the current compiler reproduces its exact bytes.
+An attempt to compile this KMS with pinned KM3 failed at line 224 with
+`Expected output expression` ([run 44988457989](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988457989));
+the unmodified 1.4 binary still passes its independent smoke case.
+Do not interpret this as a license for other community layouts. Preserve the
+copyright and license notices when redistributing these files.
+
+The two alternative manifests pin the source repositories, commits, paths, Git
+blobs and SHA-256 hashes for all KMS/KM2 pairs and the MIT notice. Sync checks
+all three manifests; it validates and writes one source at a time, not as a
+cross-source transaction. [Reference run 44988672272](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988672272)
+passed all 165 cases, including four binary and three Karen source smoke cases.
+They are not comprehensive functional validation or release certification.
 
 ## License and coverage limits
 
@@ -74,8 +107,9 @@ may have separate authors or terms. The separate
 [community keyboard collection](https://github.com/thantthet/keymagic-keyboards/blob/61da86297fdb99da56b2892190f73009dfe8bc07/README.md)
 includes user submissions and grants distribution permissions to the collection;
 it does not clearly grant this project redistribution rights. Neither those
-layouts nor the bundled production binaries are copied here until their
-individual provenance and redistribution terms are verified. A
+original four bundled production binaries are not copied here because their
+individual provenance and redistribution terms are unverified. The separately
+licensed alternative layouts above are not those binaries. A
 [Debian ITP report](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933071)
 claims GPL2 for a separate IBus package and lists similarly named layouts, but
 it does not establish that these exact bundled KM2 bytes are covered. A
@@ -83,9 +117,9 @@ it does not establish that these exact bundled KM2 bytes are covered. A
 is MIT-licensed, but is a different implementation, not evidence of the
 KeyMagic binary's terms.
 
-There are 158 distinct scenarios (60 test-derived and 98 source-derived), 34
-derived KMS case scripts, three upstream KMS fixtures and one upstream KM2
-fixture, alongside the source references. The derived scripts are not a
-substitute for the lab's real keyboard corpus. Four bundled KM2 files with
-verified redistribution terms remain missing. Several upstream non-engine tests
-and behavioral assertions are still not represented by runnable case scripts.
+There are 165 distinct scenarios: 60 test-derived, 98 wildcard/boundary,
+four alternative binary smoke cases, and three source-compilation smoke cases. There are 34 derived
+KMS case scripts, three upstream KMS fixtures and one upstream KM2 fixture,
+four alternative KMS/KM2 pairs, and the source references. The alternatives
+are not the four original bundled files. Several upstream non-engine tests and
+behavioral assertions are still not represented by runnable case scripts.

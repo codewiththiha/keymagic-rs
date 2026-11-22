@@ -49,10 +49,41 @@ class CorpusTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha1(git_content).hexdigest(), blob)
                 self.assertEqual(hashlib.sha256(data).hexdigest(), digest)
 
+    def test_licensed_alternative_fixtures(self):
+        manifests = {
+            'alternatives-mit.tsv': ('https://github.com/kokoye2007/myanmar-linux-keyboards',
+                                     '07464582f16c9976d0521ebfad1d93fe6c6ba44a', 10),
+            'alternatives-lgpl.tsv': ('https://github.com/thantthet/keymagic-keyboards',
+                                      '61da86297fdb99da56b2892190f73009dfe8bc07', 2),
+        }
+        for name, (repository, revision, count) in manifests.items():
+            lines = (ROOT / name).read_text().splitlines()
+            self.assertEqual(lines[0].split('\t'), ['source', repository, revision])
+            self.assertEqual(len(lines) - 1, count)
+            for line in lines[1:]:
+                kind, source, path, blob, digest = line.split('\t')
+                with self.subTest(path=path):
+                    self.assertEqual(kind, 'file')
+                    self.assertFalse(Path(source).is_absolute())
+                    self.assertNotIn('..', Path(path).parts)
+                    data = (ROOT / path).read_bytes()
+                    self.assertEqual(hashlib.sha1(f'blob {len(data)}\0'.encode() + data).hexdigest(), blob)
+                    self.assertEqual(hashlib.sha256(data).hexdigest(), digest)
+                    if path.endswith('.km2'):
+                        self.assertEqual(data[:4], b'KMKL')
+        self.assertEqual(len(list((ROOT / 'km2/alternatives').glob('*.km2'))), 4)
+        self.assertIn('MIT License', (ROOT / 'licenses/myanmar-linux-keyboards-MIT.txt').read_text())
+        self.assertIn('Lesser General Public License', (ROOT / 'licenses/LGPL-2.1.txt').read_text())
+        self.assertIn('either version 2.1', (ROOT / 'kms/alternatives/myWin.kms').read_text())
+        sync_source = (ROOT.parent / 'xtask/src/main.rs').read_text()
+        self.assertIn('alternatives-mit.tsv', sync_source)
+        self.assertIn('alternatives-lgpl.tsv', sync_source)
+
     def test_upstream_bytes_are_not_normalized_by_git(self):
         attributes = (ROOT.parent / '.gitattributes').read_text().splitlines()
         for rule in ('corpus/reference/km3/** -text diff', 'corpus/kms/upstream/** -text diff',
-                     'corpus/km2/upstream/** -text'):
+                     'corpus/km2/upstream/** -text', 'corpus/kms/alternatives/** -text diff',
+                     'corpus/km2/alternatives/** -text', 'corpus/licenses/** -text diff'):
             self.assertIn(rule, attributes)
 
     def test_upstream_engine_reference_contains_original_cases(self):

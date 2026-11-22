@@ -1,0 +1,41 @@
+[[case]]
+name = "eastern_pwo_one"
+keyboard = "km2/alternatives/Eastern-Pwo_kjp.km2"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/eastern-pwo/keymagic/Eastern-Pwo_kjp.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "sgaw_karen_one"
+keyboard = "km2/alternatives/Sgaw-Kawthoolei_ksw.km2"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/sgaw/keymagic/Sgaw-Kawthoolei_ksw.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "western_pwo_one"
+keyboard = "km2/alternatives/Western-Pwo_pwo.km2"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/western-pwo/keymagic/Western-Pwo_pwo.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "mywin_one"
+keyboard = "km2/alternatives/myWin.km2"
+upstream_source = "https://github.com/thantthet/keymagic-keyboards/blob/61da86297fdb99da56b2892190f73009dfe8bc07/myWin/myWin.kms"
+events = [{ key = "1", composing = "၁" }]
+
+[[case]]
+name = "eastern_pwo_source_one"
+keyboard = "kms/alternatives/Eastern-Pwo_kjp.kms"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/eastern-pwo/keymagic/Eastern-Pwo_kjp.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "sgaw_karen_source_one"
+keyboard = "kms/alternatives/Sgaw-Kawthoolei_ksw.kms"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/sgaw/keymagic/Sgaw-Kawthoolei_ksw.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "western_pwo_source_one"
+keyboard = "kms/alternatives/Western-Pwo_pwo.kms"
+upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/western-pwo/keymagic/Western-Pwo_pwo.kms"
+events = [{ vk = 17, key = "1", composing = "၁" }]

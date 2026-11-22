@@ -1,3 +1,6 @@
 corpus/reference/km3/** -text diff
 corpus/kms/upstream/** -text diff
 corpus/km2/upstream/** -text
+corpus/kms/alternatives/** -text diff
+corpus/km2/alternatives/** -text
+corpus/licenses/** -text diff

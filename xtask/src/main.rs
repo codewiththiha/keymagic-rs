@@ -215,8 +215,15 @@ fn run() -> io::Result<()> {
         .parent()
         .ok_or_else(|| invalid("workspace root missing"))?;
     let corpus = root.join("corpus");
-    let manifest = Manifest::parse(&fs::read_to_string(corpus.join("sources.tsv"))?)?;
-    let count = sync(&manifest, &corpus, mode)?;
+    let mut count = 0;
+    for name in [
+        "sources.tsv",
+        "alternatives-mit.tsv",
+        "alternatives-lgpl.tsv",
+    ] {
+        let manifest = Manifest::parse(&fs::read_to_string(corpus.join(name))?)?;
+        count += sync(&manifest, &corpus, mode)?;
+    }
     println!("{count} fixture(s) differ from the pinned source");
     Ok(())
 }
