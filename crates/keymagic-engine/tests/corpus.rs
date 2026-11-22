@@ -10,7 +10,7 @@ use std::fs;
 use std::sync::Arc;
 
 /// Number of scenarios in `corpus/cases`; a change means the corpus changed.
-const EXPECTED_CASES: usize = 165;
+const EXPECTED_CASES: usize = 166;
 
 #[derive(Deserialize)]
 struct CorpusFile {

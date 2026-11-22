@@ -220,6 +220,7 @@ fn run() -> io::Result<()> {
         "sources.tsv",
         "alternatives-mit.tsv",
         "alternatives-lgpl.tsv",
+        "alternatives-unlicensed.tsv",
     ] {
         let manifest = Manifest::parse(&fs::read_to_string(corpus.join(name))?)?;
         count += sync(&manifest, &corpus, mode)?;

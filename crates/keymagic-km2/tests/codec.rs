@@ -36,7 +36,7 @@ fn corpus_round_trips_byte_identically() -> Result<(), Box<dyn Error>> {
         Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../corpus/km2")),
         &mut checked,
     )?;
-    assert_eq!(checked, 5);
+    assert_eq!(checked, 6);
     Ok(())
 }
 

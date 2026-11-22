@@ -55,6 +55,8 @@ class CorpusTests(unittest.TestCase):
                                      '07464582f16c9976d0521ebfad1d93fe6c6ba44a', 10),
             'alternatives-lgpl.tsv': ('https://github.com/thantthet/keymagic-keyboards',
                                       '61da86297fdb99da56b2892190f73009dfe8bc07', 2),
+            'alternatives-unlicensed.tsv': ('https://github.com/thantthet/keymagic-keyboards',
+                                            'f5ea7555efa8ef08f13a985ea1d7f9df34885fe3', 1),
         }
         for name, (repository, revision, count) in manifests.items():
             lines = (ROOT / name).read_text().splitlines()
@@ -71,13 +73,15 @@ class CorpusTests(unittest.TestCase):
                     self.assertEqual(hashlib.sha256(data).hexdigest(), digest)
                     if path.endswith('.km2'):
                         self.assertEqual(data[:4], b'KMKL')
-        self.assertEqual(len(list((ROOT / 'km2/alternatives').glob('*.km2'))), 4)
+        self.assertEqual(len(list((ROOT / 'km2/alternatives').glob('*.km2'))), 5)
         self.assertIn('MIT License', (ROOT / 'licenses/myanmar-linux-keyboards-MIT.txt').read_text())
         self.assertIn('Lesser General Public License', (ROOT / 'licenses/LGPL-2.1.txt').read_text())
         self.assertIn('either version 2.1', (ROOT / 'kms/alternatives/myWin.kms').read_text())
         sync_source = (ROOT.parent / 'xtask/src/main.rs').read_text()
         self.assertIn('alternatives-mit.tsv', sync_source)
         self.assertIn('alternatives-lgpl.tsv', sync_source)
+        self.assertIn('alternatives-unlicensed.tsv', sync_source)
+        self.assertIn('no license', (ROOT / 'licenses/Pyidaungsu-MM-NOTICE.md').read_text().lower())
 
     def test_upstream_bytes_are_not_normalized_by_git(self):
         attributes = (ROOT.parent / '.gitattributes').read_text().splitlines()

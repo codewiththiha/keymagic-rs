@@ -96,10 +96,24 @@ copyright and license notices when redistributing these files.
 
 The two alternative manifests pin the source repositories, commits, paths, Git
 blobs and SHA-256 hashes for all KMS/KM2 pairs and the MIT notice. Sync checks
-all three manifests; it validates and writes one source at a time, not as a
+all four manifests; it validates and writes one source at a time, not as a
 cross-source transaction. [Reference run 44988672272](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988672272)
 passed all 165 cases, including four binary and three Karen source smoke cases.
 They are not comprehensive functional validation or release certification.
+
+## Unlicensed benchmark keyboard
+
+`km2/alternatives/Pyidaungsu-MM.km2` is the Pyidaungsu MM keyboard from
+[keymagic-keyboards](https://github.com/thantthet/keymagic-keyboards/tree/f5ea7555efa8ef08f13a985ea1d7f9df34885fe3/Pyidaungsu).
+The source repository has no license for this file, and the font license does not
+cover it. On 2026-11-22 the project owner chose to commit it anyway for the
+benchmark and the differential harness, accepting the redistribution risk. See
+[the notice](licenses/Pyidaungsu-MM-NOTICE.md). It is listed in
+[`alternatives-unlicensed.tsv`](alternatives-unlicensed.tsv) and is not covered by
+the project's GPL-2.0 license. Obtain written permission or remove it before release.
+Its one case checks the single rule `g` to `ါ`. The benchmark typing script,
+[`pyidaungsu_keys.txt`](../crates/keymagic-engine/benches/pyidaungsu_keys.txt), is
+the readme's 26 worked key sequences repeated to 2,000 keystrokes.
 
 ## License and coverage limits
 

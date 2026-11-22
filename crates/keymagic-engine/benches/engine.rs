@@ -1,14 +1,14 @@
-//! Throughput of typing a Myanmar paragraph on the myWin keyboard.
+//! Throughput of typing a Myanmar paragraph on the Pyidaungsu MM keyboard.
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use keymagic_engine::{Engine, KeyEvent};
 use std::sync::Arc;
 
-const PARAGRAPH: &str = include_str!("myanmar_paragraph.txt");
-const KEYBOARD: &[u8] = include_bytes!("../../../corpus/km2/alternatives/myWin.km2");
+const KEYSTROKES: &str = include_str!("pyidaungsu_keys.txt");
+const KEYBOARD: &[u8] = include_bytes!("../../../corpus/km2/alternatives/Pyidaungsu-MM.km2");
 
-fn paragraph_keys() -> Vec<KeyEvent> {
-    PARAGRAPH
+fn keystrokes() -> Vec<KeyEvent> {
+    KEYSTROKES
         .chars()
         .map(|ch| KeyEvent {
             ch: Some(ch),
@@ -24,10 +24,10 @@ fn typing_throughput(criterion: &mut Criterion) {
     let Ok(mut engine) = Engine::new(Arc::new(keyboard)) else {
         panic!("building the benchmark engine");
     };
-    let keys = paragraph_keys();
+    let keys = keystrokes();
     let mut group = criterion.benchmark_group("engine");
     group.throughput(Throughput::Elements(u64::try_from(keys.len()).unwrap_or(0)));
-    group.bench_function("typing_myanmar_paragraph", |bencher| {
+    group.bench_function("typing_pyidaungsu_paragraph", |bencher| {
         bencher.iter(|| {
             engine.reset();
             for key in &keys {

@@ -39,3 +39,9 @@ name = "western_pwo_source_one"
 keyboard = "kms/alternatives/Western-Pwo_pwo.kms"
 upstream_source = "https://github.com/kokoye2007/myanmar-linux-keyboards/blob/07464582f16c9976d0521ebfad1d93fe6c6ba44a/scripts/karen/western-pwo/keymagic/Western-Pwo_pwo.kms"
 events = [{ vk = 17, key = "1", composing = "၁" }]
+
+[[case]]
+name = "pyidaungsu_mm_g"
+keyboard = "km2/alternatives/Pyidaungsu-MM.km2"
+upstream_source = "https://github.com/thantthet/keymagic-keyboards/blob/f5ea7555efa8ef08f13a985ea1d7f9df34885fe3/Pyidaungsu/Pyidaungsu%20MM.km2"
+events = [{ key = "g", action = "insert", text = "ါ", composing = "ါ" }]
