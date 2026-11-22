@@ -11,6 +11,7 @@ allow = [
     "LGPL-2.1-only",
     "LGPL-2.1-or-later",
     "MIT",
+    "MPL-2.0",
 ]
 
 [bans]
