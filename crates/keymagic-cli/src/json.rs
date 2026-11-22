@@ -8,8 +8,8 @@ pub enum Json {
     Bool(bool),
     Number(usize),
     Str(String),
-    Array(Vec<Json>),
-    Object(Vec<(&'static str, Json)>),
+    Array(Vec<Self>),
+    Object(Vec<(&'static str, Self)>),
 }
 
 impl Json {
