@@ -27,6 +27,9 @@ macro_rules! virtual_keys {
         }
 
         impl VirtualKey {
+            /// Every key, in declaration order.
+            pub const ALL: &[Self] = &[$( Self::$variant, )+];
+
             /// Resolve an internal 16-bit ID without unsafe conversion.
             #[must_use]
             pub const fn from_u16(value: u16) -> Option<Self> {

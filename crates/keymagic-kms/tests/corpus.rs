@@ -2,7 +2,7 @@
 
 mod common;
 
-use keymagic_kms::{Resolver, compile, format, lexer};
+use keymagic_kms::{Diagnostic, Resolver, compile, format, lexer};
 use std::error::Error;
 use std::fmt::Write as _;
 use std::fs;
@@ -95,9 +95,29 @@ fn formatter_is_idempotent_and_keeps_the_keyboard() -> TestResult {
             compile(&once, &resolver_for(&path)),
         ) {
             (Ok(before), Ok(after)) => assert_eq!(before, after, "{name}"),
-            (Err(_), Err(_)) => {}
+            (Err(before), Err(after)) => {
+                let messages = |errors: &[Diagnostic]| {
+                    errors.iter().map(|d| d.message.clone()).collect::<Vec<_>>()
+                };
+                assert_eq!(messages(&before), messages(&after), "{name}");
+            }
             _ => panic!("{name}: formatting changed whether the script compiles"),
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn formatter_keeps_every_block_comment() -> TestResult {
+    for path in scripts()? {
+        let src = fs::read_to_string(&path)?;
+        let name = path.display();
+        let once = format(&src).map_err(|errors| format!("{name}: {errors:?}"))?;
+        assert_eq!(
+            src.matches("/*").count(),
+            once.matches("/*").count(),
+            "{name}"
+        );
     }
     Ok(())
 }

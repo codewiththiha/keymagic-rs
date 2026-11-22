@@ -255,9 +255,9 @@ fn virtual_key(name: &str, span: &Span) -> Result<VirtualKey, Diagnostic> {
 }
 
 fn nearest_key_name(name: &str) -> Option<&'static str> {
-    (0..=u16::MAX)
-        .filter_map(VirtualKey::from_u16)
-        .map(VirtualKey::kms_name)
+    VirtualKey::ALL
+        .iter()
+        .map(|key| key.kms_name())
         .map(|candidate| (edit_distance(name, candidate), candidate))
         .filter(|(distance, _)| *distance <= 3)
         .min_by_key(|(distance, _)| *distance)

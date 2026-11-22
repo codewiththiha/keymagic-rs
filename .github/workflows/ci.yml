@@ -91,6 +91,8 @@ jobs:
           echo 'Clippy rejected the intentional unwrap as expected.'
       - name: Tests
         run: cargo test --locked --workspace --all-features
+      - name: Replay corpus cases with the CLI
+        run: cargo run --locked --quiet --package keymagic-cli -- test corpus/cases
       - name: Build public documentation
         run: cargo doc --locked --workspace --all-features --no-deps
       - name: Check pinned corpus
