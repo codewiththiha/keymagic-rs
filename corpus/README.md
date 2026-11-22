@@ -4,7 +4,7 @@ This is an initial, incomplete offline corpus. It does not establish engine pari
 
 ## Upstream test fixtures
 
-The four files listed in [`sources.toml`](sources.toml) are byte-for-byte copies
+The four files listed in [`sources.tsv`](sources.tsv) are byte-for-byte copies
 from [KeyMagic 3](https://github.com/thantthet/keymagic-3) at commit
 [`2db30dc8e8a5f091d1434a2bc1702b29cf113804`](https://github.com/thantthet/keymagic-3/tree/2db30dc8e8a5f091d1434a2bc1702b29cf113804).
 That upstream repository supplies a [GPL version 2 license](https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/LICENSE.md).
@@ -23,9 +23,13 @@ count; the single-character case uses U+200B followed by `test`. Each case
 starts with a fresh engine. These cases are data only: no engine runs them yet,
 and neither the scripts nor parity have been validated by a KMS compiler.
 
-`python3 -m unittest discover -s scripts -p test_corpus.py` verifies the pinned
-fixture bytes and the three transcribed expectations without network access.
-The planned Rust `cargo xtask corpus-sync` is not implemented yet.
+`python3 -m unittest discover -s scripts -p test_corpus.py` verifies fixture
+SHA-256 and Git blob hashes and the transcribed expectations without network
+access. On the self-hosted runner, `cargo xtask corpus-sync` fetches the pinned
+commit using Git and verifies each source blob before restoring changed fixtures.
+`--dry-run` lists differences without writing; `--check` fails on differences.
+The sync command verifies Git blob IDs; the Python test independently verifies
+SHA-256. All downloads are checked before any destination files are written.
 
 ## License and coverage limits
 

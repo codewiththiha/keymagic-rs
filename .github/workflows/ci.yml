@@ -71,5 +71,7 @@ jobs:
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
       - name: Tests
         run: cargo test --locked --workspace
+      - name: Check pinned corpus
+        run: cargo run --locked --package xtask -- corpus-sync --check
       - name: Dependency policy
         run: cargo deny check

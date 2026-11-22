@@ -21,18 +21,21 @@ def load(path):
 
 class CorpusTests(unittest.TestCase):
     def test_pinned_fixture_bytes_and_provenance(self):
-        manifest = load(ROOT / 'sources.toml')
-        self.assertEqual(manifest['source']['revision'], REVISION)
-        self.assertEqual(manifest['source']['repository'], 'https://github.com/thantthet/keymagic-3')
-        entries = manifest['file']
-        self.assertEqual({entry['path'] for entry in entries}, set(EXPECTED_FILES))
+        lines = (ROOT / 'sources.tsv').read_text().splitlines()
+        self.assertEqual(lines[0].split('\t'), ['source', 'https://github.com/thantthet/keymagic-3', REVISION])
+        entries = [line.split('\t') for line in lines[1:]]
+        self.assertEqual({entry[2] for entry in entries}, set(EXPECTED_FILES))
         self.assertEqual(len(entries), len(EXPECTED_FILES))
-        for entry in entries:
-            with self.subTest(path=entry['path']):
-                expected = EXPECTED_FILES[entry['path']]
-                self.assertEqual(entry['sha256'], expected)
-                self.assertTrue(entry['upstream'].startswith(('kms2km2/tests/', 'keymagic-core/tests/')))
-                self.assertEqual(hashlib.sha256((ROOT / entry['path']).read_bytes()).hexdigest(), expected)
+        for kind, upstream, path, blob, digest in entries:
+            with self.subTest(path=path):
+                expected = EXPECTED_FILES[path]
+                self.assertEqual(kind, 'file')
+                self.assertEqual(digest, expected)
+                self.assertTrue(upstream.startswith(('kms2km2/tests/', 'keymagic-core/tests/')))
+                data = (ROOT / path).read_bytes()
+                git_content = f'blob {len(data)}\0'.encode() + data
+                self.assertEqual(hashlib.sha1(git_content).hexdigest(), blob)
+                self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
 
     def test_basic_cases_preserve_upstream_actions(self):
         data = load(ROOT / 'cases/basic_rules.toml')

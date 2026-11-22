@@ -1,9 +1,11 @@
 # xtask
 
-**Status:** Placeholder only; no product functionality implemented.
+Workspace automation. Rust 2024, strict lints and the no-unsafe rule apply.
 
-**Planned responsibility:** cargo-xtask automation: `cargo xtask bundle-macos`, `package-windows`, `package-linux`, `gen-headers`, `corpus-sync`, `release-notes`, `bump-version`.
+`cargo xtask corpus-sync` restores pinned upstream fixtures listed in
+[`corpus/sources.tsv`](../corpus/sources.tsv). Add `--dry-run` to list changes
+without writing, or `--check` to fail if local files differ. Git and network
+access are required. Run Cargo commands on the self-hosted runner, not locally.
 
-**Path:** `xtask` · **Layer:** tooling · **Kind:** tool
-
-Read [AGENTS.md](../AGENTS.md) and the relevant task card before implementing. Rust 2024, strict lints and the no-unsafe rule apply to this crate. Proposed functionality must be tested and is not yet guaranteed feasible under that rule.
+Only corpus synchronization is implemented; other automation described in the
+lab is not implemented.
