@@ -15,7 +15,10 @@ pub fn corpus_dir() -> PathBuf {
 
 /// Returns the KM2 path for a corpus keyboard.
 pub fn keyboard_path(relative: &str) -> Result<PathBuf, Box<dyn Error>> {
-    if Path::new(relative).extension().is_some_and(|ext| ext == "km2") {
+    if Path::new(relative)
+        .extension()
+        .is_some_and(|ext| ext == "km2")
+    {
         return Ok(corpus_dir().join(relative));
     }
     let reference = PathBuf::from(env::var("KEYMAGIC_REFERENCE_KM2_DIRECTORY")?);
