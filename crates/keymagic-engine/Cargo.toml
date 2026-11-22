@@ -9,12 +9,12 @@ repository.workspace = true
 trace = []
 
 [dependencies]
-keymagic-types = { path = "../keymagic-types" }
+keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
 smallvec = "1"
 
 [dev-dependencies]
 criterion = { version = "0.5", default-features = false }
-keymagic-km2 = { path = "../keymagic-km2" }
+keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 
