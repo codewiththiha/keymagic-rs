@@ -249,10 +249,13 @@ pub unsafe extern "C" fn keymagic_engine_reset(handle: *mut EngineHandle) -> Key
         let Some(handle) = (unsafe { handle.as_mut() }) else {
             return KeyMagicResult::ErrorInvalidParameter;
         };
-        handle.engine.as_mut().map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
-            engine.reset();
-            KeyMagicResult::Success
-        })
+        handle
+            .engine
+            .as_mut()
+            .map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
+                engine.reset();
+                KeyMagicResult::Success
+            })
     })
 }
 
@@ -284,10 +287,13 @@ pub unsafe extern "C" fn keymagic_engine_set_composition(
         let Ok(text) = unsafe { CStr::from_ptr(text) }.to_str() else {
             return KeyMagicResult::ErrorUtf8Conversion;
         };
-        handle.engine.as_mut().map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
-            engine.set_composing(text);
-            KeyMagicResult::Success
-        })
+        handle
+            .engine
+            .as_mut()
+            .map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
+                engine.set_composing(text);
+                KeyMagicResult::Success
+            })
     })
 }
 
