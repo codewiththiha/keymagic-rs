@@ -5,8 +5,8 @@ This table transcribes the KeyMagic 3 internal predefined-key IDs at revision
 The order and names were cross-checked against the legacy
 [KeyCodes.h](https://github.com/thantthet/keymagic/blob/6a662fb071e1f0e0c9271f84e28712b9e78962ab/cross-platform/libkeymagic/KeyCodes.h).
 These are **KeyMagic internal IDs**, not Windows virtual-key numbers. For
-example `VK_BACK` is 2 here, not the Windows `VK_BACK` value. The Rust enum,
-platform conversions and exhaustive snapshot tests remain phase p1-1 work.
+example `VK_BACK` is 2 here, not the Windows `VK_BACK` value. The Rust enum and name/ID tests are in progress; platform conversions remain
+phase p1-1 work.
 
 ## Internal IDs
 
