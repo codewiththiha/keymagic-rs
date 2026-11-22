@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/keymagic-cli", "crates/keymagic-engine", "crates/keymagic-kms", "crates/keymagic-km2", "crates/keymagic-types", "xtask"]
+members = ["crates/keymagic-cli", "crates/keymagic-engine", "crates/keymagic-ffi", "crates/keymagic-kms", "crates/keymagic-km2", "crates/keymagic-types", "xtask"]
 resolver = "3"
 
 [workspace.package]

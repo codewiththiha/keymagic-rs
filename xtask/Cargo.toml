@@ -5,6 +5,9 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[dependencies]
+cbindgen = "0.29"
+
 [lints]
 workspace = true
 

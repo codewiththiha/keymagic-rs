@@ -199,21 +199,39 @@ fn sync(manifest: &Manifest, destination: &Path, mode: Mode) -> io::Result<usize
     Ok(changes.len())
 }
 
+fn gen_headers(root: &Path) -> io::Result<()> {
+    let crate_dir = root.join("crates").join("keymagic-ffi");
+    let config = cbindgen::Config::from_file(crate_dir.join("cbindgen.toml"))
+        .map_err(|error| invalid(&error.to_string()))?;
+    let bindings = cbindgen::Builder::new()
+        .with_crate(&crate_dir)
+        .with_config(config)
+        .generate()
+        .map_err(|error| invalid(&error.to_string()))?;
+    let header = crate_dir.join("include").join("keymagic.h");
+    if let Some(parent) = header.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    bindings.write_to_file(header);
+    Ok(())
+}
+
 fn run() -> io::Result<()> {
     let args: Vec<_> = env::args().skip(1).collect();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .ok_or_else(|| invalid("workspace root missing"))?;
     let mode = match args.as_slice() {
+        [command] if command == "gen-headers" => return gen_headers(root),
         [command] if command == "corpus-sync" => Mode::Write,
         [command, flag] if command == "corpus-sync" && flag == "--dry-run" => Mode::DryRun,
         [command, flag] if command == "corpus-sync" && flag == "--check" => Mode::Check,
         _ => {
             return Err(invalid(
-                "usage: cargo xtask corpus-sync [--dry-run|--check]",
+                "usage: cargo xtask [gen-headers | corpus-sync [--dry-run|--check]]",
             ));
         }
     };
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .ok_or_else(|| invalid("workspace root missing"))?;
     let corpus = root.join("corpus");
     let mut count = 0;
     for name in [

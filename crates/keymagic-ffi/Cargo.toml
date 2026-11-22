@@ -1,0 +1,32 @@
+[package]
+name = "keymagic-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "keymagic_core"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+c-smoke = []
+
+[dependencies]
+keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
+keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
+keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
+keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
+
+[build-dependencies]
+cc = "1"
+
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
