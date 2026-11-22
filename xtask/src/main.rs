@@ -202,7 +202,7 @@ fn sync(manifest: &Manifest, destination: &Path, mode: Mode) -> io::Result<usize
 fn gen_headers(root: &Path) -> io::Result<()> {
     let crate_dir = root.join("crates").join("keymagic-ffi");
     let config = cbindgen::Config::from_file(crate_dir.join("cbindgen.toml"))
-        .map_err(|error| invalid(&error.to_string()))?;
+        .map_err(|error| invalid(&error))?;
     let bindings = cbindgen::Builder::new()
         .with_crate(&crate_dir)
         .with_config(config)
