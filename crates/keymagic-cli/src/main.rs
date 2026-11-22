@@ -10,7 +10,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-/// KeyMagic keyboard tools.
+/// `KeyMagic` keyboard tools.
 #[derive(Parser)]
 #[command(name = "keymagic", version)]
 struct Cli {
