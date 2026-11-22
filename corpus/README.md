@@ -1,6 +1,7 @@
 # Behavioral corpus
 
-This is an initial, incomplete offline corpus. It does not establish engine parity.
+This is an initial offline corpus meeting the user-adapted phase 00 targets. It
+is not the complete original lab corpus and does not establish engine parity.
 
 ## Upstream test fixtures
 
@@ -106,7 +107,7 @@ The upstream repository is GPL-2.0-licensed, but its bundled production layouts
 may have separate authors or terms. The separate
 [community keyboard collection](https://github.com/thantthet/keymagic-keyboards/blob/61da86297fdb99da56b2892190f73009dfe8bc07/README.md)
 includes user submissions and grants distribution permissions to the collection;
-it does not clearly grant this project redistribution rights. Neither those
+it does not clearly grant this project redistribution rights. The
 original four bundled production binaries are not copied here because their
 individual provenance and redistribution terms are unverified. The separately
 licensed alternative layouts above are not those binaries. A

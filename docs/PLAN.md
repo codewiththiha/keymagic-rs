@@ -4,13 +4,13 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 
 ## Current status — 2026-11-22
 
-**Current phase: 00 — incomplete.** Working through its outstanding gates, not phase 01. At the user's direction unused product/platform stubs were removed; the workspace contains the implemented corpus-sync tool only. The engine and KM2 codec are not implemented.
+**Phase 00 complete under the user's adapted scope; phase 01 is next.** Branch protection is optional and deferred. Unused product/platform stubs were removed at the user's direction; the workspace contains the implemented corpus-sync tool only. The engine and KM2 codec are not implemented.
 
 | Card | Status | Remaining work |
 | --- | --- | --- |
 | p0-1 workspace | Complete with user-directed deviation | Unused crate stubs removed instead of copying the full lab tree; planned product crates will be created with real work in their phases. [Self-hosted checks](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988835071) and [Linux, macOS and Windows checks](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988839936) passed at `14cb903`. |
 | p0-2 agent and docs | Complete for the documentation card | Required documentation and the sourced virtual-key reference exist; platform manual tests remain future work. |
-| p0-3 CI | User-directed deviation | Branch protection deferred at user's request; PR-oriented steps conflict with direct-main policy. The Clippy failure probe is retained on the implemented tool. |
+| p0-3 CI | Complete with user-directed deviations | Branch protection is optional and deferred; PR-oriented steps conflict with direct-main policy. Self-hosted CI includes an intentional Clippy failure probe; a hosted cross-platform verification passed. |
 | p0-4 corpus | Complete with user-directed substitution | Four licensed alternative KMS/KM2 pairs are not the original upstream bundles. [Reference CI](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988835011) passed 165 cases; [corpus sync check](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988835071) passed at `14cb903`. My-Win's source cannot compile with the pinned KM3 compiler, although its binary smoke case passes. Loader, metadata and FFI tests remain reference sources. |
 
 [Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling, not a working input method. Corpus source references are not runnable engine tests.
@@ -23,7 +23,7 @@ Critical path: 00 → 01 → 02 → 03 → 04 → 05 → (06 ∥ 07 ∥ 08) → 
 
 - [x] p0-1 — Workspace, with user-directed no-stubs deviation
 - [x] p0-2 — Write AGENTS.md + docs skeleton
-- [ ] p0-3 — CI pipeline
+- [x] p0-3 — CI pipeline, with protection deferred
 - [x] p0-4 — Behavioural corpus, with user-approved alternatives
 
 ## Phase 01 — Types + KM2 codec
