@@ -25,6 +25,7 @@ use std::str;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeyMagicResult {
     Success = 0,
+    ErrorInvalidHandle = -1,
     ErrorInvalidParameter = -2,
     ErrorEngineFailure = -3,
     ErrorUtf8Conversion = -4,
@@ -105,7 +106,7 @@ pub unsafe extern "C" fn keymagic_engine_load_keyboard(
         let Ok(path) = unsafe { CStr::from_ptr(km2_path) }.to_str() else {
             return KeyMagicResult::ErrorUtf8Conversion;
         };
-        fs::read(path).map_or(KeyMagicResult::ErrorNoKeyboard, |bytes| {
+        fs::read(path).map_or(KeyMagicResult::ErrorEngineFailure, |bytes| {
             install(engine, &bytes)
         })
     })
@@ -385,7 +386,9 @@ pub unsafe extern "C" fn keymagic_engine_free_string(text: *mut c_char) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn keymagic_virtual_key_to_string(key_code: c_int) -> *mut c_char {
-    key_from_code(key_code).map_or(ptr::null_mut(), |key| to_c_string(key.kms_name()))
+    key_from_code(key_code)
+        .and_then(VirtualKey::display_name)
+        .map_or(ptr::null_mut(), to_c_string)
 }
 
 /// Parsed hotkey; `key_code` is the `VirtualKey` ID.

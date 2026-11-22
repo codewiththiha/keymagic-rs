@@ -13,6 +13,7 @@
  */
 typedef enum KeyMagicResult {
   Success = 0,
+  ErrorInvalidHandle = -1,
   ErrorInvalidParameter = -2,
   ErrorEngineFailure = -3,
   ErrorUtf8Conversion = -4,
