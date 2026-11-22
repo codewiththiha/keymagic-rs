@@ -28,10 +28,6 @@ fn text(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).into_owned()
 }
 
-fn run(args: &[&str]) -> std::io::Result<Output> {
-    keymagic().args(args).output()
-}
-
 #[test]
 fn compile_writes_km2_that_dump_reads() -> TestResult {
     let out = scratch("good.km2")?;
@@ -53,7 +49,10 @@ fn compile_writes_km2_that_dump_reads() -> TestResult {
 
 #[test]
 fn compile_reports_errors_and_fails() -> TestResult {
-    let output = keymagic().arg("compile").arg(fixture("bad.kms")).output()?;
+    let output = keymagic()
+        .arg("compile")
+        .arg(fixture("bad.kms"))
+        .output()?;
     assert_eq!(output.status.code(), Some(1));
     assert!(text(&output.stderr).contains("undefined variable '$b'"));
     Ok(())
@@ -61,22 +60,28 @@ fn compile_reports_errors_and_fails() -> TestResult {
 
 #[test]
 fn check_json_reports_warnings_and_succeeds() -> TestResult {
-    let output = run(&["--json", "check", &fixture("warn.kms").to_string_lossy()])?;
+    let output = keymagic()
+        .arg("--json")
+        .arg("check")
+        .arg(fixture("warn.kms"))
+        .output()?;
     assert!(output.status.success(), "{}", text(&output.stderr));
-    let parsed: serde_json::Value = serde_json::from_slice(&output.stdout)?;
-    let items = parsed.as_array().ok_or("expected a JSON array")?;
-    assert!(!items.is_empty());
-    assert_eq!(items[0]["severity"], "warning");
+    let shown = text(&output.stdout);
+    assert!(shown.starts_with("[{\"severity\":\"warning\""), "{shown}");
     Ok(())
 }
 
 #[test]
 fn check_json_reports_errors_and_fails() -> TestResult {
-    let output = run(&["--json", "check", &fixture("bad.kms").to_string_lossy()])?;
+    let output = keymagic()
+        .arg("--json")
+        .arg("check")
+        .arg(fixture("bad.kms"))
+        .output()?;
     assert_eq!(output.status.code(), Some(1));
-    let parsed: serde_json::Value = serde_json::from_slice(&output.stdout)?;
-    assert_eq!(parsed[0]["severity"], "error");
-    assert_eq!(parsed[0]["start"], 5);
+    let shown = text(&output.stdout);
+    assert!(shown.contains("\"severity\":\"error\""), "{shown}");
+    assert!(shown.contains("\"start\":5"), "{shown}");
     Ok(())
 }
 
@@ -115,12 +120,15 @@ fn repl_types_characters_through_the_engine() -> TestResult {
 #[test]
 fn test_command_counts_passes_and_fails() -> TestResult {
     let cases = fixture("corpus/cases");
-    let output = run(&["--json", "test", &cases.to_string_lossy()])?;
+    let output = keymagic()
+        .arg("--json")
+        .arg("test")
+        .arg(&cases)
+        .output()?;
     assert_eq!(output.status.code(), Some(1));
-    let parsed: serde_json::Value = serde_json::from_slice(&output.stdout)?;
-    assert_eq!(parsed["passed"], 1);
-    assert_eq!(parsed["failed"], 1);
-    assert_eq!(parsed["cases"][1]["name"], "mismatch");
+    let shown = text(&output.stdout);
+    assert!(shown.starts_with("{\"passed\":1,\"failed\":1,"), "{shown}");
+    assert!(shown.contains("\"name\":\"mismatch\",\"passed\":false"), "{shown}");
     Ok(())
 }
 

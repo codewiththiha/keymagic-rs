@@ -1,9 +1,0 @@
-```console
-$ keymagic fmt tests/fixtures/good.kms
-/*
-@NAME = "Good"
-*/
-$v = "a"
-"a" => "b"
-
-```

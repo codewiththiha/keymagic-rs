@@ -1,8 +1,8 @@
 //! Compile, check, format and dump commands.
 
+use crate::json::Json;
 use crate::resolver::DirResolver;
 use keymagic_kms::{Diagnostic, Severity};
-use serde_json::{Value, json};
 use std::fs;
 use std::path::Path;
 use std::process::ExitCode;
@@ -26,12 +26,12 @@ pub fn compile(input: &Path, output: Option<&Path>, json: bool) -> Result<ExitCo
     write_file(&target, &bytes)?;
     let target_name = display(&target);
     if json {
-        let body = json!({
-            "output": target_name,
-            "bytes": bytes.len(),
-            "warnings": diagnostics_array(&warnings, &name),
-        });
-        println!("{body}");
+        let body = Json::Object(vec![
+            ("output", Json::Str(target_name)),
+            ("bytes", Json::Number(bytes.len())),
+            ("warnings", diagnostics_array(&warnings, &name)),
+        ]);
+        println!("{}", body.render());
     } else {
         print_text(&warnings, &src, &name);
         println!("wrote {target_name} ({} bytes)", bytes.len());
@@ -48,7 +48,7 @@ pub fn check(input: &Path, json: bool) -> Result<ExitCode, String> {
         .iter()
         .any(|diagnostic| matches!(diagnostic.severity, Severity::Error));
     if json {
-        println!("{}", diagnostics_array(&diagnostics, &name));
+        println!("{}", diagnostics_array(&diagnostics, &name).render());
     } else {
         print_text(&diagnostics, &src, &name);
         if !failed {
@@ -79,14 +79,16 @@ pub fn fmt(input: &Path, write: bool, check: bool, json: bool) -> Result<ExitCod
     }
     if json {
         let shown = if write {
-            None
+            Json::Null
         } else {
-            Some(formatted.as_str())
+            Json::Str(formatted)
         };
-        println!(
-            "{}",
-            json!({"path": name, "changed": changed, "formatted": shown})
-        );
+        let body = Json::Object(vec![
+            ("path", Json::Str(name)),
+            ("changed", Json::Bool(changed)),
+            ("formatted", shown),
+        ]);
+        println!("{}", body.render());
     } else if write {
         if changed {
             println!("formatted {name}");
@@ -116,22 +118,25 @@ pub fn dump(input: &Path, json: bool) -> Result<ExitCode, String> {
     let info = &keyboard.info;
     let options = &keyboard.options;
     if json {
-        let body = json!({
-            "name": info.name(),
-            "description": info.description(),
-            "font_family": info.font_family(),
-            "hotkey": info.hotkey(),
-            "rules": keyboard.rules.len(),
-            "strings": keyboard.strings.len(),
-            "options": {
-                "track_caps": options.track_caps,
-                "auto_bksp": options.auto_bksp,
-                "eat": options.eat,
-                "pos_based": options.pos_based,
-                "right_alt": options.right_alt,
-            },
-        });
-        println!("{body}");
+        let body = Json::Object(vec![
+            ("name", Json::opt(info.name())),
+            ("description", Json::opt(info.description())),
+            ("font_family", Json::opt(info.font_family())),
+            ("hotkey", Json::opt(info.hotkey())),
+            ("rules", Json::Number(keyboard.rules.len())),
+            ("strings", Json::Number(keyboard.strings.len())),
+            (
+                "options",
+                Json::Object(vec![
+                    ("track_caps", Json::Bool(options.track_caps)),
+                    ("auto_bksp", Json::Bool(options.auto_bksp)),
+                    ("eat", Json::Bool(options.eat)),
+                    ("pos_based", Json::Bool(options.pos_based)),
+                    ("right_alt", Json::Bool(options.right_alt)),
+                ]),
+            ),
+        ]);
+        println!("{}", body.render());
     } else {
         println!("name: {}", or_dash(info.name()));
         println!("description: {}", or_dash(info.description()));
@@ -171,7 +176,7 @@ fn display(path: &Path) -> String {
     path.display().to_string()
 }
 
-fn diagnostic_json(diagnostic: &Diagnostic, name: &str) -> Value {
+fn diagnostic_json(diagnostic: &Diagnostic, name: &str) -> Json {
     let severity = match diagnostic.severity {
         Severity::Error => "error",
         Severity::Warning => "warning",
@@ -181,18 +186,18 @@ fn diagnostic_json(diagnostic: &Diagnostic, name: &str) -> Value {
     } else {
         diagnostic.file.as_str()
     };
-    json!({
-        "severity": severity,
-        "file": file,
-        "start": diagnostic.span.start,
-        "end": diagnostic.span.end,
-        "message": diagnostic.message,
-        "help": diagnostic.help,
-    })
+    Json::Object(vec![
+        ("severity", Json::Str(severity.to_owned())),
+        ("file", Json::Str(file.to_owned())),
+        ("start", Json::Number(diagnostic.span.start)),
+        ("end", Json::Number(diagnostic.span.end)),
+        ("message", Json::Str(diagnostic.message.clone())),
+        ("help", Json::opt(diagnostic.help.as_deref())),
+    ])
 }
 
-fn diagnostics_array(diagnostics: &[Diagnostic], name: &str) -> Value {
-    Value::Array(
+fn diagnostics_array(diagnostics: &[Diagnostic], name: &str) -> Json {
+    Json::Array(
         diagnostics
             .iter()
             .map(|diagnostic| diagnostic_json(diagnostic, name))
@@ -202,7 +207,7 @@ fn diagnostics_array(diagnostics: &[Diagnostic], name: &str) -> Value {
 
 fn emit_errors(errors: &[Diagnostic], src: &str, name: &str, json: bool) {
     if json {
-        println!("{}", diagnostics_array(errors, name));
+        println!("{}", diagnostics_array(errors, name).render());
     } else {
         print_text(errors, src, name);
     }

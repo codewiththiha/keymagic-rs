@@ -10,17 +10,12 @@ name = "keymagic"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4", features = ["derive"] }
+clap = "4"
 keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
 keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
 keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
 owo-colors = "4"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 toml = "0.8"
-
-[dev-dependencies]
-trycmd = "1"
 
 [lints]
 workspace = true

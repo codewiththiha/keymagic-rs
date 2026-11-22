@@ -1,8 +1,8 @@
 //! Types each stdin line into a keyboard, one character at a time.
 
+use crate::json::Json;
 use crate::replay::load_keyboard;
 use keymagic_engine::{Action, Engine, KeyEvent, Modifiers};
-use serde_json::json;
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::process::ExitCode;
@@ -33,10 +33,12 @@ pub fn run(keyboard: &Path, json: bool) -> Result<ExitCode, String> {
             }
         }
         if json {
-            println!(
-                "{}",
-                json!({"input": line, "text": host, "composing": engine.composing()})
-            );
+            let body = Json::Object(vec![
+                ("input", Json::Str(line.clone())),
+                ("text", Json::Str(host.clone())),
+                ("composing", Json::Str(engine.composing().to_owned())),
+            ]);
+            println!("{}", body.render());
         } else {
             println!("text: {host}");
             println!("composing: {}", engine.composing());

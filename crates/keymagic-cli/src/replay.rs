@@ -3,37 +3,27 @@
 use crate::resolver::DirResolver;
 use crate::style;
 use keymagic_engine::{Action, Engine, KeyEvent, Modifiers, Output, VirtualKey};
+use crate::json::Json;
 use keymagic_kms::Keyboard;
-use serde::Deserialize;
-use serde_json::{Value, json};
 use std::fmt::Debug;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::Arc;
+use toml::{Table, Value};
 
-#[derive(Deserialize)]
-struct CorpusFile {
-    case: Vec<Case>,
-}
-
-#[derive(Deserialize)]
 struct Case {
     name: String,
     keyboard: String,
     events: Vec<Event>,
 }
 
-#[derive(Deserialize)]
 struct Event {
     vk: Option<u16>,
     key: Option<String>,
-    #[serde(default)]
     modifiers: Vec<String>,
-    #[serde(default)]
     reset: bool,
     set_composing: Option<String>,
-    #[serde(default)]
     preview: bool,
     action: Option<String>,
     delete: Option<usize>,
@@ -72,9 +62,12 @@ pub fn run(cases_dir: &Path, json: bool) -> Result<ExitCode, String> {
         .count();
     let passed = outcomes.len() - failed;
     if json {
-        let case_values: Vec<Value> = outcomes.iter().map(outcome_json).collect();
-        let body = json!({"passed": passed, "failed": failed, "cases": case_values});
-        println!("{body}");
+        let body = Json::Object(vec![
+            ("passed", Json::Number(passed)),
+            ("failed", Json::Number(failed)),
+            ("cases", Json::Array(outcomes.iter().map(outcome_json).collect())),
+        ]);
+        println!("{}", body.render());
     } else {
         print_table(&outcomes);
         println!("{passed} passed, {failed} failed");
@@ -124,11 +117,103 @@ fn load_cases(dir: &Path) -> Result<Vec<Case>, String> {
     for path in paths {
         let text = fs::read_to_string(&path)
             .map_err(|error| format!("cannot read {}: {error}", path.display()))?;
-        let file: CorpusFile =
+        let table: Table =
             toml::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
-        cases.extend(file.case);
+        let entries: &[Value] = match table.get("case") {
+            Some(Value::Array(items)) => items.as_slice(),
+            _ => &[],
+        };
+        for entry in entries {
+            let case = parse_case(entry).map_err(|error| format!("{}: {error}", path.display()))?;
+            cases.push(case);
+        }
     }
     Ok(cases)
+}
+
+fn parse_case(value: &Value) -> Result<Case, String> {
+    let table = value.as_table().ok_or("a case must be a table")?;
+    let events = match table.get("events") {
+        Some(Value::Array(items)) => items
+            .iter()
+            .map(parse_event)
+            .collect::<Result<Vec<_>, _>>()?,
+        Some(_) => return Err("events must be an array".to_owned()),
+        None => Vec::new(),
+    };
+    Ok(Case {
+        name: required_text(table, "name")?,
+        keyboard: required_text(table, "keyboard")?,
+        events,
+    })
+}
+
+fn parse_event(value: &Value) -> Result<Event, String> {
+    let table = value.as_table().ok_or("an event must be a table")?;
+    let vk = match number_field(table, "vk")? {
+        Some(number) => Some(u16::try_from(number).map_err(|_| "vk is out of range")?),
+        None => None,
+    };
+    let delete = match number_field(table, "delete")? {
+        Some(number) => Some(usize::try_from(number).map_err(|_| "delete is negative")?),
+        None => None,
+    };
+    Ok(Event {
+        vk,
+        key: text_field(table, "key")?,
+        modifiers: list_field(table, "modifiers")?,
+        reset: bool_field(table, "reset")?.unwrap_or(false),
+        set_composing: text_field(table, "set_composing")?,
+        preview: bool_field(table, "preview")?.unwrap_or(false),
+        action: text_field(table, "action")?,
+        delete,
+        text: text_field(table, "text")?,
+        composing: text_field(table, "composing")?,
+        processed: bool_field(table, "processed")?,
+        engine_composing: text_field(table, "engine_composing")?,
+    })
+}
+
+fn required_text(table: &Table, key: &str) -> Result<String, String> {
+    text_field(table, key)?.ok_or_else(|| format!("missing {key}"))
+}
+
+fn text_field(table: &Table, key: &str) -> Result<Option<String>, String> {
+    match table.get(key) {
+        None => Ok(None),
+        Some(Value::String(text)) => Ok(Some(text.clone())),
+        Some(_) => Err(format!("{key} must be a string")),
+    }
+}
+
+fn number_field(table: &Table, key: &str) -> Result<Option<i64>, String> {
+    match table.get(key) {
+        None => Ok(None),
+        Some(Value::Integer(number)) => Ok(Some(*number)),
+        Some(_) => Err(format!("{key} must be an integer")),
+    }
+}
+
+fn bool_field(table: &Table, key: &str) -> Result<Option<bool>, String> {
+    match table.get(key) {
+        None => Ok(None),
+        Some(Value::Boolean(flag)) => Ok(Some(*flag)),
+        Some(_) => Err(format!("{key} must be true or false")),
+    }
+}
+
+fn list_field(table: &Table, key: &str) -> Result<Vec<String>, String> {
+    match table.get(key) {
+        None => Ok(Vec::new()),
+        Some(Value::Array(items)) => items
+            .iter()
+            .map(|item| match item {
+                Value::String(text) => Ok(text.clone()),
+                _ => Err(format!("{key} must list strings")),
+            })
+            .collect(),
+        Some(_) => Err(format!("{key} must be an array")),
+    }
 }
 
 fn corpus_root(cases_dir: &Path) -> Result<PathBuf, String> {
@@ -266,12 +351,21 @@ fn field<T: PartialEq + Debug>(name: &str, want: Option<&T>, got: &T) -> Option<
         .map(|want| format!("{name}: expected {want:?}, got {got:?}"))
 }
 
-fn outcome_json(outcome: &Outcome) -> Value {
-    json!({
-        "name": outcome.name,
-        "passed": outcome.failures.is_empty(),
-        "failures": outcome.failures,
-    })
+fn outcome_json(outcome: &Outcome) -> Json {
+    Json::Object(vec![
+        ("name", Json::Str(outcome.name.clone())),
+        ("passed", Json::Bool(outcome.failures.is_empty())),
+        (
+            "failures",
+            Json::Array(
+                outcome
+                    .failures
+                    .iter()
+                    .map(|failure| Json::Str(failure.clone()))
+                    .collect(),
+            ),
+        ),
+    ])
 }
 
 fn print_table(outcomes: &[Outcome]) {
