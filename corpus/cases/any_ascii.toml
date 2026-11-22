@@ -1,0 +1,881 @@
+[[case]]
+name = "any_u0021"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "!", composing = "\u1000!", action = "replace", delete = 1, text = "\u1000!" },
+]
+
+[[case]]
+name = "any_u0022"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "\"", composing = "\u1000\"", action = "replace", delete = 1, text = "\u1000\"" },
+]
+
+[[case]]
+name = "any_u0023"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "#", composing = "\u1000#", action = "replace", delete = 1, text = "\u1000#" },
+]
+
+[[case]]
+name = "any_u0024"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "$", composing = "\u1000$", action = "replace", delete = 1, text = "\u1000$" },
+]
+
+[[case]]
+name = "any_u0025"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "%", composing = "\u1000%", action = "replace", delete = 1, text = "\u1000%" },
+]
+
+[[case]]
+name = "any_u0026"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "&", composing = "\u1000&", action = "replace", delete = 1, text = "\u1000&" },
+]
+
+[[case]]
+name = "any_u0027"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "'", composing = "\u1000'", action = "replace", delete = 1, text = "\u1000'" },
+]
+
+[[case]]
+name = "any_u0028"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "(", composing = "\u1000(", action = "replace", delete = 1, text = "\u1000(" },
+]
+
+[[case]]
+name = "any_u0029"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ")", composing = "\u1000)", action = "replace", delete = 1, text = "\u1000)" },
+]
+
+[[case]]
+name = "any_u002a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "*", composing = "\u1000*", action = "replace", delete = 1, text = "\u1000*" },
+]
+
+[[case]]
+name = "any_u002b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "+", composing = "\u1000+", action = "replace", delete = 1, text = "\u1000+" },
+]
+
+[[case]]
+name = "any_u002c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ",", composing = "\u1000,", action = "replace", delete = 1, text = "\u1000," },
+]
+
+[[case]]
+name = "any_u002d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "-", composing = "\u1000-", action = "replace", delete = 1, text = "\u1000-" },
+]
+
+[[case]]
+name = "any_u002e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ".", composing = "\u1000.", action = "replace", delete = 1, text = "\u1000." },
+]
+
+[[case]]
+name = "any_u002f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "/", composing = "\u1000/", action = "replace", delete = 1, text = "\u1000/" },
+]
+
+[[case]]
+name = "any_u0030"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "0", composing = "\u10000", action = "replace", delete = 1, text = "\u10000" },
+]
+
+[[case]]
+name = "any_u0031"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "1", composing = "\u10001", action = "replace", delete = 1, text = "\u10001" },
+]
+
+[[case]]
+name = "any_u0032"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "2", composing = "\u10002", action = "replace", delete = 1, text = "\u10002" },
+]
+
+[[case]]
+name = "any_u0033"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "3", composing = "\u10003", action = "replace", delete = 1, text = "\u10003" },
+]
+
+[[case]]
+name = "any_u0034"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "4", composing = "\u10004", action = "replace", delete = 1, text = "\u10004" },
+]
+
+[[case]]
+name = "any_u0035"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "5", composing = "\u10005", action = "replace", delete = 1, text = "\u10005" },
+]
+
+[[case]]
+name = "any_u0036"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "6", composing = "\u10006", action = "replace", delete = 1, text = "\u10006" },
+]
+
+[[case]]
+name = "any_u0037"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "7", composing = "\u10007", action = "replace", delete = 1, text = "\u10007" },
+]
+
+[[case]]
+name = "any_u0038"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "8", composing = "\u10008", action = "replace", delete = 1, text = "\u10008" },
+]
+
+[[case]]
+name = "any_u0039"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "9", composing = "\u10009", action = "replace", delete = 1, text = "\u10009" },
+]
+
+[[case]]
+name = "any_u003a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ":", composing = "\u1000:", action = "replace", delete = 1, text = "\u1000:" },
+]
+
+[[case]]
+name = "any_u003b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ";", composing = "\u1000;", action = "replace", delete = 1, text = "\u1000;" },
+]
+
+[[case]]
+name = "any_u003c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "<", composing = "\u1000<", action = "replace", delete = 1, text = "\u1000<" },
+]
+
+[[case]]
+name = "any_u003d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "=", composing = "\u1000=", action = "replace", delete = 1, text = "\u1000=" },
+]
+
+[[case]]
+name = "any_u003e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = ">", composing = "\u1000>", action = "replace", delete = 1, text = "\u1000>" },
+]
+
+[[case]]
+name = "any_u003f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "?", composing = "\u1000?", action = "replace", delete = 1, text = "\u1000?" },
+]
+
+[[case]]
+name = "any_u0040"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "@", composing = "\u1000@", action = "replace", delete = 1, text = "\u1000@" },
+]
+
+[[case]]
+name = "any_u0041"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "A", composing = "\u1000A", action = "replace", delete = 1, text = "\u1000A" },
+]
+
+[[case]]
+name = "any_u0042"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "B", composing = "\u1000B", action = "replace", delete = 1, text = "\u1000B" },
+]
+
+[[case]]
+name = "any_u0043"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "C", composing = "\u1000C", action = "replace", delete = 1, text = "\u1000C" },
+]
+
+[[case]]
+name = "any_u0044"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "D", composing = "\u1000D", action = "replace", delete = 1, text = "\u1000D" },
+]
+
+[[case]]
+name = "any_u0045"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "E", composing = "\u1000E", action = "replace", delete = 1, text = "\u1000E" },
+]
+
+[[case]]
+name = "any_u0046"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "F", composing = "\u1000F", action = "replace", delete = 1, text = "\u1000F" },
+]
+
+[[case]]
+name = "any_u0047"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "G", composing = "\u1000G", action = "replace", delete = 1, text = "\u1000G" },
+]
+
+[[case]]
+name = "any_u0048"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "H", composing = "\u1000H", action = "replace", delete = 1, text = "\u1000H" },
+]
+
+[[case]]
+name = "any_u0049"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "I", composing = "\u1000I", action = "replace", delete = 1, text = "\u1000I" },
+]
+
+[[case]]
+name = "any_u004a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "J", composing = "\u1000J", action = "replace", delete = 1, text = "\u1000J" },
+]
+
+[[case]]
+name = "any_u004b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "K", composing = "\u1000K", action = "replace", delete = 1, text = "\u1000K" },
+]
+
+[[case]]
+name = "any_u004c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "L", composing = "\u1000L", action = "replace", delete = 1, text = "\u1000L" },
+]
+
+[[case]]
+name = "any_u004d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "M", composing = "\u1000M", action = "replace", delete = 1, text = "\u1000M" },
+]
+
+[[case]]
+name = "any_u004e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "N", composing = "\u1000N", action = "replace", delete = 1, text = "\u1000N" },
+]
+
+[[case]]
+name = "any_u004f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "O", composing = "\u1000O", action = "replace", delete = 1, text = "\u1000O" },
+]
+
+[[case]]
+name = "any_u0050"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "P", composing = "\u1000P", action = "replace", delete = 1, text = "\u1000P" },
+]
+
+[[case]]
+name = "any_u0051"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "Q", composing = "\u1000Q", action = "replace", delete = 1, text = "\u1000Q" },
+]
+
+[[case]]
+name = "any_u0052"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "R", composing = "\u1000R", action = "replace", delete = 1, text = "\u1000R" },
+]
+
+[[case]]
+name = "any_u0053"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "S", composing = "\u1000S", action = "replace", delete = 1, text = "\u1000S" },
+]
+
+[[case]]
+name = "any_u0054"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "T", composing = "\u1000T", action = "replace", delete = 1, text = "\u1000T" },
+]
+
+[[case]]
+name = "any_u0055"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "U", composing = "\u1000U", action = "replace", delete = 1, text = "\u1000U" },
+]
+
+[[case]]
+name = "any_u0056"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "V", composing = "\u1000V", action = "replace", delete = 1, text = "\u1000V" },
+]
+
+[[case]]
+name = "any_u0057"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "W", composing = "\u1000W", action = "replace", delete = 1, text = "\u1000W" },
+]
+
+[[case]]
+name = "any_u0058"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "X", composing = "\u1000X", action = "replace", delete = 1, text = "\u1000X" },
+]
+
+[[case]]
+name = "any_u0059"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "Y", composing = "\u1000Y", action = "replace", delete = 1, text = "\u1000Y" },
+]
+
+[[case]]
+name = "any_u005a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "Z", composing = "\u1000Z", action = "replace", delete = 1, text = "\u1000Z" },
+]
+
+[[case]]
+name = "any_u005b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "[", composing = "\u1000[", action = "replace", delete = 1, text = "\u1000[" },
+]
+
+[[case]]
+name = "any_u005c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "\\", composing = "\u1000\\", action = "replace", delete = 1, text = "\u1000\\" },
+]
+
+[[case]]
+name = "any_u005d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "]", composing = "\u1000]", action = "replace", delete = 1, text = "\u1000]" },
+]
+
+[[case]]
+name = "any_u005e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "^", composing = "\u1000^", action = "replace", delete = 1, text = "\u1000^" },
+]
+
+[[case]]
+name = "any_u005f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "_", composing = "\u1000_", action = "replace", delete = 1, text = "\u1000_" },
+]
+
+[[case]]
+name = "any_u0060"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "`", composing = "\u1000`", action = "replace", delete = 1, text = "\u1000`" },
+]
+
+[[case]]
+name = "any_u0061"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "a", composing = "\u1000a", action = "replace", delete = 1, text = "\u1000a" },
+]
+
+[[case]]
+name = "any_u0062"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "b", composing = "\u1000b", action = "replace", delete = 1, text = "\u1000b" },
+]
+
+[[case]]
+name = "any_u0063"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "c", composing = "\u1000c", action = "replace", delete = 1, text = "\u1000c" },
+]
+
+[[case]]
+name = "any_u0064"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "d", composing = "\u1000d", action = "replace", delete = 1, text = "\u1000d" },
+]
+
+[[case]]
+name = "any_u0065"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "e", composing = "\u1000e", action = "replace", delete = 1, text = "\u1000e" },
+]
+
+[[case]]
+name = "any_u0066"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "f", composing = "\u1000f", action = "replace", delete = 1, text = "\u1000f" },
+]
+
+[[case]]
+name = "any_u0067"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "g", composing = "\u1000g", action = "replace", delete = 1, text = "\u1000g" },
+]
+
+[[case]]
+name = "any_u0068"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "h", composing = "\u1000h", action = "replace", delete = 1, text = "\u1000h" },
+]
+
+[[case]]
+name = "any_u0069"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "i", composing = "\u1000i", action = "replace", delete = 1, text = "\u1000i" },
+]
+
+[[case]]
+name = "any_u006a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "j", composing = "\u1000j", action = "replace", delete = 1, text = "\u1000j" },
+]
+
+[[case]]
+name = "any_u006b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "k", composing = "\u1000k", action = "replace", delete = 1, text = "\u1000k" },
+]
+
+[[case]]
+name = "any_u006c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "l", composing = "\u1000l", action = "replace", delete = 1, text = "\u1000l" },
+]
+
+[[case]]
+name = "any_u006d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "m", composing = "\u1000m", action = "replace", delete = 1, text = "\u1000m" },
+]
+
+[[case]]
+name = "any_u006e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "n", composing = "\u1000n", action = "replace", delete = 1, text = "\u1000n" },
+]
+
+[[case]]
+name = "any_u006f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "o", composing = "\u1000o", action = "replace", delete = 1, text = "\u1000o" },
+]
+
+[[case]]
+name = "any_u0070"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "p", composing = "\u1000p", action = "replace", delete = 1, text = "\u1000p" },
+]
+
+[[case]]
+name = "any_u0071"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "q", composing = "\u1000q", action = "replace", delete = 1, text = "\u1000q" },
+]
+
+[[case]]
+name = "any_u0072"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "r", composing = "\u1000r", action = "replace", delete = 1, text = "\u1000r" },
+]
+
+[[case]]
+name = "any_u0073"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "s", composing = "\u1000s", action = "replace", delete = 1, text = "\u1000s" },
+]
+
+[[case]]
+name = "any_u0074"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "t", composing = "\u1000t", action = "replace", delete = 1, text = "\u1000t" },
+]
+
+[[case]]
+name = "any_u0075"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "u", composing = "\u1000u", action = "replace", delete = 1, text = "\u1000u" },
+]
+
+[[case]]
+name = "any_u0076"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "v", composing = "\u1000v", action = "replace", delete = 1, text = "\u1000v" },
+]
+
+[[case]]
+name = "any_u0077"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "w", composing = "\u1000w", action = "replace", delete = 1, text = "\u1000w" },
+]
+
+[[case]]
+name = "any_u0078"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "x", composing = "\u1000x", action = "replace", delete = 1, text = "\u1000x" },
+]
+
+[[case]]
+name = "any_u0079"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "y", composing = "\u1000y", action = "replace", delete = 1, text = "\u1000y" },
+]
+
+[[case]]
+name = "any_u007a"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "z", composing = "\u1000z", action = "replace", delete = 1, text = "\u1000z" },
+]
+
+[[case]]
+name = "any_u007b"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "{", composing = "\u1000{", action = "replace", delete = 1, text = "\u1000{" },
+]
+
+[[case]]
+name = "any_u007c"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "|", composing = "\u1000|", action = "replace", delete = 1, text = "\u1000|" },
+]
+
+[[case]]
+name = "any_u007d"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "}", composing = "\u1000}", action = "replace", delete = 1, text = "\u1000}" },
+]
+
+[[case]]
+name = "any_u007e"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "~", composing = "\u1000~", action = "replace", delete = 1, text = "\u1000~" },
+]
+
+[[case]]
+name = "any_u0020"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = " ", composing = "~ ", action = "insert", text = " " },
+]
+
+[[case]]
+name = "any_u001f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "\u001f", composing = "~\u001f", action = "insert", text = "\u001f" },
+]
+
+[[case]]
+name = "any_u007f"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "\u007f", composing = "~\u007f", action = "insert", text = "\u007f" },
+]
+
+[[case]]
+name = "any_u1000"
+keyboard = "kms/cases/any_ascii.kms"
+upstream_source = "https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs"
+events = [
+  { key = "~", composing = "~", action = "insert", text = "~" },
+  { key = "\u1000", composing = "~\u1000", action = "insert", text = "\u1000" },
+]

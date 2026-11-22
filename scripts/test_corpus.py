@@ -62,6 +62,27 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_any_exhausts_printable_ascii_and_boundaries(self):
+        cases = load(ROOT / 'cases/any_ascii.toml')['case']
+        by_key = {case['events'][1]['key']: case for case in cases}
+        expected = {chr(code) for code in range(0x21, 0x7f)} | {' ', '\x1f', '\x7f', 'က'}
+        self.assertEqual(len(cases), 98)
+        self.assertEqual(set(by_key), expected)
+        self.assertEqual(len({case['name'] for case in cases}), len(cases))
+        for key, case in by_key.items():
+            with self.subTest(codepoint=ord(key)):
+                self.assertEqual(case['keyboard'], 'kms/cases/any_ascii.kms')
+                self.assertIn('keymagic-core/src/engine/matching/matcher.rs', case['upstream_source'])
+                self.assertEqual(case['events'][0],
+                                 {'key': '~', 'composing': '~', 'action': 'insert', 'text': '~'})
+                event = case['events'][1]
+                if '!' <= key <= '~':
+                    self.assertEqual(event, {'key': key, 'composing': 'က' + key,
+                                             'action': 'replace', 'delete': 1, 'text': 'က' + key})
+                else:
+                    self.assertEqual(event, {'key': key, 'composing': '~' + key,
+                                             'action': 'insert', 'text': key})
+
     def test_history_cases_preserve_upstream_assertions(self):
         cases = {case['name']: case for case in load(ROOT / 'cases/history.toml')['case']}
         self.assertEqual(set(cases), {'history_restore', 'history_disabled', 'history_reset',
