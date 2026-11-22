@@ -10,7 +10,7 @@ Read this file before changing the project. The [lab](https://01a1ff77-4137-7a69
 
 ## Coding method: ponytail
 
-Before any coding task, read `/home/user/ponytail/skills/ponytail/SKILL.md` (the `DietrichGebert/ponytail` skill, MIT, cloned at `ebd8654`). If that path is missing, clone `https://github.com/DietrichGebert/ponytail.git` first. Use the default `full` level unless the user asks otherwise.
+Before any coding task, read `/home/user/skills/ponytail/SKILL.md` (the `DietrichGebert/ponytail` skill, MIT, source commit `ebd8654`, license beside it). If that path is missing, clone `https://github.com/DietrichGebert/ponytail.git` to temp storage and copy `skills/ponytail/SKILL.md` back to that path. Use the default `full` level unless the user asks otherwise.
 
 Apply its method to every change: list every place the change must reach, take the smallest option that fully works, reuse existing code, skip unrequested options, and end each reply with one or two lines on what was skipped or not checked, and the risks.
 
