@@ -2,9 +2,9 @@
 
 Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.arena.site/#roadmap). Full lab steps and detailed evidence are in `/home/user/phases/` and `/home/user/progress.md` when available. A checkbox means all applicable completion gates have evidence, not merely that work has started.
 
-## Current status — 2026-11-22
+## Current status: 2026-11-22
 
-**Phase 00 is complete under the user's adapted scope; Phase 01 is complete at `9f62008`; Phase 02 is complete at code SHA `2ac31e0`.** Phase 02 CI, bench, and fuzz evidence is in `progress.md`. Branch protection remains deferred. Product crates are added as implemented. Platform phases may begin now that the p2-4 differential gate is green.
+Phase 00 is complete under the user's adapted scope; Phase 01 is complete at `9f62008`; Phase 02 is complete at code SHA `2ac31e0`. Phase 02 CI, bench, and fuzz evidence is in `progress.md`. Branch protection remains deferred. Product crates are added as implemented. Platform phases may begin now that the p2-4 differential gate is green.
 
 | Card | Status | Remaining work |
 | --- | --- | --- |
@@ -15,76 +15,76 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 
 [Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling, not a working input method. Corpus source references are not runnable engine tests.
 
-**Working rule:** Finish each phase end-to-end. Before ending, reread its entire phase file, compare every card, ordered step and completion gate against actual work and evidence, fill gaps, and repeat until complete. Ordinary remaining work is not a blocker. If an external dependency or a conflicting user instruction genuinely blocks an item, finish unblocked work and report the exact blocker. Update this status and the external progress record when work ends.
+Working rule: Finish each phase end-to-end. Before ending, reread its entire phase file, compare every card, ordered step and completion gate against actual work and evidence, fill gaps, and repeat until complete. Ordinary remaining work is not a blocker. If an external dependency or a conflicting user instruction genuinely blocks an item, finish unblocked work and report the exact blocker. Update this status and the external progress record when work ends.
 
 Critical path: 00 → 01 → 02 → 03 → 04 → 05 → (06 ∥ 07 ∥ 08) → 09. Do not start platform work before p2-4 differential CI is green.
 
-## Phase 00 — Bootstrap the lab
+## Phase 00: Bootstrap the lab
 
-- [x] p0-1 — Workspace, with user-directed no-stubs deviation
-- [x] p0-2 — Write AGENTS.md + docs skeleton
-- [x] p0-3 — CI pipeline, with protection deferred
-- [x] p0-4 — Behavioural corpus, with user-approved alternatives
+- [x] p0-1: Workspace, with user-directed no-stubs deviation
+- [x] p0-2: Write AGENTS.md + docs skeleton
+- [x] p0-3: CI pipeline, with protection deferred
+- [x] p0-4: Behavioural corpus, with user-approved alternatives
 
-## Phase 01 — Types + KM2 codec
+## Phase 01: Types + KM2 codec
 
-- [x] p1-1 — VirtualKey enum & tables
-- [x] p1-2 — Rule IR
-- [x] p1-3 — KM2 reader
-- [x] p1-4 — KM2 writer
+- [x] p1-1: VirtualKey enum & tables
+- [x] p1-2: Rule IR
+- [x] p1-3: KM2 reader
+- [x] p1-4: KM2 writer
 
 Evidence and deviations: exact-SHA CI and fuzz are in `progress.md`. Deviations: the engine-level preserved behaviors are recorded but their executable tests belong to Phase 02; the codec tests were written after implementation, not test-first.
 
-## Phase 02 — The engine
+## Phase 02: The engine
 
-- [x] p2-1 — Engine state & buffer
-- [x] p2-2 — Matcher
-- [x] p2-3 — Rule application & recursion
-- [x] p2-4 — Differential harness + bench + fuzz
+- [x] p2-1: Engine state & buffer
+- [x] p2-2: Matcher
+- [x] p2-3: Rule application & recursion
+- [x] p2-4: Differential harness + bench + fuzz
 
 Evidence and deviations: exact-SHA CI, bench (3.64 M keys/s on Pyidaungsu MM, final head `31185cd`), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses Pyidaungsu MM at the user's request. The file has no license in its source repository, and the user chose to commit it anyway. See `corpus/licenses/Pyidaungsu-MM-NOTICE.md`; 52 of 54 engine-relevant upstream tests are mapped to corpus cases that run differentially against the pinned upstream engine; the other two are an assertion-free upstream TODO and a repeat of a mapped test. The recursion cap is 10, and `smallvec` is a required runtime dependency. Capture numbering follows upstream: `Key` and `State` elements yield no capture, though the card says each LHS element does. `auto_bksp` rewinds to the previous snapshot when one exists, not a single-character pop. The tests were added alongside the implementation, not written first. The card's "no allocation for ≤ 32 chars" item is verified by inline storage, not by a heap counter. The user accepted that evidence on 2026-11-22.
 
-## Phase 03 — KMS compiler & CLI
+## Phase 03: KMS compiler & CLI
 
-- [ ] p3-1 — Lexer
-- [ ] p3-2 — Parser + semantic checks
-- [ ] p3-3 — Formatter
-- [ ] p3-4 — CLI
-- [ ] p3-5 — C FFI + header
+- [ ] p3-1: Lexer
+- [ ] p3-2: Parser + semantic checks
+- [ ] p3-3: Formatter
+- [ ] p3-4: CLI
+- [ ] p3-5: C FFI + header
 
-## Phase 04 — Host layer
+## Phase 04: Host layer
 
-- [ ] p4-1 — Config + KeyboardStore
-- [ ] p4-2 — Session policy
-- [ ] p4-3 — IPC + Updater
+- [ ] p4-1: Config + KeyboardStore
+- [ ] p4-2: Session policy
+- [ ] p4-3: IPC + Updater
 
-## Phase 05 — egui GUI
+## Phase 05: egui GUI
 
-- [ ] p5-1 — App shell + theme
-- [ ] p5-2 — Keyboards page
-- [ ] p5-3 — Tester + Editor pages
-- [ ] p5-4 — Settings, Hotkeys, About, Tray
+- [ ] p5-1: App shell + theme
+- [ ] p5-2: Keyboards page
+- [ ] p5-3: Tester + Editor pages
+- [ ] p5-4: Settings, Hotkeys, About, Tray
 
-## Phase 06 — Linux (IBus → Wayland → KDE → Arch)
+## Phase 06: Linux (IBus → Wayland → KDE → Arch)
 
-- [ ] p6-1 — IBus engine over zbus
-- [ ] p6-2 — Wayland input-method-v2 + KDE
-- [ ] p6-3 — Arch, Debian, Fedora packaging
-- [ ] p6-4 — Fcitx5 shim (optional)
+- [ ] p6-1: IBus engine over zbus
+- [ ] p6-2: Wayland input-method-v2 + KDE
+- [ ] p6-3: Arch, Debian, Fedora packaging
+- [ ] p6-4: Fcitx5 shim (optional)
 
-## Phase 07 — Windows TSF in Rust
+## Phase 07: Windows TSF in Rust
 
-- [ ] p7-1 — COM skeleton + registration
-- [ ] p7-2 — Key handling + edit sessions
-- [ ] p7-3 — Tray, HUD, language profiles, installer
+- [ ] p7-1: COM skeleton + registration
+- [ ] p7-2: Key handling + edit sessions
+- [ ] p7-3: Tray, HUD, language profiles, installer
 
-## Phase 08 — macOS IMK in Rust
+## Phase 08: macOS IMK in Rust
 
-- [ ] p8-1 — IMK server & controller
-- [ ] p8-2 — Input modes, menu, bundle, notarization
+- [ ] p8-1: IMK server & controller
+- [ ] p8-2: Input modes, menu, bundle, notarization
 
-## Phase 09 — Release & 1.0
+## Phase 09: Release & 1.0
 
-- [ ] p9-1 — Release workflow
-- [ ] p9-2 — Docs + migration
-- [ ] p9-3 — Hardening before 1.0
+- [ ] p9-1: Release workflow
+- [ ] p9-2: Docs + migration
+- [ ] p9-3: Hardening before 1.0

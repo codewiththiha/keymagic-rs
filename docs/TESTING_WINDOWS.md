@@ -1,6 +1,6 @@
-# Windows manual testing — pending
+# Windows manual testing: pending
 
-Status: **not run**. Record date, commit/SHA, Windows version/architecture, app, keyboard, mode, exact actions, result and evidence. Hosted compilation is not an installation or typing test.
+Status: not run. Record date, commit/SHA, Windows version/architecture, app, keyboard, mode, exact actions, result and evidence. Hosted compilation is not an installation or typing test.
 
 | Environment | App | Checks | Result / evidence |
 | --- | --- | --- | --- |

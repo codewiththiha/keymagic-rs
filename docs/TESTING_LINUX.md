@@ -1,6 +1,6 @@
-# Linux manual testing — pending
+# Linux manual testing: pending
 
-Status: **not run**. Record date, branch/SHA, package version, OS/desktop/compositor, application, keyboard, exact actions and result for each row. CI compilation is not manual typing evidence.
+Status: not run. Record date, branch/SHA, package version, OS/desktop/compositor, application, keyboard, exact actions and result for each row. CI compilation is not manual typing evidence.
 
 | Environment | App | Checks | Result / evidence |
 | --- | --- | --- | --- |

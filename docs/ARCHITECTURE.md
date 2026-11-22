@@ -1,4 +1,4 @@
-# Architecture — engine first
+# Architecture: engine first
 
 Status: design and stub workspace. None of the input-method functionality below is implemented yet. The lab is the design source; [AGENTS.md](../AGENTS.md) and the user's current instructions override any conflicting lab sketches.
 
@@ -15,11 +15,11 @@ Status: design and stub workspace. None of the input-method functionality below 
 
 ## Intended event flow
 
-OS input → platform key mapping → `KeyEvent` → host `Session` policy → engine `process` → `HostAction` → platform preedit/commit/direct edit. GUI and IME processes communicate through host IPC. Rule precedence, transient states, recursion and composing-buffer behavior must be established from the pinned upstream implementation, tests and corpus—not this overview alone.
+OS input → platform key mapping → `KeyEvent` → host `Session` policy → engine `process` → `HostAction` → platform preedit/commit/direct edit. GUI and IME processes communicate through host IPC. Rule precedence, transient states, recursion and composing-buffer behavior must be established from the pinned upstream implementation, tests and corpus, not this overview alone.
 
 ## Safety and feasibility
 
-Rust 2024 and `unsafe_code = forbid` apply to **every** workspace crate, without exceptions, per the user's instruction. The lab proposes C ABI exports and native OS integration; some may require unsafe Rust under the actual APIs. Feasibility is unproven: stop and report any such conflict instead of weakening the policy or asserting that the integration works.
+Rust 2024 and `unsafe_code = forbid` apply to every workspace crate, without exceptions, per the user's instruction. The lab proposes C ABI exports and native OS integration; some may require unsafe Rust under the actual APIs. Feasibility is unproven: stop and report any such conflict instead of weakening the policy or asserting that the integration works.
 
 ## References
 

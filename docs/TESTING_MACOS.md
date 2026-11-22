@@ -1,6 +1,6 @@
-# macOS manual testing — pending
+# macOS manual testing: pending
 
-Status: **not run**. Record date, commit/SHA, macOS version/architecture, application, keyboard, actions, result and evidence. Hosted compilation is not an IMK integration or notarization test.
+Status: not run. Record date, commit/SHA, macOS version/architecture, application, keyboard, actions, result and evidence. Hosted compilation is not an IMK integration or notarization test.
 
 | Environment | App | Checks | Result / evidence |
 | --- | --- | --- | --- |

@@ -1,4 +1,4 @@
-# AGENTS.md — keymagic-rs
+# AGENTS.md: keymagic-rs
 
 Read this file before changing the project. The [lab](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.arena.site/) supplies the roadmap; the user's instructions below override conflicting lab examples. External planning notes live in `/home/user/agent-notes.md`, `/home/user/progress.md`, and `/home/user/phases/` when available.
 
@@ -10,7 +10,7 @@ Read this file before changing the project. The [lab](https://01a1ff77-4137-7a69
 
 ## Execution and Git
 
-- Run all Cargo, rustc, Rust formatting, tests, clippy, cargo-deny, fuzz and build commands **only on the self-hosted GitHub runner**, never in the agent workspace. Inspect the exact run's logs. Use the manual self-hosted patch or lockfile workflows to retrieve generated changes.
+- Run all Cargo, rustc, Rust formatting, tests, clippy, cargo-deny, fuzz and build commands only on the self-hosted GitHub runner, never in the agent workspace. Inspect the exact run's logs. Use the manual self-hosted patch or lockfile workflows to retrieve generated changes.
 - Git, Python and static checks may run locally. GitHub-hosted runners are only for releases or genuinely necessary cross-platform checks; never launch a matrix routinely. Never run untrusted fork code on the self-hosted runner.
 - Rust 2024; all workspace Rust code forbids unsafe, including FFI and platform crates. Do not weaken this rule. If an API requires unsafe Rust, report the conflict before proceeding. This lint does not prove that dependencies or cfg-disabled paths are unsafe-free.
 - CI uses `RUSTFLAGS=-D warnings`, `RUSTDOCFLAGS=-D warnings`, strict Clippy all/pedantic/nursery, and denies unwrap/expect. It runs locked metadata, rustfmt check, all-targets check, workspace build, Clippy, tests and cargo-deny. Fix failures; do not claim a green build until the current SHA's actual run is green.

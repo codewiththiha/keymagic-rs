@@ -10,7 +10,7 @@ from [KeyMagic 3](https://github.com/thantthet/keymagic-3) at commit
 [`2db30dc8e8a5f091d1434a2bc1702b29cf113804`](https://github.com/thantthet/keymagic-3/tree/2db30dc8e8a5f091d1434a2bc1702b29cf113804).
 That upstream repository supplies a [GPL version 2 license](https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/LICENSE.md).
 The manifest records the source path and SHA-256 of each file. The upstream
-fixtures are unmodified; do not assume that the comprehensive KMS and KM2
+fixtures are unmodified; do not assume that the full KMS and KM2
 fixtures form a byte-identical compile pair without independently verifying it.
 
 ## Upstream engine test references
@@ -35,7 +35,7 @@ its upstream test. The KMS scripts are derived models, not copied production
 keyboards. The vowel cases use a minimal model of the rules needed by those
 assertions, not the complete MyanSan keyboard; empty-keyboard history cases use
 a fixture whose extra `ka` rule is not reached by those input sequences. The
-bounded-history case additionally asserts the inferred remaining text. Offline
+bounded-history case also asserts the inferred remaining text. Offline
 tests check traceability against every test in the nine engine-behavior source
 files. The upstream `test_complex_modifier_combination` is an empty skipped
 placeholder and has no scenario; loader, metadata and FFI tests are reference
@@ -43,7 +43,7 @@ sources, not represented as engine events or claimed as passing.
 
 A separate 98-case [`any_ascii.toml`](cases/any_ascii.toml) suite exhaustively
 tests all 94 different printable ASCII characters plus four nonmatching boundary
-characters. These are new source-derived cases, **not** 98 transcribed upstream
+characters. These are new source-derived cases, not 98 transcribed upstream
 tests. Each contains a distinct input and expected output; the suite checks the
 pinned [matcher implementation](https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs).
 Offline tests enforce the complete input range, distinct scenario signatures,
@@ -99,7 +99,7 @@ blobs and SHA-256 hashes for all KMS/KM2 pairs and the MIT notice. Sync checks
 all four manifests; it validates and writes one source at a time, not as a
 cross-source transaction. [Reference run 44988672272](https://github.com/codewiththiha/keymagic-rs/actions/runs/44988672272)
 passed all 165 cases, including four binary and three Karen source smoke cases.
-They are not comprehensive functional validation or release certification.
+They are not broad functional validation or release certification.
 
 ## Unlicensed benchmark keyboard
 
