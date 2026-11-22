@@ -2,10 +2,10 @@
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use keymagic_engine::{Engine, KeyEvent};
-use std::path::Path;
 use std::sync::Arc;
 
 const PARAGRAPH: &str = include_str!("myanmar_paragraph.txt");
+const KEYBOARD: &[u8] = include_bytes!("../../../corpus/km2/alternatives/myWin.km2");
 
 fn paragraph_keys() -> Vec<KeyEvent> {
     PARAGRAPH
@@ -18,18 +18,11 @@ fn paragraph_keys() -> Vec<KeyEvent> {
 }
 
 fn typing_throughput(criterion: &mut Criterion) {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/km2/alternatives/myWin.km2");
-    let bytes = match std::fs::read(path) {
-        Ok(bytes) => bytes,
-        Err(error) => panic!("reading the benchmark keyboard: {error}"),
+    let Ok(keyboard) = keymagic_km2::parse(KEYBOARD) else {
+        panic!("parsing the benchmark keyboard");
     };
-    let keyboard = match keymagic_km2::parse(&bytes) {
-        Ok(keyboard) => keyboard,
-        Err(error) => panic!("parsing the benchmark keyboard: {error}"),
-    };
-    let mut engine = match Engine::new(Arc::new(keyboard)) {
-        Ok(engine) => engine,
-        Err(error) => panic!("building the benchmark engine: {error}"),
+    let Ok(mut engine) = Engine::new(Arc::new(keyboard)) else {
+        panic!("building the benchmark engine");
     };
     let keys = paragraph_keys();
     let mut group = criterion.benchmark_group("engine");

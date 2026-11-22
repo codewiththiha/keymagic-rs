@@ -264,13 +264,8 @@ fn compare_output(reported: &Reported, output: &Output, engine: &Engine) -> Resu
     Ok(())
 }
 
-/// Replays one stream on a fresh engine and compares each reported line.
-fn replay(
-    keyboard: &Arc<keymagic_types::Keyboard>,
-    steps: &[Step],
-    reported: &[Reported],
-) -> Result<(), String> {
-    let mut engine = Engine::new(Arc::clone(keyboard)).map_err(|error| error.to_string())?;
+/// Replays one stream (it begins with a reset) and checks each reported line.
+fn replay(engine: &mut Engine, steps: &[Step], reported: &[Reported]) -> Result<(), String> {
     for (index, (step, line)) in steps.iter().zip(reported).enumerate() {
         let context = |error: String| format!("step {index}: {error}");
         match step {
@@ -298,7 +293,7 @@ fn replay(
                 } else {
                     engine.process(event)
                 };
-                compare_output(line, &output, &engine).map_err(context)?;
+                compare_output(line, &output, engine).map_err(context)?;
             }
         }
     }
@@ -345,6 +340,7 @@ fn check_keyboard(
 ) -> Result<u64, Box<dyn Error>> {
     let path = common::keyboard_path(relative)?;
     let keyboard = Arc::new(keymagic_km2::parse(&fs::read(&path)?)?);
+    let mut engine = Engine::new(keyboard)?;
     let mut compared = 0_u64;
     for batch in 0..STREAMS / STREAMS_PER_RUN {
         let mut arguments = Vec::new();
@@ -374,7 +370,7 @@ fn check_keyboard(
         for (offset, steps) in streams.iter().enumerate() {
             let reported = &lines[consumed..consumed + steps.len()];
             let stream_number = batch * STREAMS_PER_RUN + u64::try_from(offset)?;
-            replay(&keyboard, steps, reported)
+            replay(&mut engine, steps, reported)
                 .map_err(|error| format!("{relative} stream {stream_number}: {error}"))?;
             consumed += steps.len();
             compared += u64::try_from(steps.len())?;

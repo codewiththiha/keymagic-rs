@@ -264,6 +264,31 @@ fn smart_backspace_restores_the_previous_snapshot() -> TestResult {
 }
 
 #[test]
+fn smart_backspace_restores_text_a_rule_removed_without_history() -> TestResult {
+    let options = LayoutOptions {
+        auto_bksp: true,
+        ..LayoutOptions::default()
+    };
+    let back_after = |from: &str| {
+        rule(
+            vec![
+                PatternElement::Text(from.to_owned()),
+                PatternElement::VirtualKeys(vec![VirtualKey::Back]),
+            ],
+            vec![OutputElement::Null],
+        )
+    };
+    let mut engine = engine_with(vec![back_after("b"), back_after("a")], options, Vec::new())?;
+    type_text(&mut engine, "xab")?;
+    assert_eq!(engine.process(key_event(VirtualKey::Back)).composing, "xa");
+    assert_eq!(engine.process(key_event(VirtualKey::Back)).composing, "x");
+    let restored = engine.process(key_event(VirtualKey::Back));
+    assert_eq!(restored.composing, "xa");
+    assert_eq!(restored.action, Action::Insert("a".to_owned()));
+    Ok(())
+}
+
+#[test]
 fn backspace_without_smart_option_deletes_one_scalar() -> TestResult {
     let mut engine = engine(Vec::new())?;
     type_text(&mut engine, "ab")?;
@@ -337,5 +362,61 @@ fn virtual_key_requires_exact_modifiers() -> TestResult {
         },
     });
     assert_eq!(shifted.composing, "S");
+    Ok(())
+}
+
+#[test]
+fn smart_backspace_keeps_twenty_snapshots() -> TestResult {
+    let options = LayoutOptions {
+        auto_bksp: true,
+        ..LayoutOptions::default()
+    };
+    let mut engine = engine_with(Vec::new(), options, Vec::new())?;
+    type_text(&mut engine, "abcdefghijklmnopqrstuvwxy")?;
+    let mut composing = String::new();
+    for _ in 0..20 {
+        composing = engine.process(key_event(VirtualKey::Back)).composing;
+    }
+    assert_eq!(composing, "abcde");
+    assert_eq!(
+        engine.process(key_event(VirtualKey::Back)).composing,
+        "abcd"
+    );
+    Ok(())
+}
+
+#[test]
+fn backspace_is_not_recorded_as_history() -> TestResult {
+    let options = LayoutOptions {
+        auto_bksp: true,
+        ..LayoutOptions::default()
+    };
+    let mut engine = engine_with(Vec::new(), options, Vec::new())?;
+    type_text(&mut engine, "abc")?;
+    assert_eq!(engine.process(key_event(VirtualKey::Back)).composing, "ab");
+    assert_eq!(type_text(&mut engine, "d")?.composing, "abd");
+    assert_eq!(engine.process(key_event(VirtualKey::Back)).composing, "ab");
+    Ok(())
+}
+
+#[test]
+fn caps_lock_does_not_change_matching() -> TestResult {
+    let mut engine = engine(vec![rule(
+        vec![PatternElement::VirtualKeys(vec![
+            VirtualKey::Shift,
+            VirtualKey::KeyA,
+        ])],
+        vec![OutputElement::Text("S".into())],
+    )])?;
+    let output = engine.process(KeyEvent {
+        key: Some(VirtualKey::KeyA),
+        ch: Some('a'),
+        mods: Modifiers {
+            shift: true,
+            caps_lock: true,
+            ..Modifiers::default()
+        },
+    });
+    assert_eq!(output.composing, "S");
     Ok(())
 }

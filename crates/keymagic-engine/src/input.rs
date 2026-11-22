@@ -15,7 +15,7 @@ pub struct Modifiers {
     pub ctrl: bool,
     /// Alt is held.
     pub alt: bool,
-    /// Caps Lock is on; it never changes matching.
+    /// Caps Lock is on; matching ignores it (`track_caps` only shapes `ch`).
     pub caps_lock: bool,
 }
 

@@ -105,7 +105,7 @@ fn observe_output(output: &Output, engine: &Engine) -> Observed {
         text,
         composing: output.composing.clone(),
         processed: output.consumed,
-        engine_composing: engine.composing(),
+        engine_composing: engine.composing().to_owned(),
     }
 }
 
@@ -128,9 +128,9 @@ fn run_event(engine: &mut Engine, event: &Event) -> Result<Observed, Box<dyn Err
         action: "control".to_owned(),
         delete: 0,
         text: String::new(),
-        composing: composing.clone(),
+        composing: composing.to_owned(),
         processed: false,
-        engine_composing: composing,
+        engine_composing: composing.to_owned(),
     })
 }
 

@@ -166,7 +166,7 @@ fn invalid_boundaries_and_values_are_rejected() {
 #[test]
 #[ignore = "requires binaries from the pinned upstream compiler"]
 fn matches_upstream_writer() -> Result<(), Box<dyn Error>> {
-    let directory = std::env::var("KM2_REFERENCE_DIRECTORY")?;
+    let directory = std::env::var("KEYMAGIC_REFERENCE_KM2_DIRECTORY")?;
     let mut count = 0;
     for entry in fs::read_dir(directory)? {
         let path = entry?.path();

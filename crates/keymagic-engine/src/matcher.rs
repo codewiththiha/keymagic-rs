@@ -1,9 +1,10 @@
 //! Right-aligned rule matching over composing text and the current key.
 
 use crate::input::KeyEvent;
-use crate::rules::{CompiledRule, Elem};
+use crate::rules::{CompiledRule, Elem, RuleIndex};
 use crate::states::StateSet;
 use smallvec::SmallVec;
+use std::iter::Peekable;
 
 /// Composing characters followed by an optional virtual trailing character.
 #[derive(Debug, Clone, Copy)]
@@ -62,19 +63,50 @@ pub struct Found<'a, 'r> {
 #[must_use]
 pub fn find<'a, 'r>(
     rules: &'r [CompiledRule],
+    index: &RuleIndex,
     head: &'a [char],
     key: Option<&KeyEvent>,
     states: &StateSet,
 ) -> Option<Found<'a, 'r>> {
-    rules.iter().enumerate().find_map(|(position, rule)| {
-        let text = text_for(rule, head, key)?;
-        let captures = match_rule(rule, text, key, states)?;
-        Some(Found {
-            rule,
-            text,
-            captures,
-            rank: position + 1,
-        })
+    let [first, second] = index.candidates(head, key);
+    let mut left = first.iter().copied().peekable();
+    let mut right = second.iter().copied().peekable();
+    while let Some(position) = next_position(&mut left, &mut right) {
+        if let Some(found) = check_rule(rules, position, head, key, states) {
+            return Some(found);
+        }
+    }
+    None
+}
+
+/// Takes the smaller of two ascending candidate streams.
+fn next_position(
+    left: &mut Peekable<impl Iterator<Item = usize>>,
+    right: &mut Peekable<impl Iterator<Item = usize>>,
+) -> Option<usize> {
+    let take_left = match (left.peek(), right.peek()) {
+        (Some(a), Some(b)) => a <= b,
+        (Some(_), None) => true,
+        (None, _) => false,
+    };
+    if take_left { left.next() } else { right.next() }
+}
+
+fn check_rule<'a, 'r>(
+    rules: &'r [CompiledRule],
+    position: usize,
+    head: &'a [char],
+    key: Option<&KeyEvent>,
+    states: &StateSet,
+) -> Option<Found<'a, 'r>> {
+    let rule = rules.get(position)?;
+    let text = text_for(rule, head, key)?;
+    let captures = match_rule(rule, text, key, states)?;
+    Some(Found {
+        rule,
+        text,
+        captures,
+        rank: position + 1,
     })
 }
 
