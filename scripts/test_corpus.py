@@ -12,6 +12,13 @@ EXPECTED_FILES = {
     'kms/upstream/test_keyboard.kms': 'a29a60cc10445a4f67ebbfeb0bcd720d689153bc250519628c65ab27c3d91132',
     'km2/upstream/comprehensive_test.km2': '3b3f6c46ac7f56c7c6a1856438521a4525d6ac623a2f9d64c59ae470f8685b87',
 }
+ENGINE_TEST_FILES = {
+    'auto_backspace_test.rs', 'backspace_history_test.rs', 'basic_rule_tests.rs',
+    'common/engine_helpers.rs', 'common/mod.rs', 'ffi_tests.rs', 'km2_validation_tests.rs',
+    'kms_loader_tests.rs', 'metadata_tests.rs', 'modifier_exact_match_test.rs',
+    'state_tests.rs', 'variable_backref_test.rs', 'variable_tests.rs', 'virtual_key_tests.rs',
+    'vowel_e_reordering_test.rs',
+}
 
 
 def load(path):
@@ -24,18 +31,28 @@ class CorpusTests(unittest.TestCase):
         lines = (ROOT / 'sources.tsv').read_text().splitlines()
         self.assertEqual(lines[0].split('\t'), ['source', 'https://github.com/thantthet/keymagic-3', REVISION])
         entries = [line.split('\t') for line in lines[1:]]
-        self.assertEqual({entry[2] for entry in entries}, set(EXPECTED_FILES))
-        self.assertEqual(len(entries), len(EXPECTED_FILES))
+        expected_paths = set(EXPECTED_FILES) | {f'reference/km3/{name}.txt' for name in ENGINE_TEST_FILES}
+        self.assertEqual({entry[2] for entry in entries}, expected_paths)
+        self.assertEqual(len(entries), len(expected_paths))
         for kind, upstream, path, blob, digest in entries:
             with self.subTest(path=path):
-                expected = EXPECTED_FILES[path]
                 self.assertEqual(kind, 'file')
-                self.assertEqual(digest, expected)
+                if path in EXPECTED_FILES:
+                    self.assertEqual(digest, EXPECTED_FILES[path])
+                else:
+                    self.assertEqual(upstream, 'keymagic-core/tests/' + path.removeprefix('reference/km3/').removesuffix('.txt'))
                 self.assertTrue(upstream.startswith(('kms2km2/tests/', 'keymagic-core/tests/')))
                 data = (ROOT / path).read_bytes()
                 git_content = f'blob {len(data)}\0'.encode() + data
                 self.assertEqual(hashlib.sha1(git_content).hexdigest(), blob)
-                self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
+                self.assertEqual(hashlib.sha256(data).hexdigest(), digest)
+
+    def test_upstream_engine_reference_contains_original_cases(self):
+        source = (ROOT / 'reference/km3/basic_rule_tests.rs.txt').read_text()
+        for name in ('test_simple_string_mapping', 'test_single_char_mapping', 'test_no_matching_rule'):
+            self.assertIn('fn ' + name + '()', source)
+        self.assertEqual(sum((ROOT / 'reference/km3' / f'{name}.txt').read_text().count('#[test]')
+                             for name in ENGINE_TEST_FILES), 76)
 
     def test_basic_cases_preserve_upstream_actions(self):
         data = load(ROOT / 'cases/basic_rules.toml')

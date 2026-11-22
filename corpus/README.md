@@ -4,13 +4,23 @@ This is an initial, incomplete offline corpus. It does not establish engine pari
 
 ## Upstream test fixtures
 
-The four files listed in [`sources.tsv`](sources.tsv) are byte-for-byte copies
+The files listed in [`sources.tsv`](sources.tsv) are byte-for-byte copies
 from [KeyMagic 3](https://github.com/thantthet/keymagic-3) at commit
 [`2db30dc8e8a5f091d1434a2bc1702b29cf113804`](https://github.com/thantthet/keymagic-3/tree/2db30dc8e8a5f091d1434a2bc1702b29cf113804).
 That upstream repository supplies a [GPL version 2 license](https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/LICENSE.md).
 The manifest records the source path and SHA-256 of each file. The upstream
 fixtures are unmodified; do not assume that the comprehensive KMS and KM2
 fixtures form a byte-identical compile pair without independently verifying it.
+
+## Upstream engine test references
+
+[`reference/km3/`](reference/km3/) contains all 15 Rust source files from the
+upstream `keymagic-core/tests/` directory, including its two helper files. They
+are preserved verbatim as `.rs.txt` reference documents, not compiled as part of
+this workspace; their original paths and hashes appear in the manifest. The
+sources contain 76 `#[test]` annotations, including non-engine tests such as
+metadata and FFI checks. They have not been converted into 76 executable cases,
+and tests embedded elsewhere in the upstream repository are not included.
 
 ## Derived cases
 
@@ -41,7 +51,8 @@ it does not clearly grant this project redistribution rights. Neither those
 layouts nor the bundled production binaries are copied here until their
 individual provenance and redistribution terms are verified.
 
-Only three behavioral cases, three upstream KMS fixtures and one upstream KM2
-fixture are included. The lab targets of at least four bundled KM2 files, ten
-KMS files, and 150 cases remain unmet. The source test suite contains many more
-behaviors that must be transcribed and validated without changing expectations.
+Only three transcribed behavioral cases, three upstream KMS fixtures and one
+upstream KM2 fixture are included alongside the source references. The lab
+targets of at least four bundled KM2 files, ten KMS files, and 150 cases remain
+unmet. The source test suite contains many more behaviors that must be
+transcribed and validated without changing expectations.
