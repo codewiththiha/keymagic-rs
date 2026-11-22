@@ -52,13 +52,15 @@ Evidence and deviations: the identity-cap test is in `5b8bab8` (runs 45014856703
 - [x] p3-4: CLI (trycmd DoD met by in-house trycmd-style cases; see progress.md)
 - [x] p3-5: C FFI + header
 
-Phase 03 evidence is at code head `1b25aca`: Development `45035525104`, FFI platforms `45035525107`, corpus-verify `45035525132`. Byte identity covers 41 of 41 reference sources. The 41st is `myWin-fixed.kms`, a copy of upstream myWin with its 12 rule-level line continuations joined, because pinned KM3 rejects those continuations (ADR-27). The original `myWin.kms` still fails KM3 at line 224 and is not compared. The icon is upstream `myWin/myWin.png`, checked by `xtask corpus-sync --check`. CLI snapshots cover all nine subcommands (ADR-19). Card deviations, approved by the user on 2026-11-22: lexer hand-written (ADR-17); header from xtask, not build.rs (ADR-18); in-house trycmd-style snapshots (ADR-19); option settings carry their source span (ADR-24); no ariadne (ADR-25); tests added with the implementation (ADR-26); whitespace-fixed myWin copy (ADR-27); FFI guard scope (ADR-28); formatter keeps comments above their item (ADR-29). Two stored km2 files (`myWin.km2` and `comprehensive_test.km2`) differ from our output; the pinned compiler matches our output for every reference source (see progress.md).
+Phase 03 evidence is at code head `1b25aca`: Development `45035525104`, FFI platforms `45035525107`, corpus-verify `45035525132`. Byte identity covers 41 of 41 reference sources. The 41st is `myWin-fixed.kms`, a copy of upstream myWin with its 12 rule-level line continuations joined, because pinned KM3 rejects those continuations (ADR-27). The original `myWin.kms` still fails KM3 at line 224 and is not compared. The icon is upstream `myWin/myWin.png`, checked by `xtask corpus-sync --check`. CLI snapshots cover all nine subcommands (ADR-19). Card deviations, approved by the user on 2026-11-22: lexer hand-written (ADR-17); header from xtask, not build.rs (ADR-18); in-house trycmd-style snapshots (ADR-19); option settings carry their source span (ADR-24); no ariadne (ADR-25); tests added with the implementation (ADR-26); whitespace-fixed myWin copy (ADR-27); FFI guard scope (ADR-28); formatter keeps comments above their item (ADR-29). Implementation decisions, not card deviations: ADR-20 (approved `deny.toml` entries), ADR-21 (duplicated corpus replay), ADR-22 (`Diagnostic::to_json` removed), ADR-23 (`VirtualKey::ALL` added). The `doctor` and `install` stubs follow p3-4 step 1. Two stored km2 files (`myWin.km2` and `comprehensive_test.km2`) differ from our output; the pinned compiler matches our output for every reference source (see progress.md).
 
 ## Phase 04: Host layer
 
-- [ ] p4-1: Config + KeyboardStore
-- [ ] p4-2: Session policy
-- [ ] p4-3: IPC + Updater
+- [x] p4-1: Config + KeyboardStore (watcher and BMP→PNG restored with `image` and `notify`, approved 2026-11-22; Development `45046378062` success at `19b5fa5`; see progress.md)
+- [x] p4-2: Session policy (42 matrix rows, `session_policy.rs`; Development `45044740802` success at `a81e285`; ADR-30 and ADR-31)
+- [ ] p4-3: IPC + Updater (open: `interprocess` transport and `ureq` GET deferred by the user, ADR-34; the loopback test is in-memory)
+
+Phase 04 evidence is in `progress.md`. Open items: p4-3 transport and fetch (deferred), ADR-35 to ADR-37, and the config fields and conflict-check listed there.
 
 ## Phase 05: egui GUI
 
