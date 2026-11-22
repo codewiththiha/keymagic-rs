@@ -22,6 +22,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+          clean: false
       - name: Test commit policy script
         run: python3 -m unittest discover -s scripts -p 'test_*.py'
       - name: Check commit messages and authors
