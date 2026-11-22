@@ -4,7 +4,7 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 
 ## Current status — 2026-11-22
 
-**Phase 00 is complete under the user's adapted scope; Phase 01 is complete as of `412885c`, pending the final-SHA verification recorded in `progress.md`.** Branch protection remains deferred. Product crates are added as implemented. The engine is not yet implemented; Phase 01 codec work is being validated.
+**Phase 00 is complete under the user's adapted scope; Phase 01 is complete at `9f62008`; Phase 02 is complete at code SHA `2ac31e0`.** Phase 02 CI, bench, and fuzz evidence is in `progress.md`. Branch protection remains deferred. Product crates are added as implemented. Platform phases may begin now that the p2-4 differential gate is green.
 
 | Card | Status | Remaining work |
 | --- | --- | --- |
@@ -37,10 +37,12 @@ Evidence and deviations: exact-SHA CI and fuzz are in `progress.md`. Deviations:
 
 ## Phase 02 — The engine
 
-- [ ] p2-1 — Engine state & buffer
-- [ ] p2-2 — Matcher
-- [ ] p2-3 — Rule application & recursion
-- [ ] p2-4 — Differential harness + bench + fuzz
+- [x] p2-1 — Engine state & buffer
+- [x] p2-2 — Matcher
+- [x] p2-3 — Rule application & recursion
+- [x] p2-4 — Differential harness + bench + fuzz
+
+Evidence and deviations: exact-SHA CI, bench (1.42 M keys/s), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses the licensed myWin alternative; upstream tests are covered by the corpus and hand-written behavior tests, not ported one-for-one.
 
 ## Phase 03 — KMS compiler & CLI
 
