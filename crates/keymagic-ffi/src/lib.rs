@@ -196,9 +196,7 @@ enum Step {
 fn key_event(key_code: c_int, character: c_char, flags: [c_int; 4]) -> KeyEvent {
     let byte = u8::try_from(i32::from(character) & 0xff).ok();
     KeyEvent {
-        key: u16::try_from(key_code)
-            .ok()
-            .and_then(VirtualKey::from_u16),
+        key: u16::try_from(key_code).ok().and_then(VirtualKey::from_u16),
         ch: byte.filter(|byte| *byte != 0).map(char::from),
         mods: Modifiers {
             shift: flags[0] != 0,
@@ -264,9 +262,7 @@ pub unsafe extern "C" fn keymagic_engine_reset(handle: *mut EngineHandle) -> Key
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn keymagic_engine_get_composition(
-    handle: *mut EngineHandle,
-) -> *mut c_char {
+pub unsafe extern "C" fn keymagic_engine_get_composition(handle: *mut EngineHandle) -> *mut c_char {
     guarded(ptr::null_mut(), || {
         // SAFETY: handle is null or valid per the crate contract.
         let handle = unsafe { handle.as_ref() };
@@ -345,10 +341,7 @@ pub unsafe extern "C" fn keymagic_km2_free(handle: *mut Km2FileHandle) {
     }
 }
 
-fn info_text(
-    handle: *mut Km2FileHandle,
-    pick: fn(&KeyboardInfo) -> Option<&str>,
-) -> *mut c_char {
+fn info_text(handle: *mut Km2FileHandle, pick: fn(&KeyboardInfo) -> Option<&str>) -> *mut c_char {
     guarded(ptr::null_mut(), || {
         // SAFETY: handle is null or valid per the crate contract.
         let handle = unsafe { handle.as_ref() };
@@ -364,9 +357,7 @@ pub unsafe extern "C" fn keymagic_km2_get_name(handle: *mut Km2FileHandle) -> *m
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn keymagic_km2_get_description(
-    handle: *mut Km2FileHandle,
-) -> *mut c_char {
+pub unsafe extern "C" fn keymagic_km2_get_description(handle: *mut Km2FileHandle) -> *mut c_char {
     info_text(handle, KeyboardInfo::description)
 }
 
