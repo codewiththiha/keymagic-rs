@@ -54,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           driver="$PWD/upstream/target/debug/corpus_reference_driver"
-          for source in corpus/kms/cases/*.kms corpus/kms/upstream/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms; do
+          for source in corpus/kms/cases/*.kms corpus/kms/upstream/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms corpus/kms/alternatives/myWin-fixed.kms; do
             relative="${source#corpus/kms/}"
             destination="$PWD/reference-engine-km2/${relative%.kms}.km2"
             mkdir -p "$(dirname "$destination")"

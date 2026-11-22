@@ -10,7 +10,12 @@ use std::path::{Path, PathBuf};
 
 type TestResult = Result<(), Box<dyn Error>>;
 
-const ALTERNATIVES: [&str; 3] = ["Eastern-Pwo_kjp", "Sgaw-Kawthoolei_ksw", "Western-Pwo_pwo"];
+const ALTERNATIVES: [&str; 4] = [
+    "Eastern-Pwo_kjp",
+    "Sgaw-Kawthoolei_ksw",
+    "Western-Pwo_pwo",
+    "myWin-fixed",
+];
 
 struct Dir(PathBuf);
 
@@ -50,7 +55,7 @@ fn resolver_for(path: &Path) -> Dir {
 fn every_corpus_script_matches_pinned_compiler() -> TestResult {
     let reference = PathBuf::from(std::env::var("KEYMAGIC_REFERENCE_KM2_DIRECTORY")?);
     let found = sources()?;
-    assert_eq!(found.len(), 40);
+    assert_eq!(found.len(), 41);
     let mut failures = Vec::new();
     for source in found {
         let relative = source.strip_prefix(corpus())?.with_extension("km2");

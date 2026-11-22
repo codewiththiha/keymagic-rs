@@ -1,0 +1,10 @@
+# myWin-fixed.kms notice
+
+`corpus/kms/alternatives/myWin-fixed.kms` is a modified copy of `corpus/kms/alternatives/myWin.kms`.
+
+- Upstream: https://github.com/thantthet/keymagic-keyboards at commit `61da86297fdb99da56b2892190f73009dfe8bc07`, file `myWin/myWin.kms`.
+- Original SHA-1 (`corpus/alternatives-lgpl.tsv`): `eb2e029b90dd3aa1ae104a4f6fca87b6b4425d05`.
+- Licence: LGPL-2.1 (see `corpus/licenses/LGPL-2.1.txt`), as listed for myWin.
+- Change: the 12 rule lines that end in a line-continuation backslash after `=>` (original lines 224 to 251) are joined onto one line with the next line, and the backslash is removed. Pinned KM3 rejects a continuation at that point (`Expected output expression` at line 224). Continuations inside variable and string definitions are left unchanged, because the pinned compiler accepts them. Removing the backslashes and whitespace leaves the token stream identical. Line endings stay CRLF.
+- Icon: `corpus/kms/alternatives/myWin.png` (1616 bytes, SHA-256 `e01a000c5d6275cf0d376c5ed4e6fc3f0ed4fb3bf3f1a15fbd18cbfc4a00a49b`) is the icon blob stored in the pinned upstream `corpus/km2/alternatives/myWin.km2`, at offset 804. Its length is confirmed by the u16 count before it (1616). Its PNG chunk CRCs verify and it ends with IEND. The upstream source list has no icon entry for myWin, so the file is taken from the km2 it was compiled into.
+- The original `myWin.kms` stays unchanged and is not compiled by the reference set.

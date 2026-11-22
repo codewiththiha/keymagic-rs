@@ -43,7 +43,7 @@ fn resolver_for(path: &Path) -> Dir {
 #[test]
 fn every_corpus_script_lexes_without_error() -> TestResult {
     let found = scripts()?;
-    assert_eq!(found.len(), 41);
+    assert_eq!(found.len(), 42);
     for path in found {
         let src = fs::read_to_string(&path)?;
         if let Err(error) = lexer::lex(&src) {
