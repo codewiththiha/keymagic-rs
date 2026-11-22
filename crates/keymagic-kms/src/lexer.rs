@@ -1,5 +1,6 @@
 //! KMS tokenizer. Skips comments and continuations; keeps comment spans.
 
+use crate::ast::Setting;
 use crate::diag::{Diagnostic, Span};
 
 /// Token kinds. Variable names drop the `$`; back-references keep their number.
@@ -118,40 +119,55 @@ pub fn lex(src: &str) -> Result<Lexed, Diagnostic> {
 
 #[doc = "Options as the upstream compiler reads them.\n\nThe first block comment, then each // line. Later pairs win."]
 #[must_use]
-pub fn options(src: &str) -> Vec<(String, String)> {
+pub fn options(src: &str) -> Vec<Setting> {
     let mut found = Vec::new();
     let block = src
         .find("/*")
         .and_then(|start| src[start..].find("*/").map(|end| start..start + end + 2));
     if let Some(span) = block {
-        found.extend(options_in_comment(&src[span]));
+        found.extend(settings_in(src, span));
     }
-    for line in src.lines() {
+    let mut start = 0;
+    for line in src.split_inclusive('\n') {
+        let end = start + line.len();
         let trimmed = line.trim();
         if trimmed.starts_with("//") && trimmed.contains('@') {
-            found.extend(options_in_comment(trimmed));
+            found.extend(settings_in(src, start..end));
         }
+        start = end;
     }
     found
 }
 
-fn options_in_comment(comment: &str) -> Vec<(String, String)> {
-    let content = comment
-        .trim_start_matches("/*")
-        .trim_end_matches("*/")
-        .trim_start_matches("//")
-        .trim();
+fn settings_in(src: &str, range: Span) -> Vec<Setting> {
     let mut out = Vec::new();
-    for line in content.lines() {
-        let line = line.trim();
-        if let Some(at) = line.find('@') {
-            let rest = &line[at + 1..];
-            if let Some(eq) = rest.find('=') {
-                let key = rest[..eq].trim();
-                let value = rest[eq + 1..].trim().trim_matches('"').trim_matches('\'');
-                out.push((key.to_owned(), value.to_owned()));
-            }
-        }
+    let mut line_start = range.start;
+    for raw in src[range].split_inclusive('\n') {
+        let start = line_start;
+        line_start += raw.len();
+        let text = raw.trim();
+        let content = text
+            .trim_start_matches("/*")
+            .trim_end_matches("*/")
+            .trim_start_matches("//")
+            .trim();
+        let Some(at) = content.find('@') else {
+            continue;
+        };
+        let rest = &content[at + 1..];
+        let Some(eq) = rest.find('=') else {
+            continue;
+        };
+        let lead = raw.len() - raw.trim_start().len();
+        out.push(Setting {
+            key: rest[..eq].trim().to_owned(),
+            value: rest[eq + 1..]
+                .trim()
+                .trim_matches('"')
+                .trim_matches('\'')
+                .to_owned(),
+            span: start + lead..start + lead + text.len(),
+        });
     }
     out
 }

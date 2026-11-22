@@ -5,11 +5,19 @@ use crate::diag::Span;
 /// One parsed file. Lists keep source order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Script {
-    /// `@NAME = "value"` pairs; the last value for a key wins.
-    pub options: Vec<(String, String)>,
+    /// `@NAME = "value"` settings; the last value for a key wins.
+    pub options: Vec<Setting>,
     pub variables: Vec<Variable>,
     pub rules: Vec<Rule>,
     pub includes: Vec<Include>,
+}
+
+/// One `@NAME = "value"` setting. `span` covers the line that holds it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Setting {
+    pub key: String,
+    pub value: String,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

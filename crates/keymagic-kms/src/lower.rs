@@ -1,6 +1,6 @@
 //! Lowers a parsed script to the shared keyboard IR, and reports warnings.
 
-use crate::ast::{Out, Pat, Rule, Script, Value, Variable};
+use crate::ast::{Out, Pat, Rule, Script, Setting, Value, Variable};
 use crate::diag::{Diagnostic, Span};
 use crate::resolve::Resolver;
 use keymagic_types::{
@@ -59,11 +59,14 @@ pub fn warnings(script: &Script) -> Vec<Diagnostic> {
         }
     }
     let mut seen_options = HashSet::new();
-    for (key, _) in &script.options {
-        if !seen_options.insert(key.as_str()) {
+    for setting in &script.options {
+        if !seen_options.insert(setting.key.as_str()) {
             found.push(Diagnostic::warning(
-                0..0,
-                format!("option '{key}' is set more than once; the last value is used"),
+                setting.span.clone(),
+                format!(
+                    "option '{}' is set more than once; the last value is used",
+                    setting.key
+                ),
             ));
         }
     }
@@ -334,19 +337,19 @@ fn escapes(raw: &str, span: &Span) -> Result<String, Diagnostic> {
     Ok(out)
 }
 
-fn option<'a>(options: &'a [(String, String)], key: &str) -> Option<&'a str> {
-    options
-        .iter()
-        .rev()
-        .find(|(known, _)| known == key)
-        .map(|(_, value)| value.as_str())
+fn setting<'a>(options: &'a [Setting], key: &str) -> Option<&'a Setting> {
+    options.iter().rev().find(|known| known.key == key)
+}
+
+fn option<'a>(options: &'a [Setting], key: &str) -> Option<&'a str> {
+    setting(options, key).map(|found| found.value.as_str())
 }
 
 const fn is_true(value: &str) -> bool {
     value.eq_ignore_ascii_case("true")
 }
 
-fn layout(options: &[(String, String)]) -> LayoutOptions {
+fn layout(options: &[Setting]) -> LayoutOptions {
     let mut layout = LayoutOptions::default();
     if let Some(value) = option(options, "TRACK_CAPSLOCK") {
         layout.track_caps = is_true(value);
@@ -366,10 +369,7 @@ fn layout(options: &[(String, String)]) -> LayoutOptions {
     layout
 }
 
-fn info(
-    options: &[(String, String)],
-    resolver: &dyn Resolver,
-) -> Result<Vec<InfoEntry>, Diagnostic> {
+fn info(options: &[Setting], resolver: &dyn Resolver) -> Result<Vec<InfoEntry>, Diagnostic> {
     let mut entries = Vec::new();
     for (key, id) in INFO_IDS {
         if let Some(value) = option(options, key) {
@@ -379,18 +379,18 @@ fn info(
             });
         }
     }
-    if let Some(icon) = option(options, "ICON") {
+    if let Some(icon) = setting(options, "ICON") {
         entries.push(InfoEntry {
             id: *b"noci",
-            data: icon_bytes(icon, resolver)?,
+            data: icon_bytes(&icon.value, &icon.span, resolver)?,
         });
     }
     Ok(entries)
 }
 
-fn icon_bytes(path: &str, resolver: &dyn Resolver) -> Result<Vec<u8>, Diagnostic> {
+fn icon_bytes(path: &str, span: &Span, resolver: &dyn Resolver) -> Result<Vec<u8>, Diagnostic> {
     let fail = |message: String| {
-        Diagnostic::error(0..0, message).with_help("check @ICON in the file header")
+        Diagnostic::error(span.clone(), message).with_help("check @ICON in the file header")
     };
     let data = resolver
         .read(path)
