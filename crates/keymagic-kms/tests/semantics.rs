@@ -163,7 +163,11 @@ fn repeated_variables_and_unread_states_are_warnings() {
 
 #[test]
 fn option_pairs_are_read_from_the_first_block_and_slash_lines() {
-    let pairs = lexer::options("/*\n@NAME = \"X\"\n*/\n// @EAT_KEYS = \"TRUE\"\n");
+    let pairs: Vec<(String, String)> =
+        lexer::options("/*\n@NAME = \"X\"\n*/\n// @EAT_KEYS = \"TRUE\"\n")
+            .into_iter()
+            .map(|setting| (setting.key, setting.value))
+            .collect();
     assert_eq!(
         pairs,
         vec![
@@ -171,4 +175,14 @@ fn option_pairs_are_read_from_the_first_block_and_slash_lines() {
             ("EAT_KEYS".to_owned(), "TRUE".to_owned()),
         ]
     );
+}
+
+#[test]
+fn option_spans_point_at_their_line() {
+    let src = "/*\n@NAME = \"X\"\n*/\n// @EAT_KEYS = \"TRUE\"\n";
+    let texts: Vec<&str> = lexer::options(src)
+        .iter()
+        .map(|setting| &src[setting.span.clone()])
+        .collect();
+    assert_eq!(texts, vec!["@NAME = \"X\"", "// @EAT_KEYS = \"TRUE\""]);
 }
