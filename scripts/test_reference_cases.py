@@ -28,10 +28,21 @@ class ReferenceCaseTests(unittest.TestCase):
             with self.subTest(event=event), self.assertRaises(ValueError):
                 encode_events([event])
 
+    def test_encode_reset_set_and_preview(self):
+        self.assertEqual(encode_events([{'reset': True}, {'set_composing': 'xyz'},
+                                        {'vk': 2, 'preview': True}]),
+                         ['r:', 's:xyz', 't:v:2'])
+        for event in ({'reset': False}, {'reset': True, 'key': 'a'},
+                      {'set_composing': 3}, {'preview': True},
+                      {'vk': 2, 'preview': 'true'}):
+            with self.subTest(event=event), self.assertRaises(ValueError):
+                encode_events([event])
+
     def test_decodes_unicode_actions_and_ignores_reference_logs(self):
-        output = 'upstream log\nCORPUS\tinsert\t0\te18080\te18080\ttrue\n'
+        output = 'upstream log\nCORPUS\tinsert\t0\te18080\te18080\ttrue\te18080\n'
         self.assertEqual(decode_output(output), [
-            {'action': 'insert', 'delete': 0, 'text': 'က', 'composing': 'က', 'processed': True},
+            {'action': 'insert', 'delete': 0, 'text': 'က', 'composing': 'က',
+             'processed': True, 'engine_composing': 'က'},
         ])
 
     def test_checks_only_fields_asserted_by_upstream(self):

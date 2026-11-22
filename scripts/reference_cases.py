@@ -12,6 +12,19 @@ CORPUS = ROOT / 'corpus'
 def encode_events(events):
     encoded = []
     for event in events:
+        inputs = {'key', 'vk', 'modifiers', 'reset', 'set_composing', 'preview'}
+        if 'reset' in event or 'set_composing' in event:
+            if (event.get('reset') is True and not (inputs & event.keys() - {'reset'})):
+                encoded.append('r:')
+            elif (isinstance(event.get('set_composing'), str)
+                  and '\0' not in event['set_composing']
+                  and not (inputs & event.keys() - {'set_composing'})):
+                encoded.append('s:' + event['set_composing'])
+            else:
+                raise ValueError(f'unsupported event: {event!r}')
+            continue
+        if 'preview' in event and type(event['preview']) is not bool:
+            raise ValueError(f'unsupported event: {event!r}')
         key, vk = event.get('key'), event.get('vk')
         valid_key = isinstance(key, str) and len(key) == 1
         valid_vk = type(vk) is int and 0 <= vk <= 65535
@@ -33,6 +46,8 @@ def encode_events(events):
             encoded.append('v:' + str(vk))
         else:
             raise ValueError(f'unsupported event: {event!r}')
+        if event.get('preview'):
+            encoded[-1] = 't:' + encoded[-1]
     return encoded
 
 
@@ -42,14 +57,15 @@ def decode_output(output):
         if not line.startswith('CORPUS\t'):
             continue
         fields = line.split('\t')
-        if (len(fields) != 6 or fields[1] not in ('none', 'insert', 'delete', 'replace')
+        if (len(fields) != 7 or fields[1] not in ('none', 'insert', 'delete', 'replace', 'control')
                 or fields[5] not in ('true', 'false')):
             raise ValueError('Invalid reference event')
-        action, count, text, composing, processed = fields[1:]
+        action, count, text, composing, processed, engine_composing = fields[1:]
         events.append({'action': action, 'delete': int(count),
                        'text': bytes.fromhex(text).decode('utf8'),
                        'composing': bytes.fromhex(composing).decode('utf8'),
-                       'processed': processed == 'true'})
+                       'processed': processed == 'true',
+                       'engine_composing': bytes.fromhex(engine_composing).decode('utf8')})
     return events
 
 
@@ -58,7 +74,7 @@ def compare_events(expected, actual):
         return [f'event count: expected {len(expected)}, got {len(actual)}']
     errors = []
     for index, (want, got) in enumerate(zip(expected, actual), start=1):
-        for key in ('action', 'delete', 'text', 'composing', 'processed'):
+        for key in ('action', 'delete', 'text', 'composing', 'processed', 'engine_composing'):
             if key in want and want[key] != got[key]:
                 errors.append(f'event {index}: {key} expected {want[key]!r}, got {got[key]!r}')
     return errors

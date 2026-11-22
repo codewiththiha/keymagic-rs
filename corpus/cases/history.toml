@@ -1,0 +1,118 @@
+[[case]]
+name = "history_restore"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_backspace_history_with_auto_bksp"
+events = [
+  { key = "a", composing = "a" }, { key = "b", composing = "ab" },
+  { key = "c", composing = "abc" }, { vk = 2, composing = "ab" },
+  { vk = 2, composing = "a" }, { vk = 2, composing = "" },
+]
+
+[[case]]
+name = "history_disabled"
+keyboard = "kms/cases/simple_mapping.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_backspace_without_auto_bksp"
+events = [
+  { key = "a" }, { key = "b" }, { key = "c", composing = "abc" },
+  { vk = 2, composing = "ab", processed = true },
+  { vk = 2, composing = "a", processed = true }, { key = "x", composing = "ax" },
+]
+
+[[case]]
+name = "history_reset"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_history_cleared_on_reset"
+events = [
+  { key = "a" }, { key = "b" }, { reset = true, composing = "" },
+  { key = "x", composing = "x" }, { vk = 2, composing = "" },
+]
+
+[[case]]
+name = "history_set"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_history_cleared_on_set_composing_text"
+events = [
+  { key = "a" }, { key = "b" }, { set_composing = "xyz", composing = "xyz" },
+  { vk = 2, composing = "xy" },
+]
+
+[[case]]
+name = "history_preview"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_process_key_test_with_backspace_history"
+events = [
+  { key = "a" }, { key = "b" },
+  { vk = 2, preview = true, composing = "a", engine_composing = "ab" },
+]
+
+[[case]]
+name = "history_rule"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_backspace_history_with_rules"
+events = [
+  { key = "k", composing = "k" }, { key = "a", composing = "က" },
+  { vk = 2, composing = "k" }, { vk = 2, composing = "" },
+]
+
+[[case]]
+name = "history_not_recorded"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_backspace_history_not_recorded_for_backspace"
+events = [
+  { key = "a" }, { key = "b" }, { key = "c", composing = "abc" },
+  { vk = 2, composing = "ab" }, { key = "d", composing = "abd" },
+  { vk = 2, composing = "ab" },
+]
+
+[[case]]
+name = "history_bounded"
+keyboard = "kms/cases/smart_backspace.kms"
+upstream_test = "keymagic-core/tests/backspace_history_test.rs::test_history_max_size"
+events = [
+  { key = "a" },
+  { key = "b" },
+  { key = "c" },
+  { key = "d" },
+  { key = "e" },
+  { key = "f" },
+  { key = "g" },
+  { key = "h" },
+  { key = "i" },
+  { key = "j" },
+  { key = "k" },
+  { key = "l" },
+  { key = "m" },
+  { key = "n" },
+  { key = "o" },
+  { key = "p" },
+  { key = "q" },
+  { key = "r" },
+  { key = "s" },
+  { key = "t" },
+  { key = "u" },
+  { key = "v" },
+  { key = "w" },
+  { key = "x" },
+  { key = "y" },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2 },
+  { vk = 2, composing = "abcde" },
+  { vk = 2, composing = "abcd" },
+]

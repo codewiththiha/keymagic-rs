@@ -27,6 +27,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     let keyboard = Km2Loader::load(&bytes)?;
     let mut engine = KeyMagicEngine::new(keyboard)?;
     for key in args {
+        if key == "r:" || key.starts_with("s:") {
+            if key == "r:" {
+                engine.reset();
+            } else if let Some(text) = key.strip_prefix("s:") {
+                engine.set_composing_text(text.to_string());
+            }
+            let composing = hex(engine.composing_text())?;
+            println!("CORPUS\tcontrol\t0\t\t{composing}\tfalse\t{composing}");
+            continue;
+        }
+        let (preview, key) = key
+            .strip_prefix("t:")
+            .map_or((false, key.as_str()), |value| (true, value));
         let input = if let Some(value) = key.strip_prefix("c:") {
             let mut chars = value.chars();
             let character = chars.next().ok_or("missing character")?;
@@ -66,7 +79,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         } else {
             return Err("unknown input event".into());
         };
-        let result = engine.process_key(input)?;
+        let result = if preview {
+            engine.process_key_test(input)?
+        } else {
+            engine.process_key(input)?
+        };
         let (action, count, text) = match result.action {
             ActionType::None => ("none", 0, String::new()),
             ActionType::Insert(text) => ("insert", 0, text),
@@ -74,10 +91,11 @@ fn run() -> Result<(), Box<dyn Error>> {
             ActionType::BackspaceDeleteAndInsert(count, text) => ("replace", count, text),
         };
         println!(
-            "CORPUS\t{action}\t{count}\t{}\t{}\t{}",
+            "CORPUS\t{action}\t{count}\t{}\t{}\t{}\t{}",
             hex(&text)?,
             hex(&result.composing_text)?,
-            result.is_processed
+            result.is_processed,
+            hex(engine.composing_text())?
         );
     }
     Ok(())

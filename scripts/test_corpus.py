@@ -62,6 +62,20 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_history_cases_preserve_upstream_assertions(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/history.toml')['case']}
+        self.assertEqual(set(cases), {'history_restore', 'history_disabled', 'history_reset',
+                                     'history_set', 'history_bounded', 'history_preview',
+                                     'history_rule', 'history_not_recorded'})
+        self.assertEqual(cases['history_preview']['events'][-1],
+                         {'vk': 2, 'preview': True, 'composing': 'a', 'engine_composing': 'ab'})
+        self.assertEqual(cases['history_bounded']['events'][-1]['composing'], 'abcd')
+        self.assertEqual(cases['history_reset']['events'][2], {'reset': True, 'composing': ''})
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            self.assertIn('fn ' + case['upstream_test'].split('::')[1] + '()',
+                          (ROOT / 'reference/km3/backspace_history_test.rs').read_text())
+
     def test_modifier_cases_preserve_upstream_assertions(self):
         cases = {case['name']: case for case in load(ROOT / 'cases/modifiers.toml')['case']}
         self.assertEqual(set(cases), {'shift_a', 'ctrl_a', 'shift_ctrl_a',
