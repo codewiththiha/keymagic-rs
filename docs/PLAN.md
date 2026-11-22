@@ -4,16 +4,16 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 
 ## Current status — 2026-11-22
 
-**Current phase: 00 — incomplete.** Working through its outstanding gates, not phase 01. The workspace builds on the self-hosted macOS runner, but product crates remain stubs; the engine and KM2 codec are not implemented.
+**Current phase: 00 — incomplete.** Working through its outstanding gates, not phase 01. At the user's direction unused product/platform stubs were removed; the workspace contains the implemented corpus-sync tool only. The engine and KM2 codec are not implemented.
 
 | Card | Status | Remaining work |
 | --- | --- | --- |
-| p0-1 workspace | In progress | [Linux, macOS and Windows checks passed](https://github.com/codewiththiha/keymagic-rs/actions/runs/44983376072) at `be3800b`; product crates remain placeholders. |
+| p0-1 workspace | User-directed deviation | Unused crate stubs removed instead of copying the full lab tree. Final-SHA checks still required; planned product crates will be created with real work in their phases. |
 | p0-2 agent and docs | Complete for the documentation card | Required documentation and the sourced virtual-key reference exist; platform manual tests remain future work. |
-| p0-3 CI | Blocked by repository plan | Self-hosted checks and a Clippy failure probe pass; GitHub says main protection requires Pro or making this private repository public. PR-oriented steps conflict with direct-main policy. |
-| p0-4 corpus | In progress | [158 distinct scenarios pass](https://github.com/codewiththiha/keymagic-rs/actions/runs/44987233685): 60 test-derived and 98 exhaustive wildcard/boundary cases. Four bundled KM2 files and their redistribution terms remain unresolved. Loader, metadata and FFI tests are still reference sources, not event cases. |
+| p0-3 CI | User-directed deviation | Branch protection deferred at user's request; PR-oriented steps conflict with direct-main policy. The Clippy failure probe is retained on the implemented tool. |
+| p0-4 corpus | In progress | [158 distinct scenarios pass](https://github.com/codewiththiha/keymagic-rs/actions/runs/44987503868): 60 test-derived and 98 exhaustive wildcard/boundary cases. User approved seeking licensed alternatives to the four upstream bundled KM2s. Loader, metadata and FFI tests remain reference sources, not event cases. |
 
-[Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling and stubs, not a working input method. Corpus source references are not runnable engine tests.
+[Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling, not a working input method. Corpus source references are not runnable engine tests.
 
 **Working rule:** Finish each phase end-to-end. Before ending, reread its entire phase file, compare every card, ordered step and completion gate against actual work and evidence, fill gaps, and repeat until complete. Ordinary remaining work is not a blocker. If an external dependency or a conflicting user instruction genuinely blocks an item, finish unblocked work and report the exact blocker. Update this status and the external progress record when work ends.
 

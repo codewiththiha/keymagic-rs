@@ -1,7 +1,5 @@
 [workspace]
-members = ["crates/*", "platform/*/*", "xtask"]
-# These planned packaging directories are not Cargo packages.
-exclude = ["platform/windows/installer", "platform/macos/bundle"]
+members = ["xtask"]
 resolver = "3"
 
 [workspace.package]

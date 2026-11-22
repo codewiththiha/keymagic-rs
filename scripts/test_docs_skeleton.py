@@ -43,8 +43,6 @@ class DocumentationSkeletonTests(unittest.TestCase):
         for path in PACKAGES:
             with self.subTest(path=path):
                 text = (ROOT / path / 'README.md').read_text()
-                if path != 'xtask':
-                    self.assertIn('Placeholder', text)
                 self.assertIn('no-unsafe', text)
 
     def test_owner_runner_and_safety_rules_documented(self):

@@ -1,9 +1,0 @@
-[package]
-name = "keymagic-km2"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
-
-[lints]
-workspace = true

@@ -73,11 +73,11 @@ jobs:
         shell: bash
         run: |
           dir=$(mktemp -d)
-          file=crates/keymagic-types/src/lib.rs
+          file=xtask/src/main.rs
           cp "$file" "$dir/original"
           trap 'cp "$dir/original" "$file"; rm -rf "$dir"' EXIT
           printf '\n#[cfg(test)]\n#[test]\nfn lint_probe() { let _value = std::env::var("PROBE").unwrap(); }\n' >> "$file"
-          if cargo clippy --locked --package keymagic-types --all-targets -- -D warnings > "$dir/output" 2>&1; then
+          if cargo clippy --locked --package xtask --all-targets -- -D warnings > "$dir/output" 2>&1; then
             echo '::error::Clippy accepted the intentional unwrap'; exit 1
           fi
           if ! grep -Eq 'clippy::unwrap[-_]used' "$dir/output"; then

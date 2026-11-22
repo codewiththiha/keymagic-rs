@@ -22,6 +22,8 @@ class CiPolicyTests(unittest.TestCase):
         self.assertIn('name: Verify Clippy rejects unwrap', workflow)
         self.assertIn('clippy::unwrap[-_]used', workflow)
         self.assertIn('trap', workflow)
+        self.assertIn('file=xtask/src/main.rs', workflow)
+        self.assertIn('cargo clippy --locked --package xtask --all-targets', workflow)
         self.assertIn('runs-on: self-hosted', workflow)
 
 
