@@ -11,7 +11,7 @@
 
 use keymagic_engine::{Action, Engine, KeyEvent, Modifiers, Output};
 use keymagic_kms::{Diagnostic, Resolver, Severity};
-use keymagic_types::{Keyboard, KeyboardInfo, VirtualKey};
+use keymagic_types::{Hotkey, Keyboard, KeyboardInfo, VirtualKey};
 use std::ffi::{CStr, CString, c_char, c_int};
 use std::fmt::Write as _;
 use std::fs;
@@ -160,7 +160,11 @@ pub unsafe extern "C" fn keymagic_engine_process_key(
         // SAFETY: handle and output are null or valid per the crate contract.
         let engine = unsafe { handle.as_mut() };
         let output = unsafe { output.as_mut() };
-        let event = key_event(key_code, character, [shift, ctrl, alt, caps_lock]);
+        let event = key_event(
+            key_from_code(key_code),
+            character,
+            [shift, ctrl, alt, caps_lock],
+        );
         run_key(engine, output, event, Step::Commit)
     })
 }
@@ -180,8 +184,64 @@ pub unsafe extern "C" fn keymagic_engine_process_key_test(
         // SAFETY: handle and output are null or valid per the crate contract.
         let engine = unsafe { handle.as_mut() };
         let output = unsafe { output.as_mut() };
-        let event = key_event(key_code, character, [shift, ctrl, alt, caps_lock]);
+        let event = key_event(
+            key_from_code(key_code),
+            character,
+            [shift, ctrl, alt, caps_lock],
+        );
         run_key(engine, output, event, Step::Peek)
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keymagic_engine_process_key_win(
+    handle: *mut EngineHandle,
+    vk_code: c_int,
+    character: c_char,
+    shift: c_int,
+    ctrl: c_int,
+    alt: c_int,
+    caps_lock: c_int,
+    output: *mut ProcessKeyOutput,
+) -> KeyMagicResult {
+    guarded(KeyMagicResult::ErrorPanic, || {
+        // SAFETY: handle and output are null or valid per the crate contract.
+        let engine = unsafe { handle.as_mut() };
+        let output = unsafe { output.as_mut() };
+        match win_key(vk_code) {
+            Some(key) => {
+                let flags = [shift, ctrl, alt, caps_lock];
+                let event = key_event(Some(key), character, flags);
+                run_key(engine, output, event, Step::Commit)
+            }
+            None => KeyMagicResult::ErrorInvalidParameter,
+        }
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keymagic_engine_process_key_test_win(
+    handle: *mut EngineHandle,
+    vk_code: c_int,
+    character: c_char,
+    shift: c_int,
+    ctrl: c_int,
+    alt: c_int,
+    caps_lock: c_int,
+    output: *mut ProcessKeyOutput,
+) -> KeyMagicResult {
+    guarded(KeyMagicResult::ErrorPanic, || {
+        // SAFETY: handle and output are null or valid per the crate contract.
+        let engine = unsafe { handle.as_mut() };
+        let output = unsafe { output.as_mut() };
+        match win_key(vk_code) {
+            Some(key) => {
+                let flags = [shift, ctrl, alt, caps_lock];
+                let event = key_event(Some(key), character, flags);
+                run_key(engine, output, event, Step::Peek)
+            }
+            None => KeyMagicResult::ErrorInvalidParameter,
+        }
     })
 }
 
@@ -191,10 +251,20 @@ enum Step {
     Peek,
 }
 
-fn key_event(key_code: c_int, character: c_char, flags: [c_int; 4]) -> KeyEvent {
+fn key_from_code(key_code: c_int) -> Option<VirtualKey> {
+    u16::try_from(key_code).ok().and_then(VirtualKey::from_u16)
+}
+
+fn win_key(vk_code: c_int) -> Option<VirtualKey> {
+    u16::try_from(vk_code)
+        .ok()
+        .and_then(keymagic_types::win_vk::from_code)
+}
+
+fn key_event(key: Option<VirtualKey>, character: c_char, flags: [c_int; 4]) -> KeyEvent {
     let byte = u8::try_from(i32::from(character) & 0xff).ok();
     KeyEvent {
-        key: u16::try_from(key_code).ok().and_then(VirtualKey::from_u16),
+        key,
         ch: byte.filter(|byte| *byte != 0).map(char::from),
         mods: Modifiers {
             shift: flags[0] != 0,
@@ -303,6 +373,64 @@ pub unsafe extern "C" fn keymagic_free_string(text: *mut c_char) {
         // SAFETY: text came from to_c_string and is freed once.
         drop(unsafe { CString::from_raw(text) });
     }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keymagic_engine_get_composing_text(
+    handle: *mut EngineHandle,
+) -> *mut c_char {
+    // SAFETY: handle is null or valid per the crate contract.
+    unsafe { keymagic_engine_get_composition(handle) }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keymagic_engine_free_string(text: *mut c_char) {
+    // SAFETY: text came from this library per the crate contract.
+    unsafe { keymagic_free_string(text) };
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn keymagic_virtual_key_to_string(key_code: c_int) -> *mut c_char {
+    key_from_code(key_code).map_or(ptr::null_mut(), |key| to_c_string(key.kms_name()))
+}
+
+/// Parsed hotkey; `key_code` is the `VirtualKey` ID.
+#[repr(C)]
+pub struct HotkeyInfo {
+    pub key_code: c_int,
+    pub ctrl: c_int,
+    pub alt: c_int,
+    pub shift: c_int,
+    pub meta: c_int,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keymagic_parse_hotkey(
+    hotkey: *const c_char,
+    info: *mut HotkeyInfo,
+) -> c_int {
+    guarded(0, || {
+        if hotkey.is_null() || info.is_null() {
+            return 0;
+        }
+        // SAFETY: hotkey is non-null and NUL-terminated.
+        let Ok(text) = unsafe { CStr::from_ptr(hotkey) }.to_str() else {
+            return 0;
+        };
+        let Ok(parsed) = text.parse::<Hotkey>() else {
+            return 0;
+        };
+        // SAFETY: info is non-null and writable per the crate contract.
+        let Some(info) = (unsafe { info.as_mut() }) else {
+            return 0;
+        };
+        info.key_code = c_int::from(parsed.key as u16);
+        info.ctrl = c_int::from(parsed.ctrl);
+        info.alt = c_int::from(parsed.alt);
+        info.shift = c_int::from(parsed.shift);
+        info.meta = c_int::from(parsed.meta);
+        1
+    })
 }
 
 static VERSION: &[u8] = concat!(env!("CARGO_PKG_VERSION"), "\0").as_bytes();

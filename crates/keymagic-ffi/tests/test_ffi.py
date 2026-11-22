@@ -35,6 +35,16 @@ def library_path():
     raise FileNotFoundError(f"build keymagic-ffi first: {name} not found")
 
 
+class HotkeyInfo(ctypes.Structure):
+    _fields_ = [
+        ("key_code", ctypes.c_int),
+        ("ctrl", ctypes.c_int),
+        ("alt", ctypes.c_int),
+        ("shift", ctypes.c_int),
+        ("meta", ctypes.c_int),
+    ]
+
+
 class ProcessKeyOutput(ctypes.Structure):
     _fields_ = [
         ("action_type", ctypes.c_int),
@@ -101,6 +111,27 @@ km2_load = declare("keymagic_km2_load", ctypes.c_void_p, ctypes.c_char_p)
 km2_free = declare("keymagic_km2_free", None, ctypes.c_void_p)
 km2_get_name = declare(
     "keymagic_km2_get_name", ctypes.c_void_p, ctypes.c_void_p
+)
+parse_hotkey = declare(
+    "keymagic_parse_hotkey",
+    ctypes.c_int,
+    ctypes.c_char_p,
+    ctypes.POINTER(HotkeyInfo),
+)
+process_key_win = declare(
+    "keymagic_engine_process_key_win",
+    ctypes.c_int,
+    ctypes.c_void_p,
+    ctypes.c_int,
+    ctypes.c_char,
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.POINTER(ProcessKeyOutput),
+)
+virtual_key_name = declare(
+    "keymagic_virtual_key_to_string", ctypes.c_void_p, ctypes.c_int
 )
 kms_compile = declare(
     "keymagic_kms_compile",
@@ -208,6 +239,29 @@ class FfiTests(unittest.TestCase):
         self.assertEqual(take_string(output.composing_text), "b")
         take_string(output.text)
         engine_free(engine)
+
+    def test_windows_key_codes_are_checked(self):
+        output = ProcessKeyOutput()
+        bad = process_key_win(
+            engine_new(), 0xFFFF, b"\0", 0, 0, 0, 0, ctypes.byref(output)
+        )
+        self.assertEqual(bad, ERR_PARAM)
+        engine = engine_new()
+        good = process_key_win(
+            engine, 0x41, b"a", 0, 0, 0, 0, ctypes.byref(output)
+        )
+        self.assertEqual(good, ERR_NO_KEYBOARD)
+        engine_free(engine)
+
+    def test_hotkey_parses_modifiers_and_rejects_two_keys(self):
+        info = HotkeyInfo()
+        self.assertEqual(parse_hotkey(b"Ctrl+Shift+A", ctypes.byref(info)), 1)
+        self.assertEqual((info.ctrl, info.shift, info.alt), (1, 1, 0))
+        self.assertEqual(parse_hotkey(b"Ctrl+A+B", ctypes.byref(info)), 0)
+
+    def test_virtual_key_names_resolve_or_are_absent(self):
+        self.assertIsNotNone(take_string(virtual_key_name(17)))
+        self.assertIsNone(virtual_key_name(-1))
 
     def test_kms_compile_reports_diagnostics_as_json(self):
         source = b"$a = $b\n"
