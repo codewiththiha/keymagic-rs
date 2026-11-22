@@ -45,6 +45,7 @@ pub struct General {
     pub last_scanned_version: Option<String>,
     pub update_remind_after: Option<String>,
     pub enabled_languages: Vec<String>,
+    pub update_channel: String,
 }
 
 impl Default for General {
@@ -56,6 +57,7 @@ impl Default for General {
             last_scanned_version: None,
             update_remind_after: None,
             enabled_languages: Vec::new(),
+            update_channel: "stable".to_owned(),
         }
     }
 }

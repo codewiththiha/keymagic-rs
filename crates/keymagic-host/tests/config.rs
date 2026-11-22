@@ -150,3 +150,13 @@ fn enabled_languages_round_trip_and_default_to_none() -> TestResult {
     );
     Ok(())
 }
+
+#[test]
+fn update_channel_defaults_to_stable_and_round_trips() -> TestResult {
+    assert_eq!(Config::default().general.update_channel, "stable");
+    let mut config = Config::default();
+    config.general.update_channel = "beta".to_owned();
+    let parsed = Config::from_toml(&config.to_toml()?)?;
+    assert_eq!(parsed.general.update_channel, "beta");
+    Ok(())
+}
