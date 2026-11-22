@@ -1,0 +1,57 @@
+name: Development CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  development:
+    # Never run untrusted fork code on a self-hosted machine. Repository owners
+    # must also restrict branch write access and isolate runner credentials.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test commit policy script
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'
+      - name: Check commit messages
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            range="$HEAD_SHA^!"
+          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            range="$HEAD_SHA"
+          else
+            range="$BASE_SHA..$HEAD_SHA"
+          fi
+          python3 scripts/check_commit_messages.py --range "$range"
+      - name: Require Rust workspace
+        run: test -f Cargo.toml || { echo '::error::Cargo workspace not implemented; Rust checks have not run'; exit 1; }
+      - name: Generate lockfile on runner
+        run: cargo generate-lockfile
+      - name: Save generated lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-lockfile
+          path: Cargo.lock
+          if-no-files-found: warn
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Tests
+        run: cargo test --workspace
+      - name: Dependency policy
+        run: cargo deny check

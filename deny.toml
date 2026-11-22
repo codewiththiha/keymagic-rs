@@ -1,0 +1,21 @@
+# Conservative GPL-2.0-only-compatible allowlist; review new dependencies.
+[licenses]
+confidence-threshold = 0.8
+allow = [
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "GPL-2.0-only",
+    "GPL-2.0-or-later",
+    "ISC",
+    "LGPL-2.1-only",
+    "LGPL-2.1-or-later",
+    "MIT",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

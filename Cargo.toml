@@ -1,0 +1,18 @@
+[workspace]
+members = ["crates/*", "platform/*/*", "xtask"]
+# These planned packaging directories are not Cargo packages.
+exclude = ["platform/windows/installer", "platform/macos/bundle"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-2.0-only"
+repository = "https://github.com/codewiththiha/keymagic-rs"
+
+# Add shared versions here when a task introduces actual dependencies.
+[workspace.dependencies]
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+unwrap_used = "warn"

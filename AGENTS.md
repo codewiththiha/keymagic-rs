@@ -1,0 +1,33 @@
+# AGENTS.md — keymagic-rs
+
+Read this entire file before changing the project. Source plan: [KeyMagic Rust Lab](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.arena.site/). User-specific operating notes are outside this repo at `/home/user/agent-notes.md`, `/home/user/progress.md`, and `/home/user/phases/`; if unavailable, ask for their location. Never commit them or secrets.
+
+## At every turn
+
+1. Read the external notes, progress, relevant phase file, this file and `docs/PLAN.md`. Inspect git status, existing implementation, task evidence, and the relevant CI run/logs. Do not assume work was finished because it was proposed, code exists, or a checkbox is ticked. Verify actual tests, CI SHA/results and manual platform outcomes; ask the user for proof/confirmation if only they can verify. Record verified facts, blockers, next steps and run URLs in external progress. Never mark unverified steps done.
+2. Choose one small task card; inspect its complete interactive lab card and upstream resources. Write down three preserved behaviors in the PR, then write tests before implementation. If card details are not available, identify the gap and do not invent site-authored requirements.
+3. Work engine-first. KM3 tests override KM3 docs when they disagree; KM3 Rust wins over old C++/Swift/C. Preserve compatibility and open an ADR instead of altering expected corpus values to hide a discrepancy.
+
+## Execution environment and CI
+
+- **Never run Cargo, rustc, rustfmt, clippy, cargo-deny, cargo-fuzz, cargo-xtask, compilation, Rust tests, or Rust formatting in the agent workspace.** Development validation happens on the configured `runs-on: self-hosted` GitHub runner. Formatting changes must be made/verified there; inspect the logs and retrieve resulting changes by an approved workflow. Do not claim checks passed until the CI run for the actual SHA is green and relevant logs were reviewed.
+- Git, Python, documentation and non-Cargo static checks may run in the agent workspace. Push only with authorization and without putting tokens in URLs, logs, tracked files or CI. The external `.env` is not repository content.
+- GitHub-hosted Linux/macOS/Windows runners are reserved for cross-platform verification and release builds. They are separate from routine fast development checks. Manual machine matrices, benchmarks, signing and notarization require explicit evidence and cannot be inferred from compilation.
+- The self-hosted runner must have stable Rust with rustfmt/clippy and `cargo-deny`, and be trusted/configured for this repository. Never execute untrusted fork PR code on it. Branch protections and runner isolation remain repository-owner responsibilities.
+- Routine target commands on the runner:
+  `cargo fmt --all -- --check`; `cargo clippy --workspace --all-targets -- -D warnings`; `cargo test --workspace`; `cargo deny check`. Add corpus, differential, fuzz and header checks as their tasks land; do not pretend a missing check ran. The workspace skeleton is unverified until these checks run, and CI deliberately fails if Cargo.toml is absent.
+
+## Git and review
+
+- Every commit message must be **one nonempty line, at most 50 Unicode characters total**, not just the subject. Run `python3 scripts/check_commit_messages.py --message 'your message'` before committing; CI checks every commit in a pushed/PR range. Do not rewrite existing remote history to conform without explicit permission.
+- One card per PR, title `[pN-N] …`; include What/Why/How tested, three preserved behaviors and screenshots for GUI. Explain each new dependency. Record CI URL, commit SHA and manual results.
+- Never force-push or replace an unknown remote; inspect its existing history first. If credentials/permissions block inspection, stop and report the error.
+
+## Architecture and invariants
+
+- `types ← km2/engine ← host ← platform/gui`. `keymagic-engine` is pure, deterministic, no IO/threads/globals/unsafe; `keymagic-host::Session` owns commit, mode and hotkey policy; adapters translate OS events/actions only. Separate `keymagic-ffi` cdylib from the engine rlib. All platform crates cfg-gated with fallbacks.
+- Preserve KM2 v1.5 interoperability and byte-identical writer; original KMS syntax; KeyMagic engine semantics; C ABI `keymagic_*` symbols; host configuration concepts and ARM64X approach. The isolated optional Fcitx5 C++ shim is the lab's exception to pure Rust; Python is additionally allowed for the user's repo policy scripts.
+- `keymagic-types`: keys, modifiers, IR/options/hotkeys; `keymagic-km2`: UTF-16LE binary codec and 1-based file indices; `keymagic-engine`: transformer; `keymagic-kms`: compiler/formatter; `keymagic-ffi`: ABI; `keymagic-cli`: tooling; `keymagic-host`: store/config/session/IPC/updater; `keymagic-gui`: egui pages and egui-free view models; `platform/*`: adapters.
+- Composing buffer persists under normal typing; state lives one event unless re-emitted; ANY is U+0021..U+007E; VK rules apply only to physical events, not recursive rematches; `VK_BACK = 2` is KeyMagic's internal value, not Windows VK; Ctrl+Alt maps to AltGr when right_alt enabled. Verify nuances against KM3 tests; lab pseudocode is illustrative, not executable authority.
+- Edition 2021, MSRV stable minus two releases; forbid unsafe outside ffi/platform; library errors via thiserror, anyhow for binaries; no unwrap outside tests, expect only documented invariants. Public docs/examples, module docs, `tracing` rather than library println, and 0-based IR indices. Snapshot/property/fuzz/differential/manual testing as appropriate.
+- Platform work is blocked until p2-4 differential harness is green. Phase gates and task progress are in `docs/PLAN.md` and external phase files. A PR is not done until its real applicable tests, formatting, clippy, deny, docs, platform matrix and task evidence are complete.
