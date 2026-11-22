@@ -52,6 +52,8 @@ Evidence and deviations: the identity-cap test is in `5b8bab8` (runs 45014856703
 - [x] p3-4: CLI (trycmd DoD met by in-house trycmd-style cases; see progress.md)
 - [x] p3-5: C FFI + header
 
+Phase 03 evidence is at `60eb7a7`: Development `45029443194`, FFI platforms `45029443199`, corpus-verify `45029443293`. Open: p3-2's byte-identity item applies to 40 files, not all 41, because myWin fails pinned KM3 at line 224 (ADR-27). Deviations: trycmd is replaced by an in-house case table (ADR-19); the CLI uses clap builder (ADR-19); the lexer is hand-written (ADR-17); the header comes from xtask (ADR-18); diagnostics render without ariadne (ADR-25); tests were added with the implementation, not before (ADR-26). Snapshot files cover six CLI cases; `compile`, `dump` and `repl` have functional tests only.
+
 ## Phase 04: Host layer
 
 - [ ] p4-1: Config + KeyboardStore
