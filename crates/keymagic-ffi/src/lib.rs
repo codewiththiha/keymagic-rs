@@ -208,14 +208,11 @@ pub unsafe extern "C" fn keymagic_engine_process_key_win(
         // SAFETY: handle and output are null or valid per the crate contract.
         let engine = unsafe { handle.as_mut() };
         let output = unsafe { output.as_mut() };
-        match win_key(vk_code) {
-            Some(key) => {
-                let flags = [shift, ctrl, alt, caps_lock];
-                let event = key_event(Some(key), character, flags);
-                run_key(engine, output, event, Step::Commit)
-            }
-            None => KeyMagicResult::ErrorInvalidParameter,
-        }
+        win_key(vk_code).map_or(KeyMagicResult::ErrorInvalidParameter, |key| {
+            let flags = [shift, ctrl, alt, caps_lock];
+            let event = key_event(Some(key), character, flags);
+            run_key(engine, output, event, Step::Commit)
+        })
     })
 }
 
@@ -234,14 +231,11 @@ pub unsafe extern "C" fn keymagic_engine_process_key_test_win(
         // SAFETY: handle and output are null or valid per the crate contract.
         let engine = unsafe { handle.as_mut() };
         let output = unsafe { output.as_mut() };
-        match win_key(vk_code) {
-            Some(key) => {
-                let flags = [shift, ctrl, alt, caps_lock];
-                let event = key_event(Some(key), character, flags);
-                run_key(engine, output, event, Step::Peek)
-            }
-            None => KeyMagicResult::ErrorInvalidParameter,
-        }
+        win_key(vk_code).map_or(KeyMagicResult::ErrorInvalidParameter, |key| {
+            let flags = [shift, ctrl, alt, caps_lock];
+            let event = key_event(Some(key), character, flags);
+            run_key(engine, output, event, Step::Peek)
+        })
     })
 }
 
