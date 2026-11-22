@@ -144,6 +144,29 @@ fn identity_rule_stops_recursion_without_looping() -> TestResult {
 }
 
 #[test]
+fn abc_chains_through_an_intermediate_output_to_x() -> TestResult {
+    let mut engine = engine(vec![text_rule("ab", "Y"), text_rule("Yc", "x")])?;
+    let first = type_text(&mut engine, "ab")?;
+    assert_eq!(
+        first.action,
+        Action::Replace {
+            delete: 1,
+            insert: "Y".into(),
+        }
+    );
+    let output = engine.process(char_event('c'));
+    assert_eq!(
+        output.action,
+        Action::Replace {
+            delete: 1,
+            insert: "x".into(),
+        }
+    );
+    assert_eq!(output.composing, "x");
+    Ok(())
+}
+
+#[test]
 fn growing_rule_is_capped_at_the_recursion_depth() -> TestResult {
     let mut engine = engine(vec![text_rule("a", "aa")])?;
     let output = engine.process(char_event('a'));
