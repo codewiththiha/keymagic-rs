@@ -4,7 +4,10 @@ use keymagic_types::VirtualKey;
 
 /// Modifier flags attached to a key event.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-#[expect(clippy::struct_excessive_bools, reason = "independent keyboard modifier flags")]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "independent keyboard modifier flags"
+)]
 pub struct Modifiers {
     /// Shift is held.
     pub shift: bool,

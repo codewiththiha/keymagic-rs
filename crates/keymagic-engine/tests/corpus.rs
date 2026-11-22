@@ -142,11 +142,31 @@ fn expect<T: PartialEq + Debug>(errors: &mut Vec<String>, field: &str, want: Opt
 
 fn compare(event: &Event, observed: &Observed) -> Vec<String> {
     let mut errors = Vec::new();
-    expect(&mut errors, "action", event.action.as_ref(), &observed.action);
-    expect(&mut errors, "delete", event.delete.as_ref(), &observed.delete);
+    expect(
+        &mut errors,
+        "action",
+        event.action.as_ref(),
+        &observed.action,
+    );
+    expect(
+        &mut errors,
+        "delete",
+        event.delete.as_ref(),
+        &observed.delete,
+    );
     expect(&mut errors, "text", event.text.as_ref(), &observed.text);
-    expect(&mut errors, "composing", event.composing.as_ref(), &observed.composing);
-    expect(&mut errors, "processed", event.processed.as_ref(), &observed.processed);
+    expect(
+        &mut errors,
+        "composing",
+        event.composing.as_ref(),
+        &observed.composing,
+    );
+    expect(
+        &mut errors,
+        "processed",
+        event.processed.as_ref(),
+        &observed.processed,
+    );
     expect(
         &mut errors,
         "engine_composing",

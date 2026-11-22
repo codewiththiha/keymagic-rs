@@ -35,7 +35,15 @@ fn trace_records_the_first_match_then_the_capped_recursion() -> Result<(), Box<d
     );
     let recursive = steps
         .iter()
-        .filter(|step| matches!(step, TraceStep::Applied { recursive: true, .. }))
+        .filter(|step| {
+            matches!(
+                step,
+                TraceStep::Applied {
+                    recursive: true,
+                    ..
+                }
+            )
+        })
         .count();
     assert_eq!(recursive, MAX_RECURSION_DEPTH);
     assert_eq!(steps.last(), Some(&TraceStep::Capped));

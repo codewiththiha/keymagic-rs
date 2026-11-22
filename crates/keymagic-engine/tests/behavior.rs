@@ -1,6 +1,8 @@
 //! Behavior of hand-built keyboards: composing, chaining, states and backspace.
 
-use keymagic_engine::{Action, Engine, KeyEvent, MAX_RECURSION_DEPTH, Modifiers, Output, VirtualKey};
+use keymagic_engine::{
+    Action, Engine, KeyEvent, MAX_RECURSION_DEPTH, Modifiers, Output, VirtualKey,
+};
 use keymagic_types::{Keyboard, LayoutOptions, OutputElement, PatternElement, Rule, StateId};
 use std::error::Error;
 use std::sync::Arc;

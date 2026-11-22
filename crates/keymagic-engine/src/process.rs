@@ -5,7 +5,7 @@ use crate::input::KeyEvent;
 use crate::matcher::find;
 use crate::record::{Recorder, TraceStep};
 use crate::result::{Action, Output};
-use crate::rules::{compile, CompiledRule};
+use crate::rules::{CompiledRule, compile};
 use crate::states::States;
 use crate::text::ComposingBuffer;
 use keymagic_types::{Keyboard, ValidationError, VirtualKey};

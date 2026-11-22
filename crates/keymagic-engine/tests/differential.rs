@@ -164,18 +164,17 @@ fn encode(step: &Step) -> Result<String, Box<dyn Error>> {
             let mask = modifier_mask(*mods);
             let body = match (key, ch, mask) {
                 (Some(vk), _, flags) if flags != 0 => {
-                    format!("m:{flags}:{vk}:{}", ch.map_or_else(String::new, String::from))
+                    format!(
+                        "m:{flags}:{vk}:{}",
+                        ch.map_or_else(String::new, String::from)
+                    )
                 }
                 (Some(vk), Some(c), 0) => format!("k:{vk}:{c}"),
                 (Some(vk), None, 0) => format!("v:{vk}"),
                 (None, Some(c), 0) => format!("c:{c}"),
                 _ => return Err("step has no key and no character".into()),
             };
-            if *preview {
-                format!("t:{body}")
-            } else {
-                body
-            }
+            if *preview { format!("t:{body}") } else { body }
         }
     })
 }
@@ -323,7 +322,10 @@ fn run_driver(
     keyboard: &Path,
     arguments: &[String],
 ) -> Result<String, Box<dyn Error>> {
-    let output = Command::new(driver).arg(keyboard).args(arguments).output()?;
+    let output = Command::new(driver)
+        .arg(keyboard)
+        .args(arguments)
+        .output()?;
     if !output.status.success() {
         return Err(format!(
             "reference driver failed: {}",

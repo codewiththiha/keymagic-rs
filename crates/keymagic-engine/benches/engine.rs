@@ -25,7 +25,8 @@ fn key_stream() -> Vec<KeyEvent> {
 }
 
 fn load_keyboard() -> Result<keymagic_types::Keyboard, Box<dyn Error>> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/km2/alternatives/myWin.km2");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/km2/alternatives/myWin.km2");
     Ok(keymagic_km2::parse(&std::fs::read(path)?)?)
 }
 
