@@ -2,8 +2,12 @@
 //! 4-byte big-endian body length followed by the JSON body.
 
 use crate::invalid_data;
+use interprocess::local_socket::{
+    GenericFilePath, Listener, ListenerOptions, Name, Stream, prelude::*,
+};
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
+use std::path::Path;
 use std::time::Duration;
 
 /// Largest body accepted, so a bad peer cannot force a huge allocation.
@@ -95,4 +99,70 @@ pub fn connect_with_retry<S>(
         };
         sleep(delay);
     }
+}
+
+fn socket_name(path: &Path) -> io::Result<Name<'_>> {
+    path.to_str()
+        .ok_or_else(|| invalid_data("socket path is not UTF-8"))?
+        .to_fs_name::<GenericFilePath>()
+}
+
+/// A connected peer that exchanges framed messages.
+#[derive(Debug)]
+pub struct Connection {
+    stream: Stream,
+}
+
+impl Connection {
+    /// Sends one message.
+    #[doc = "# Errors\n\nReturns an error when the message cannot be framed or written."]
+    pub fn send(&mut self, message: &Message) -> io::Result<()> {
+        write_message(&mut self.stream, message)
+    }
+
+    /// Waits for one message.
+    #[doc = "# Errors\n\nReturns an error when the peer closes early or sends a bad frame."]
+    pub fn recv(&mut self) -> io::Result<Message> {
+        read_message(&mut self.stream)
+    }
+}
+
+/// Listens on a local socket: a Unix socket, or a named pipe on Windows.
+#[derive(Debug)]
+pub struct Server {
+    listener: Listener,
+}
+
+impl Server {
+    /// Binds `path`, replacing a stale socket file from an earlier run.
+    #[doc = "# Errors\n\nReturns an error for a non-UTF-8 path or when the socket cannot be bound."]
+    pub fn bind(path: &Path) -> io::Result<Self> {
+        let listener = ListenerOptions::new()
+            .name(socket_name(path)?)
+            .try_overwrite(true)
+            .create_sync()?;
+        Ok(Self { listener })
+    }
+
+    /// Waits for the next client.
+    #[doc = "# Errors\n\nReturns an error when accepting the connection fails."]
+    pub fn accept(&self) -> io::Result<Connection> {
+        Ok(Connection {
+            stream: self.listener.accept()?,
+        })
+    }
+}
+
+/// Connects to a [`Server`] at `path`, retrying with `delays` between attempts.
+#[doc = "# Errors\n\nReturns the last connection error once `delays` runs out."]
+pub fn connect(path: &Path, delays: impl IntoIterator<Item = Duration>) -> io::Result<Connection> {
+    connect_with_retry(
+        || {
+            Ok(Connection {
+                stream: Stream::connect(socket_name(path)?)?,
+            })
+        },
+        delays,
+        std::thread::sleep,
+    )
 }

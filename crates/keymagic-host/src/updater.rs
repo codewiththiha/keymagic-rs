@@ -5,6 +5,9 @@ use semver::Version;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::io;
+use std::time::Duration;
+
+const TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Release manifest: platform, then architecture, then the release.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -79,6 +82,25 @@ impl Manifest {
     fn target(&self, platform: &str, arch: &str) -> Option<&Target> {
         self.platforms.get(platform)?.get(arch)
     }
+}
+
+/// Downloads and parses the manifest at `url`. Gives up after ten seconds.
+#[doc = "# Errors\n\nReturns an error for network or HTTP failures, or a malformed manifest."]
+pub fn fetch(url: &str) -> io::Result<Manifest> {
+    let agent = ureq::Agent::new_with_config(
+        ureq::Agent::config_builder()
+            .timeout_global(Some(TIMEOUT))
+            .build(),
+    );
+    let mut response = agent
+        .get(url)
+        .call()
+        .map_err(|error| io::Error::other(error.to_string()))?;
+    let body = response
+        .body_mut()
+        .read_to_vec()
+        .map_err(|error| io::Error::other(error.to_string()))?;
+    Manifest::parse(&body)
 }
 
 /// True while `today` is before `remind_after`. Dates are `YYYY-MM-DD`.

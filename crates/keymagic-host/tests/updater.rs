@@ -1,7 +1,8 @@
 //! Update checks against a mocked `updates.json` in the KM3 schema.
 
-use keymagic_host::updater::{Manifest, postponed};
+use keymagic_host::updater::{Manifest, fetch, postponed};
 use std::error::Error;
+use std::io::{self, Read, Write};
 
 type TestResult = Result<(), Box<dyn Error>>;
 
@@ -116,5 +117,33 @@ fn remind_after_postpones_until_its_date() -> TestResult {
     assert!(!postponed("2026-11-22", None)?);
     assert!(postponed("2026-11-22", Some("2026/11/23")).is_err());
     assert!(postponed("22-11-2026", None).is_err());
+    Ok(())
+}
+
+#[test]
+fn fetch_downloads_and_parses_the_manifest_over_http() -> TestResult {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
+    let url = format!("http://{}/updates.json", listener.local_addr()?);
+    let server = std::thread::spawn(move || -> io::Result<()> {
+        let (mut stream, _) = listener.accept()?;
+        let mut request = [0_u8; 1024];
+        let _ = stream.read(&mut request)?;
+        write!(
+            stream,
+            concat!(
+                "HTTP/1.1 200 OK\r\n",
+                "Content-Type: application/json\r\n",
+                "Content-Length: {}\r\n",
+                "Connection: close\r\n\r\n{}"
+            ),
+            MOCK.len(),
+            MOCK
+        )
+    });
+    let manifest = fetch(&url)?;
+    server
+        .join()
+        .map_err(|_| io::Error::other("server thread panicked"))??;
+    assert_eq!(manifest, Manifest::parse(MOCK.as_bytes())?);
     Ok(())
 }

@@ -137,3 +137,13 @@ fn hotkey_table_defaults_on_and_reads_its_keys() -> TestResult {
     assert_eq!(config.hotkeys.next_keyboard.as_deref(), Some("Ctrl+Tab"));
     Ok(())
 }
+
+#[test]
+fn enabled_languages_round_trip_and_default_to_none() -> TestResult {
+    assert!(Config::default().general.enabled_languages.is_empty());
+    let mut config = Config::default();
+    config.general.enabled_languages = vec!["my".to_owned(), "en-US".to_owned()];
+    let parsed = Config::from_toml(&config.to_toml()?)?;
+    assert_eq!(parsed.general.enabled_languages, config.general.enabled_languages);
+    Ok(())
+}

@@ -16,6 +16,12 @@ allow = [
     "MPL-2.0",
     # Approved by the user on 2026-11-22: image (BMP to PNG) via flate2 and png.
     "Zlib",
+    # Approved by the user on 2026-11-22: interprocess (0BSD OR Apache-2.0).
+    "0BSD",
+    # Approved by the user on 2026-11-22: ureq TLS (ring, aws-lc-sys).
+    "Apache-2.0",
+    # Approved by the user on 2026-11-22: ureq TLS roots (webpki-roots).
+    "CDLA-Permissive-2.0",
 ]
 
 [bans]

@@ -4,6 +4,7 @@ use keymagic_host::ipc::{self, Backoff, Message};
 use std::cell::RefCell;
 use std::error::Error;
 use std::io;
+use std::path::Path;
 use std::time::Duration;
 
 type TestResult = Result<(), Box<dyn Error>>;
@@ -110,4 +111,47 @@ fn connect_gives_up_when_delays_run_out() {
         result.err().map(|e| e.kind()),
         Some(io::ErrorKind::NotFound)
     );
+}
+
+#[test]
+fn local_socket_carries_a_message_both_ways() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let path = dir.path().join("keymagic.sock");
+    let server = ipc::Server::bind(&path)?;
+    let client_path = path.clone();
+    let client = std::thread::spawn(move || -> io::Result<Message> {
+        let mut connection = ipc::connect(&client_path, [Duration::from_millis(10)])?;
+        connection.send(&Message::SetActive {
+            id: "myanmar3".to_owned(),
+        })?;
+        connection.recv()
+    });
+    let mut peer = server.accept()?;
+    assert_eq!(
+        peer.recv()?,
+        Message::SetActive {
+            id: "myanmar3".to_owned()
+        }
+    );
+    peer.send(&Message::Hud {
+        text: "Myanmar 3".to_owned(),
+    })?;
+    let reply = client
+        .join()
+        .map_err(|_| io::Error::other("client thread panicked"))??;
+    assert_eq!(
+        reply,
+        Message::Hud {
+            text: "Myanmar 3".to_owned()
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn connect_fails_without_a_server_once_retries_run_out() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let missing: &Path = &dir.path().join("absent.sock");
+    assert!(ipc::connect(missing, [Duration::ZERO, Duration::ZERO]).is_err());
+    Ok(())
 }
