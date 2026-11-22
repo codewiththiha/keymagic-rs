@@ -76,4 +76,4 @@ jobs:
           mkdir -p reference-km2
           sources=(corpus/kms/cases/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms)
           upstream/target/debug/codec_reference reference-km2 "${sources[@]}"
-          KM2_REFERENCE_DIRECTORY="$PWD/reference-km2" cargo test --locked --package keymagic-km2 --test codec matches_upstream_writer -- --ignored --exact
+          KEYMAGIC_REFERENCE_KM2_DIRECTORY="$PWD/reference-km2" cargo test --locked --package keymagic-km2 --test codec matches_upstream_writer -- --ignored --exact
