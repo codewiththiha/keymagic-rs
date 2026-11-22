@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output, Stdio};
+use std::process::{Command, Stdio};
 
 type TestResult = Result<(), Box<dyn Error>>;
 
