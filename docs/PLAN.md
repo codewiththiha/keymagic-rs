@@ -1,13 +1,28 @@
 # Roadmap
 
-Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.arena.site/#roadmap). Full local notes, evidence and status live outside this repo in `/home/user/phases/` and `/home/user/progress.md`. Check them each turn. All boxes below are initially unchecked, not proof of completion.
+Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.arena.site/#roadmap). Full lab steps and detailed evidence are in `/home/user/phases/` and `/home/user/progress.md` when available. A checkbox means all applicable completion gates have evidence, not merely that work has started.
+
+## Current status — 2026-11-22
+
+**Current phase: 00 — incomplete.** Working through its outstanding gates, not phase 01. The workspace builds on the self-hosted macOS runner, but product crates remain stubs; the engine and KM2 codec are not implemented.
+
+| Card | Status | Remaining work |
+| --- | --- | --- |
+| p0-1 workspace | In progress | [Linux, macOS and Windows checks passed](https://github.com/codewiththiha/keymagic-rs/actions/runs/44983376072) at `be3800b`; product crates remain placeholders. |
+| p0-2 agent and docs | Complete for the documentation card | Required documentation and the sourced virtual-key reference exist; platform manual tests remain future work. |
+| p0-3 CI | In progress | Self-hosted checks and an intentional Clippy failure probe pass; main protection could not be inspected (API returned 403). PR-oriented steps conflict with the direct-main policy. |
+| p0-4 corpus | In progress | Sync tooling works; corpus has 18 transcribed scenarios, 3 upstream KMS fixtures and 1 upstream KM2 fixture. Verify layout licensing and add the remaining cases. |
+
+[Development CI runs](https://github.com/codewiththiha/keymagic-rs/actions/workflows/ci.yml?query=branch%3Amain) show which commit was tested. Green CI currently validates tooling and stubs, not a working input method. Corpus source references are not runnable engine tests.
+
+**Working rule:** Aim to finish each phase end-to-end in a session when feasible; do not report it as complete until its applicable gates pass. If a gate is blocked or superseded by a user instruction, say exactly which and why. Update this status and the external progress record when work ends.
 
 Critical path: 00 → 01 → 02 → 03 → 04 → 05 → (06 ∥ 07 ∥ 08) → 09. Do not start platform work before p2-4 differential CI is green.
 
 ## Phase 00 — Bootstrap the lab
 
 - [ ] p0-1 — Create workspace skeleton
-- [ ] p0-2 — Write AGENTS.md + docs skeleton
+- [x] p0-2 — Write AGENTS.md + docs skeleton
 - [ ] p0-3 — CI pipeline
 - [ ] p0-4 — Vendor the behavioural corpus
 

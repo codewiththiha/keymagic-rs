@@ -4,7 +4,7 @@ Read [AGENTS.md](AGENTS.md), [docs/PLAN.md](docs/PLAN.md), and the relevant phas
 
 ## Task workflow
 
-1. Confirm the current branch, task status and self-hosted CI results for the actual commit. Read the lab card and all named upstream references; identify three behaviors to preserve.
+1. Confirm the current branch, phase status and self-hosted CI results for the actual commit. Aim to complete the current phase end-to-end in a session when feasible, rather than stopping after a small partial step. For each card read the named upstream references and identify three behaviors to preserve. Record actual remaining gates and blockers in the plan and progress.
 2. Write tests first, implement the smallest useful task on `main`, document behavior and public API, and record the card and supporting evidence. Do not create branches or PRs unless requested. Do not change expected corpus results merely to make a test pass.
 3. Use Rust edition 2024. Unsafe Rust is forbidden in every crate, including platform and FFI. Treat compiler warnings and Clippy all/pedantic/nursery as errors; unwrap and expect are denied. If a required integration cannot be implemented within that policy, stop and flag the conflict rather than introducing unsafe.
 4. All routine Rust builds, checks, formatting, tests and Cargo-related tools run on the trusted **self-hosted** GitHub runner, not the agent workspace. Review its logs for the precise SHA. Hosted runners are only for releases or necessary cross-platform checks, not every PR. Use the manual format-patch and lockfile workflows when required; review the resulting artifacts.

@@ -50,7 +50,7 @@ jobs:
         run: |
           base=$(python3 scripts/comment_diff_base.py "$EVENT_NAME" "$BASE_SHA" "$HEAD_SHA")
           files=()
-          while IFS= read -r -d '' file; do files+=("$file"); done < <(git diff --diff-filter=ACMR --name-only -z "$base" "$HEAD_SHA" -- '*.rs' '*.py')
+          while IFS= read -r -d '' file; do files+=("$file"); done < <(git diff --diff-filter=ACMR --name-only -z "$base" "$HEAD_SHA" -- '*.rs' '*.py' ':(exclude)corpus/reference/km3/**')
           if (( ${#files[@]} )); then
             python3 tools/comment_check.py "${files[@]}"
             python3 tools/comment_budget.py --base "$base" "${files[@]}"
@@ -69,6 +69,21 @@ jobs:
         run: cargo build --locked --workspace
       - name: Clippy
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - name: Verify Clippy rejects unwrap
+        shell: bash
+        run: |
+          dir=$(mktemp -d)
+          file=crates/keymagic-types/src/lib.rs
+          cp "$file" "$dir/original"
+          trap 'cp "$dir/original" "$file"; rm -rf "$dir"' EXIT
+          printf '\n#[cfg(test)]\n#[test]\nfn lint_probe() { let _value = std::env::var("PROBE").unwrap(); }\n' >> "$file"
+          if cargo clippy --locked --package keymagic-types --all-targets -- -D warnings > "$dir/output" 2>&1; then
+            echo '::error::Clippy accepted the intentional unwrap'; exit 1
+          fi
+          if ! grep -Eq 'clippy::unwrap[-_]used' "$dir/output"; then
+            cat "$dir/output"; echo '::error::Clippy failed for an unrelated reason'; exit 1
+          fi
+          echo 'Clippy rejected the intentional unwrap as expected.'
       - name: Tests
         run: cargo test --locked --workspace
       - name: Check pinned corpus

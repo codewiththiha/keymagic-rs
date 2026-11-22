@@ -22,3 +22,105 @@ upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_no_matching_rule"
 events = [
   { key = "x", composing = "x", action = "insert", text = "x" },
 ]
+
+[[case]]
+name = "unicode_sequence"
+keyboard = "kms/cases/unicode_sequence.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_unicode_to_unicode_mapping"
+events = [
+  { key = "a" },
+  { key = "b", composing = "က", action = "replace", delete = 1, text = "က" },
+]
+
+[[case]]
+name = "variable_substitution"
+keyboard = "kms/cases/variable_substitution.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_variable_substitution_in_rules"
+events = [
+  { key = "t" }, { key = "e" }, { key = "s" },
+  { key = "t", composing = "result", action = "replace", delete = 3, text = "result" },
+]
+
+[[case]]
+name = "priority_short"
+keyboard = "kms/cases/priority_short.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_multiple_rules_priority"
+events = [{ key = "k", composing = "SHORT", action = "insert", text = "SHORT" }]
+
+[[case]]
+name = "priority_long"
+keyboard = "kms/cases/priority_long.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_multiple_rules_priority"
+events = [{ key = "k" }, { key = "a", composing = "LONG" }]
+
+[[case]]
+name = "greedy_match"
+keyboard = "kms/cases/greedy_match.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_greedy_matching"
+events = [
+  { key = "t" }, { key = "i" }, { key = "t" }, { key = "l", composing = "titl" },
+  { key = "e", composing = "Title", action = "replace", delete = 4, text = "Title" },
+]
+
+[[case]]
+name = "recursive_chain"
+keyboard = "kms/cases/recursive_chain.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_recursive_rule_chain"
+events = [{ key = "x", composing = "X" }]
+
+[[case]]
+name = "multi_replacement"
+keyboard = "kms/cases/multi_replacement.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_multi_character_replacement"
+events = [{ key = "a" }, { key = "h", composing = "ဟ", action = "replace", delete = 1, text = "ဟ" }]
+
+[[case]]
+name = "variable_literal"
+keyboard = "kms/cases/variable_literal.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_string_literals"
+events = [{ key = "က", action = "insert", text = "consonants" }]
+
+[[case]]
+name = "variable_unicode"
+keyboard = "kms/cases/variable_unicode.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_unicode_concatenation"
+events = [{ key = "က", action = "insert", text = "vowels" }]
+
+[[case]]
+name = "combined_consonant"
+keyboard = "kms/cases/combined_variable.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_concatenation"
+events = [{ key = "ခ", action = "insert", text = "combined" }]
+
+[[case]]
+name = "combined_vowel"
+keyboard = "kms/cases/combined_variable.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_concatenation"
+events = [{ key = "ိ", action = "insert", text = "combined" }]
+
+[[case]]
+name = "variable_output"
+keyboard = "kms/cases/variable_output.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_in_rule_output"
+events = [{ key = "a", action = "insert", text = "ကာ" }]
+
+[[case]]
+name = "zero_width_variable"
+keyboard = "kms/cases/zero_width_variable.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_predefined_unicode_variables"
+events = [
+  { key = "z" }, { key = "w" },
+  { key = "s", action = "replace", delete = 2, text = "\u200Btest" },
+]
+
+[[case]]
+name = "mixed_ascii"
+keyboard = "kms/cases/mixed_variable.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_with_mixed_content"
+events = [{ key = "a", action = "insert", text = "matched" }]
+
+[[case]]
+name = "mixed_unicode"
+keyboard = "kms/cases/mixed_variable.kms"
+upstream_test = "keymagic-core/tests/variable_tests.rs::test_variable_with_mixed_content"
+events = [{ key = "က", action = "insert", text = "matched" }]

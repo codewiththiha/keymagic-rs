@@ -41,6 +41,7 @@ fn sync_dry_run_check_and_restore_pinned_bytes() -> Result<(), Box<dyn Error>> {
     git(&source, &["init", "-q"])?;
     git(&source, &["config", "user.name", "Test"])?;
     git(&source, &["config", "user.email", "test@example.invalid"])?;
+    git(&source, &["config", "core.autocrlf", "false"])?;
     fs::write(source.join("fixture.kms"), b"original\r\n")?;
     git(&source, &["add", "fixture.kms"])?;
     git(&source, &["commit", "-qm", "fixture"])?;

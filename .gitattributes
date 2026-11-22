@@ -1,0 +1,3 @@
+corpus/reference/km3/** -text diff
+corpus/kms/upstream/** -text diff
+corpus/km2/upstream/** -text

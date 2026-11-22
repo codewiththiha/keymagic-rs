@@ -1,5 +1,6 @@
 """Static documentation-presence checks; not a substitute for docs builds."""
 from pathlib import Path
+import re
 import unittest
 
 from test_workspace_skeleton import PACKAGES
@@ -27,6 +28,16 @@ class DocumentationSkeletonTests(unittest.TestCase):
                 text = (ROOT / 'docs' / name).read_text()
                 self.assertIn('thantthet/keymagic-3', text)
                 self.assertIn('2db30dc8e8a5f091d1434a2bc1702b29cf113804', text)
+
+    def test_virtual_key_reference_covers_upstream_values(self):
+        text = (ROOT / 'docs/VIRTUAL_KEYS.md').read_text()
+        rows = re.findall(r'^\| (\d+) \| `([^`]+)` \| `([^`]+)` \|', text, re.MULTILINE)
+        self.assertEqual([int(row[0]) for row in rows], list(range(2, 102)))
+        self.assertEqual(rows[0], ('2', 'Back', 'VK_BACK'))
+        self.assertEqual(rows[-1], ('101', 'Ico00', 'VK_ICO_00'))
+        for alias in ('VK_CFLEX', 'VK_ALT_GR', 'VK_LCTRL', 'VK_LESSTHEN'):
+            self.assertIn(f'`{alias}`', text)
+        self.assertIn('2db30dc8e8a5f091d1434a2bc1702b29cf113804', text)
 
     def test_each_package_has_a_readme(self):
         for path in PACKAGES:

@@ -1,0 +1,3 @@
+$cons = "က"
+$vowel = "ာ"
+"a" => $cons + $vowel

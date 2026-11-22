@@ -1,0 +1,4 @@
+$consonants = "ကခဂ"
+$vowels = "ာိီ"
+$combined = $consonants + $vowels
+$combined[*] => "combined"

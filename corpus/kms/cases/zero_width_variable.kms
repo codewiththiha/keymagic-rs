@@ -1,0 +1,2 @@
+$ZWS = U200B
+"zws" => $ZWS + "test"
