@@ -1,0 +1,24 @@
+[[case]]
+name = "simple_mapping"
+keyboard = "kms/cases/simple_mapping.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_simple_string_mapping"
+events = [
+  { key = "k", composing = "k", action = "insert", text = "k" },
+  { key = "a", composing = "က", action = "replace", delete = 1, text = "က" },
+]
+
+[[case]]
+name = "single_character"
+keyboard = "kms/cases/single_character.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_single_char_mapping"
+events = [
+  { key = "a", composing = "\u200Btest", action = "insert", text = "\u200Btest" },
+]
+
+[[case]]
+name = "unmatched_character"
+keyboard = "kms/cases/simple_mapping.kms"
+upstream_test = "keymagic-core/tests/basic_rule_tests.rs::test_no_matching_rule"
+events = [
+  { key = "x", composing = "x", action = "insert", text = "x" },
+]
