@@ -169,7 +169,10 @@ impl Session {
         if let Some((keyboard, label)) = hit {
             return Some(self.switch_to(keyboard, label));
         }
-        if self.next_keyboard.is_some_and(|hotkey| matches(hotkey, event)) {
+        if self
+            .next_keyboard
+            .is_some_and(|hotkey| matches(hotkey, event))
+        {
             return self.next_in_cycle();
         }
         None
