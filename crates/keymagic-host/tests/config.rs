@@ -128,3 +128,12 @@ fn hotkey_conflicts_match_after_normalising_and_skip_disabled_keyboards() {
     ];
     assert_eq!(config.hotkey_conflicts(), [("zawgyi", "myanmar3")]);
 }
+
+#[test]
+fn hotkey_table_defaults_on_and_reads_its_keys() -> TestResult {
+    assert!(Config::default().hotkeys.enabled);
+    let config = Config::from_toml("[hotkeys]\nenabled = false\nnext_keyboard = \"Ctrl+Tab\"\n")?;
+    assert!(!config.hotkeys.enabled);
+    assert_eq!(config.hotkeys.next_keyboard.as_deref(), Some("Ctrl+Tab"));
+    Ok(())
+}

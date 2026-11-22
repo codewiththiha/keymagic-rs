@@ -306,3 +306,72 @@ fn empty_or_disabled_hotkeys_do_not_switch() -> TestResult {
     }
     Ok(())
 }
+
+fn installed_as(id: &str, name: &str, enabled: bool) -> Installed {
+    Installed {
+        id: id.to_owned(),
+        name: name.to_owned(),
+        filename: format!("{id}.km2"),
+        hotkey: None,
+        hash: None,
+        enabled,
+    }
+}
+
+fn ctrl(key: Key) -> KeyEvent {
+    KeyEvent {
+        mods: Modifiers {
+            ctrl: true,
+            ..Modifiers::default()
+        },
+        ..key.event()
+    }
+}
+
+#[test]
+fn next_keyboard_hotkey_cycles_through_enabled_keyboards() -> TestResult {
+    let mut config = Config::default();
+    config.keyboards.installed = vec![
+        installed_as("zawgyi", "Zawgyi", true),
+        installed_as("off", "Off", false),
+        installed_as("myanmar3", "Myanmar 3", true),
+    ];
+    config.keyboards.active = Some("zawgyi".to_owned());
+    config.hotkeys.next_keyboard = Some("Ctrl+Tab".to_owned());
+    let mut session = Session::new(engine()?, &config);
+    session.focus_in(COMPOSITION_APP);
+    assert_eq!(
+        session.key(ctrl(Key::Tab)),
+        [
+            HostAction::SwitchKeyboard("myanmar3".to_owned()),
+            HostAction::Hud("Myanmar 3".to_owned()),
+        ]
+    );
+    assert_eq!(
+        session.key(ctrl(Key::Tab)),
+        [
+            HostAction::SwitchKeyboard("zawgyi".to_owned()),
+            HostAction::Hud("Zawgyi".to_owned()),
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn disabled_global_hotkeys_let_keys_through() -> TestResult {
+    let mut config = keyboard(Some("Ctrl+Space"), true);
+    config.hotkeys.enabled = false;
+    config.hotkeys.next_keyboard = Some("Ctrl+Tab".to_owned());
+    let mut session = Session::new(engine()?, &config);
+    session.focus_in(COMPOSITION_APP);
+    for key in [Key::Space, Key::Tab] {
+        let actions = session.key(ctrl(key));
+        assert!(
+            !actions
+                .iter()
+                .any(|action| matches!(action, HostAction::SwitchKeyboard(_))),
+            "{actions:?}"
+        );
+    }
+    Ok(())
+}

@@ -40,16 +40,13 @@ struct Switch {
     label: String,
 }
 
-impl Switch {
-    fn matches(&self, event: &KeyEvent) -> bool {
-        // shortcut: no Meta in KeyEvent, so Meta hotkeys never match yet.
-        let hotkey = self.hotkey;
-        !hotkey.meta
-            && event.key == Some(hotkey.key)
-            && event.mods.ctrl == hotkey.ctrl
-            && event.mods.alt == hotkey.alt
-            && event.mods.shift == hotkey.shift
-    }
+fn matches(hotkey: Hotkey, event: &KeyEvent) -> bool {
+    // shortcut: no Meta in KeyEvent, so Meta hotkeys never match yet.
+    !hotkey.meta
+        && event.key == Some(hotkey.key)
+        && event.mods.ctrl == hotkey.ctrl
+        && event.mods.alt == hotkey.alt
+        && event.mods.shift == hotkey.shift
 }
 
 /// Applications that fight composition unless the config says otherwise.
@@ -73,6 +70,10 @@ pub struct Session {
     composition: Vec<String>,
     direct: Vec<String>,
     switches: Vec<Switch>,
+    hotkeys_on: bool,
+    next_keyboard: Option<Hotkey>,
+    cycle: Vec<(String, String)>,
+    current: Option<String>,
     mode: Mode,
 }
 
@@ -85,6 +86,20 @@ impl Session {
             composition: normalized(&config.composition_mode.enabled_hosts),
             direct: normalized(&config.direct_mode.enabled_hosts),
             switches: switches(config),
+            hotkeys_on: config.hotkeys.enabled,
+            next_keyboard: config
+                .hotkeys
+                .next_keyboard
+                .as_deref()
+                .and_then(|text| text.parse().ok()),
+            cycle: config
+                .keyboards
+                .installed
+                .iter()
+                .filter(|keyboard| keyboard.enabled)
+                .map(|keyboard| (keyboard.id.clone(), keyboard.name.clone()))
+                .collect(),
+            current: config.keyboards.active.clone(),
             mode: Mode::Composition,
         }
     }
@@ -128,17 +143,12 @@ impl Session {
 
     /// Handles one key press. Switch hotkeys are checked before the engine.
     pub fn key(&mut self, event: KeyEvent) -> Vec<HostAction> {
-        let hit = self
-            .switches
-            .iter()
-            .find(|switch| switch.matches(&event))
-            .cloned();
-        if let Some(switch) = hit {
-            let mut actions: Vec<HostAction> =
-                self.pending().map(HostAction::Commit).into_iter().collect();
-            self.engine.reset();
-            actions.push(HostAction::SwitchKeyboard(switch.keyboard));
-            actions.push(HostAction::Hud(switch.label));
+        let switched = if self.hotkeys_on {
+            self.switch_hotkey(&event)
+        } else {
+            None
+        };
+        if let Some(actions) = switched {
             return actions;
         }
         let before = self.engine.composing().to_owned();
@@ -148,6 +158,45 @@ impl Session {
             Mode::Composition => self.composition(trigger, &output, &before),
             Mode::Direct => self.direct(trigger, &output),
         }
+    }
+
+    fn switch_hotkey(&mut self, event: &KeyEvent) -> Option<Vec<HostAction>> {
+        let hit = self
+            .switches
+            .iter()
+            .find(|switch| matches(switch.hotkey, event))
+            .map(|switch| (switch.keyboard.clone(), switch.label.clone()));
+        if let Some((keyboard, label)) = hit {
+            return Some(self.switch_to(keyboard, label));
+        }
+        if self.next_keyboard.is_some_and(|hotkey| matches(hotkey, event)) {
+            return self.next_in_cycle();
+        }
+        None
+    }
+
+    /// Moves to the enabled keyboard after the current one, wrapping around.
+    fn next_in_cycle(&mut self) -> Option<Vec<HostAction>> {
+        let len = self.cycle.len();
+        if len < 2 {
+            return None;
+        }
+        let at = self
+            .current
+            .as_ref()
+            .and_then(|id| self.cycle.iter().position(|(key, _)| key == id));
+        let (keyboard, label) = self.cycle[at.map_or(0, |index| (index + 1) % len)].clone();
+        Some(self.switch_to(keyboard, label))
+    }
+
+    fn switch_to(&mut self, keyboard: String, label: String) -> Vec<HostAction> {
+        let mut actions: Vec<HostAction> =
+            self.pending().map(HostAction::Commit).into_iter().collect();
+        self.engine.reset();
+        self.current = Some(keyboard.clone());
+        actions.push(HostAction::SwitchKeyboard(keyboard));
+        actions.push(HostAction::Hud(label));
+        actions
     }
 
     fn composition(

@@ -15,6 +15,24 @@ pub struct Config {
     pub keyboards: Keyboards,
     pub composition_mode: HostList,
     pub direct_mode: HostList,
+    pub hotkeys: Hotkeys,
+}
+
+/// The `[hotkeys]` table: the global switch and the next-keyboard combination.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Hotkeys {
+    pub enabled: bool,
+    pub next_keyboard: Option<String>,
+}
+
+impl Default for Hotkeys {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            next_keyboard: None,
+        }
+    }
 }
 
 /// The `[general]` table.
@@ -26,6 +44,7 @@ pub struct General {
     pub last_update_check: Option<String>,
     pub last_scanned_version: Option<String>,
     pub update_remind_after: Option<String>,
+    pub enabled_languages: Vec<String>,
 }
 
 impl Default for General {
@@ -36,6 +55,7 @@ impl Default for General {
             last_update_check: None,
             last_scanned_version: None,
             update_remind_after: None,
+            enabled_languages: Vec::new(),
         }
     }
 }
@@ -57,7 +77,7 @@ pub struct Installed {
     pub name: String,
     #[serde(default)]
     pub filename: String,
-    /// `None` keeps the keyboard's own hotkey; `Some("")` disables it.
+    /// `None` and `Some("")` both mean no switch hotkey.
     pub hotkey: Option<String>,
     pub hash: Option<String>,
     #[serde(default = "enabled_by_default")]
