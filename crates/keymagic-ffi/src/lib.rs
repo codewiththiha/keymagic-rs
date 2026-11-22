@@ -146,7 +146,6 @@ fn install(handle: &mut EngineHandle, bytes: &[u8]) -> KeyMagicResult {
 }
 
 #[unsafe(no_mangle)]
-#[expect(clippy::too_many_arguments, reason = "mirrors the KM3 C signature")]
 pub unsafe extern "C" fn keymagic_engine_process_key(
     handle: *mut EngineHandle,
     key_code: c_int,
@@ -167,7 +166,6 @@ pub unsafe extern "C" fn keymagic_engine_process_key(
 }
 
 #[unsafe(no_mangle)]
-#[expect(clippy::too_many_arguments, reason = "mirrors the KM3 C signature")]
 pub unsafe extern "C" fn keymagic_engine_process_key_test(
     handle: *mut EngineHandle,
     key_code: c_int,
@@ -251,13 +249,10 @@ pub unsafe extern "C" fn keymagic_engine_reset(handle: *mut EngineHandle) -> Key
         let Some(handle) = (unsafe { handle.as_mut() }) else {
             return KeyMagicResult::ErrorInvalidParameter;
         };
-        match handle.engine.as_mut() {
-            Some(engine) => {
-                engine.reset();
-                KeyMagicResult::Success
-            }
-            None => KeyMagicResult::ErrorNoKeyboard,
-        }
+        handle.engine.as_mut().map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
+            engine.reset();
+            KeyMagicResult::Success
+        })
     })
 }
 
@@ -289,13 +284,10 @@ pub unsafe extern "C" fn keymagic_engine_set_composition(
         let Ok(text) = unsafe { CStr::from_ptr(text) }.to_str() else {
             return KeyMagicResult::ErrorUtf8Conversion;
         };
-        match handle.engine.as_mut() {
-            Some(engine) => {
-                engine.set_composing(text);
-                KeyMagicResult::Success
-            }
-            None => KeyMagicResult::ErrorNoKeyboard,
-        }
+        handle.engine.as_mut().map_or(KeyMagicResult::ErrorNoKeyboard, |engine| {
+            engine.set_composing(text);
+            KeyMagicResult::Success
+        })
     })
 }
 
