@@ -8,6 +8,14 @@ Read this file before changing the project. The [lab](https://01a1ff77-4137-7a69
 2. Complete the current phase end-to-end. Before ending, reread its entire phase file, compare every card, ordered step and completion criterion against actual code and evidence, fill gaps and repeat until complete. Ordinary remaining work is not a blocker. If an external dependency or a user-instruction conflict genuinely blocks an item, finish unblocked work and report the exact blocker. Inspect upstream sources, identify three behaviors to preserve, write tests first, validate, and keep `docs/PLAN.md` and external progress current.
 3. Develop directly on `main`, committing and pushing regular commits. Do not create branches or PRs unless the user explicitly asks. At session end, squash related very small commits; fold failed-CI commits into their fixes. The user authorizes force-pushing these rewrites with an exact lease, without overwriting unrelated remote work. Validate the final SHA. Other force pushes need separate authorization; old GitHub Actions records may remain visible.
 
+## Coding method: ponytail
+
+Before any coding task, read `/home/user/ponytail/skills/ponytail/SKILL.md` (the `DietrichGebert/ponytail` skill, MIT, cloned at `ebd8654`). If that path is missing, clone `https://github.com/DietrichGebert/ponytail.git` first. Use the default `full` level unless the user asks otherwise.
+
+Apply its method to every change: list every place the change must reach, take the smallest option that fully works, reuse existing code, skip unrequested options, and end each reply with one or two lines on what was skipped or not checked, and the risks.
+
+This file takes precedence where the two conflict. Tests come first, the comment budget applies, and the three preserved behaviors still must be recorded. A shortcut comment (`shortcut: <limit>, <when to upgrade>`) counts as an ordinary comment in the budget.
+
 ## Execution and Git
 
 - Run all Cargo, rustc, Rust formatting, tests, clippy, cargo-deny, fuzz and build commands only on the self-hosted GitHub runner, never in the agent workspace. Inspect the exact run's logs. Use the manual self-hosted patch or lockfile workflows to retrieve generated changes.
