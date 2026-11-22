@@ -7,7 +7,7 @@ use smallvec::SmallVec;
 
 /// Composing characters followed by an optional virtual trailing character.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Text<'a> {
+pub struct Text<'a> {
     /// Composing characters before the tail.
     pub head: &'a [char],
     /// Delivered character treated as the last text position.
@@ -17,13 +17,13 @@ pub(crate) struct Text<'a> {
 impl Text<'_> {
     /// Returns the number of positions, including the tail.
     #[must_use]
-    pub(crate) fn char_count(self) -> usize {
+    pub fn char_count(self) -> usize {
         self.head.len() + usize::from(self.tail.is_some())
     }
 
     /// Returns the character at `index`, if the position exists.
     #[must_use]
-    pub(crate) fn at(self, index: usize) -> Option<char> {
+    pub fn at(self, index: usize) -> Option<char> {
         match self.head.get(index) {
             Some(ch) => Some(*ch),
             None if index == self.head.len() => self.tail,
@@ -34,7 +34,7 @@ impl Text<'_> {
 
 /// A matched span of text and, for `[*]` matches, its position in the variable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct Capture {
+pub struct Capture {
     /// First text position of the span.
     pub start: usize,
     /// Number of text positions in the span.
@@ -44,10 +44,10 @@ pub(crate) struct Capture {
 }
 
 /// Captures in left-hand-side order; capture n (one-based) is element n.
-pub(crate) type Captures = SmallVec<[Capture; 8]>;
+pub type Captures = SmallVec<[Capture; 8]>;
 
 /// A rule that matched, with its text view and captures.
-pub(crate) struct Found<'a, 'r> {
+pub struct Found<'a, 'r> {
     /// The matched rule.
     pub rule: &'r CompiledRule,
     /// Text the rule matched against.
@@ -60,7 +60,7 @@ pub(crate) struct Found<'a, 'r> {
 
 /// Finds the highest-priority rule matching the text and optional key.
 #[must_use]
-pub(crate) fn find<'a, 'r>(
+pub fn find<'a, 'r>(
     rules: &'r [CompiledRule],
     head: &'a [char],
     key: Option<&KeyEvent>,

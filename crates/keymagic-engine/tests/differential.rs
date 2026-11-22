@@ -359,6 +359,7 @@ fn check_keyboard(
         }
         let lines: Vec<Reported> = run_driver(driver, &path, &arguments)?
             .lines()
+            .filter(|line| line.starts_with("CORPUS\t"))
             .map(parse_line)
             .collect::<Result<_, _>>()?;
         if lines.len() != arguments.len() {

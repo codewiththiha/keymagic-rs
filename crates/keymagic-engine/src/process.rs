@@ -36,6 +36,7 @@ pub struct Engine {
 
 impl Engine {
     /// Builds an engine; fails on the first invalid rule element.
+    #[doc = "# Errors\n\nReturns the first invalid rule element."]
     pub fn new(keyboard: Arc<Keyboard>) -> Result<Self, ValidationError> {
         keyboard.validate()?;
         let rules = compile(&keyboard);

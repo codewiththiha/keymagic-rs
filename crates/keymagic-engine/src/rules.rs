@@ -6,7 +6,7 @@ use std::cmp::Reverse;
 
 /// Left-hand-side element prepared for matching.
 #[derive(Debug, Clone)]
-pub(crate) enum Elem {
+pub enum Elem {
     /// Literal characters matched exactly.
     Text(Box<[char]>),
     /// Variable content matched exactly.
@@ -25,7 +25,7 @@ pub(crate) enum Elem {
 
 /// Virtual-key group: one primary key plus shift, control and alt requirements.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct KeyGroup {
+pub struct KeyGroup {
     primary: VirtualKey,
     mods: Modifiers,
 }
@@ -54,7 +54,7 @@ impl KeyGroup {
     }
 
     /// Reports whether `event` presses the primary key with these modifiers.
-    pub(crate) fn matches(self, event: &KeyEvent) -> bool {
+    pub fn matches(self, event: &KeyEvent) -> bool {
         event.key == Some(self.primary)
             && event.mods.shift == self.mods.shift
             && event.mods.ctrl == self.mods.ctrl
@@ -64,7 +64,7 @@ impl KeyGroup {
 
 /// A rule prepared for matching.
 #[derive(Debug, Clone)]
-pub(crate) struct CompiledRule {
+pub struct CompiledRule {
     /// Index of the source rule in the keyboard.
     pub index: usize,
     /// Left-hand-side elements in order.
@@ -81,7 +81,7 @@ pub(crate) struct CompiledRule {
 
 impl CompiledRule {
     /// Reports whether the left-hand side requires a virtual key.
-    pub(crate) const fn has_vk(&self) -> bool {
+    pub const fn has_vk(&self) -> bool {
         self.vk_count > 0
     }
 
@@ -136,7 +136,7 @@ fn var_chars(strings: &[String], var: usize) -> Option<Box<[char]>> {
 }
 
 /// Compiles every rule that can match, sorted by priority.
-pub(crate) fn compile(keyboard: &Keyboard) -> Vec<CompiledRule> {
+pub fn compile(keyboard: &Keyboard) -> Vec<CompiledRule> {
     let mut rules: Vec<CompiledRule> = keyboard
         .rules
         .iter()

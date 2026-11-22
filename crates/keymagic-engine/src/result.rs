@@ -37,7 +37,7 @@ pub struct Output {
 impl Action {
     /// Converts a buffer edit into a host action.
     #[must_use]
-    pub(crate) fn from_edit(edit: &Edit) -> Self {
+    pub fn from_edit(edit: &Edit) -> Self {
         let insert: String = edit.insert.iter().collect();
         match (edit.delete, insert.is_empty()) {
             (0, true) => Self::None,

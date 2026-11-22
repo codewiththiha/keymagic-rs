@@ -27,20 +27,20 @@ pub enum TraceStep {
 
 /// Collects steps only when the `trace` feature is enabled.
 #[derive(Debug, Default)]
-pub(crate) struct Recorder {
+pub struct Recorder {
     steps: Vec<TraceStep>,
 }
 
 impl Recorder {
     /// Stores the step produced by `step` when tracing is enabled.
-    pub(crate) fn record(&mut self, step: impl FnOnce() -> TraceStep) {
+    pub fn record(&mut self, step: impl FnOnce() -> TraceStep) {
         if cfg!(feature = "trace") {
             self.steps.push(step());
         }
     }
 
     /// Returns the collected trace, or `None` without the feature.
-    pub(crate) fn finish(self) -> Option<Trace> {
+    pub fn finish(self) -> Option<Trace> {
         cfg!(feature = "trace").then_some(Trace { steps: self.steps })
     }
 }

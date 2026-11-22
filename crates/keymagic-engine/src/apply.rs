@@ -5,7 +5,7 @@ use crate::states::StateSet;
 use keymagic_types::{Keyboard, OutputElement};
 
 /// Renders the right-hand side of rule `rule` and activates its states.
-pub(crate) fn render(
+pub fn render(
     keyboard: &Keyboard,
     rule: usize,
     text: Text<'_>,
@@ -33,7 +33,7 @@ pub(crate) fn render(
 
 /// True when `output` is empty or one printable ASCII character.
 #[must_use]
-pub(crate) fn stops_recursion(output: &str) -> bool {
+pub fn stops_recursion(output: &str) -> bool {
     let mut chars = output.chars();
     match (chars.next(), chars.next()) {
         (None, _) => true,

@@ -1,4 +1,4 @@
-//! Deterministic key-to-text engine for KeyMagic keyboard layouts.
+//! Deterministic key-to-text engine for `KeyMagic` keyboard layouts.
 //!
 //! The engine performs no I/O, owns no threads and keeps no global state.
 
