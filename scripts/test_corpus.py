@@ -1,5 +1,7 @@
 """Validate corpus provenance and the first upstream behavioral cases."""
 import hashlib
+import json
+import re
 import tomllib
 import unittest
 from pathlib import Path
@@ -62,6 +64,47 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_engine_test_references_are_traced(self):
+        files = ('auto_backspace_test.rs', 'backspace_history_test.rs', 'basic_rule_tests.rs',
+                 'modifier_exact_match_test.rs', 'state_tests.rs', 'variable_backref_test.rs',
+                 'variable_tests.rs', 'virtual_key_tests.rs', 'vowel_e_reordering_test.rs')
+        covered = set()
+        for path in (ROOT / 'cases').glob('*.toml'):
+            for case in load(path)['case']:
+                covered.update(case.get('also_tests', []))
+                if 'upstream_test' in case:
+                    covered.add(case['upstream_test'])
+        skipped = {'keymagic-core/tests/virtual_key_tests.rs::test_complex_modifier_combination'}
+        for filename in files:
+            source = (ROOT / 'reference/km3' / filename).read_text()
+            for name in re.findall(r'#\[test\]\s*fn\s+(\w+)', source):
+                reference = 'keymagic-core/tests/' + filename + '::' + name
+                with self.subTest(test=reference):
+                    self.assertTrue(reference in covered or reference in skipped)
+        source = (ROOT / 'reference/km3/virtual_key_tests.rs').read_text()
+        body = source.split('fn test_complex_modifier_combination() {', 1)[1].split('}', 1)[0]
+        self.assertFalse(re.sub(r'//[^\n]*', '', body).strip())
+
+    def test_all_scenarios_have_unique_inputs_and_assertions(self):
+        names, signatures = set(), set()
+        inputs = {'key', 'vk', 'modifiers', 'reset', 'set_composing', 'preview'}
+        outputs = {'action', 'delete', 'text', 'composing', 'processed', 'engine_composing'}
+        for path in sorted((ROOT / 'cases').glob('*.toml')):
+            for case in load(path)['case']:
+                with self.subTest(case=case['name']):
+                    self.assertNotIn(case['name'], names)
+                    names.add(case['name'])
+                    self.assertTrue(case.get('upstream_test') or case.get('upstream_source'))
+                    self.assertTrue(case['events'])
+                    self.assertTrue(any(outputs & event.keys() for event in case['events']))
+                    sequence = [{k: v for k, v in event.items() if k in inputs}
+                                for event in case['events']]
+                    keyboard = (ROOT / case['keyboard']).read_bytes()
+                    signature = (hashlib.sha256(keyboard).digest(), json.dumps(sequence, sort_keys=True))
+                    self.assertNotIn(signature, signatures)
+                    signatures.add(signature)
+        self.assertGreaterEqual(len(signatures), 150)
+
     def test_vowel_reordering_cases_preserve_upstream_assertions(self):
         cases = {case['name']: case for case in load(ROOT / 'cases/vowel_reordering.toml')['case']}
         self.assertEqual(set(cases), {'vowel_basic', 'vowel_consonant', 'vowel_stacked',
@@ -117,7 +160,8 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual(set(cases), {'shift_a', 'ctrl_a', 'shift_ctrl_a',
                                      'shift_alt_no_match', 'plain_a', 'all_no_match',
                                      'caps_lock_shift_a', 'vk_before_character',
-                                     'vk_f1', 'vk_sequence'})
+                                     'vk_f1', 'vk_sequence', 'vk_shift_rule', 'vk_test_text',
+                                     'vk_modifier_only_ignored'})
         self.assertEqual(cases['shift_alt_no_match']['events'], [
             {'vk': 26, 'modifiers': ['shift', 'alt'], 'composing': '', 'processed': False},
         ])
@@ -135,6 +179,8 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual(set(cases), {'smart_undo', 'plain_delete', 'empty_backspace',
                                      'successive_deletes', 'normal_key_with_smart',
                                      'smart_without_history'})
+        self.assertIn('keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_with_successful_match',
+                      cases['smart_undo']['also_tests'])
         self.assertEqual(cases['smart_undo']['events'][-2:], [
             {'vk': 2, 'composing': 'k', 'action': 'replace', 'delete': 1, 'text': 'k', 'processed': True},
             {'vk': 2, 'composing': '', 'action': 'delete', 'delete': 1, 'processed': True},

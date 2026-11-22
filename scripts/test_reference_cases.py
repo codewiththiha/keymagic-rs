@@ -28,6 +28,12 @@ class ReferenceCaseTests(unittest.TestCase):
             with self.subTest(event=event), self.assertRaises(ValueError):
                 encode_events([event])
 
+    def test_rejects_unknown_event_fields(self):
+        with self.assertRaises(ValueError):
+            encode_events([{'key': 'a', 'procesed': True}])
+        with self.assertRaises(ValueError):
+            encode_events([{'reset': True, 'compose': ''}])
+
     def test_encode_reset_set_and_preview(self):
         self.assertEqual(encode_events([{'reset': True}, {'set_composing': 'xyz'},
                                         {'vk': 2, 'preview': True}]),

@@ -13,6 +13,9 @@ def encode_events(events):
     encoded = []
     for event in events:
         inputs = {'key', 'vk', 'modifiers', 'reset', 'set_composing', 'preview'}
+        outputs = {'action', 'delete', 'text', 'composing', 'processed', 'engine_composing'}
+        if event.keys() - inputs - outputs:
+            raise ValueError(f'unsupported event: {event!r}')
         if 'reset' in event or 'set_composing' in event:
             if (event.get('reset') is True and not (inputs & event.keys() - {'reset'})):
                 encoded.append('r:')

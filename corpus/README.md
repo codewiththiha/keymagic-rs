@@ -26,26 +26,38 @@ and tests embedded elsewhere in the upstream repository are not included.
 
 ## Derived cases
 
-[`cases/basic_rules.toml`](cases/basic_rules.toml) transcribes 18 scenarios from
-`basic_rule_tests.rs` and `variable_tests.rs`; [`cases/backrefs.toml`](cases/backrefs.toml)
-transcribes two sequences from `variable_backref_test.rs`, and
-[`cases/states.toml`](cases/states.toml) six from `state_tests.rs`, and
-[`cases/backspace.toml`](cases/backspace.toml) six from `auto_backspace_test.rs`.
-The accompanying
-`kms/cases/` scripts express rules constructed in memory by those tests. They
-are derived test inputs, not copied upstream fixtures. Each case starts with a
-fresh engine. An event may omit composing text or action when the original test
-did not assert it; do not interpret omission as an empty value. The
-single-character case uses U+200B followed by `test`.
+There are 60 scenarios derived from assertions in the upstream Rust tests:
+18 basic/variable, two backreference, six state, six backspace, eight history,
+thirteen modifier/virtual-key and seven vowel-reordering scenarios. One scenario
+also cites a second upstream test whose asserted input is its prefix. Each case names
+its upstream test. The KMS scripts are derived models, not copied production
+keyboards. The vowel cases use a minimal model of the rules needed by those
+assertions, not the complete MyanSan keyboard; empty-keyboard history cases use
+a fixture whose extra `ka` rule is not reached by those input sequences. The
+bounded-history case additionally asserts the inferred remaining text. Offline
+tests check traceability against every test in the nine engine-behavior source
+files. The upstream `test_complex_modifier_combination` is an empty skipped
+placeholder and has no scenario; loader, metadata and FFI tests are reference
+sources, not represented as engine events or claimed as passing.
 
-The self-hosted reference workflow compiles these scripts and compares each
-asserted event against the separately fetched, pinned upstream compiler and
-engine. It verifies a transcription, not parity with this project's unimplemented
-engine. All 32 cases, including asserted processed flags, passed in
-[run 44985002579](https://github.com/codewiththiha/keymagic-rs/actions/runs/44985002579).
-The upstream reference is
-external code and includes unsafe FFI; it is not a workspace crate or a claim
-that dependencies are unsafe-free.
+A separate 98-case [`any_ascii.toml`](cases/any_ascii.toml) suite exhaustively
+tests all 94 different printable ASCII characters plus four nonmatching boundary
+characters. These are new source-derived cases, **not** 98 transcribed upstream
+tests. Each contains a distinct input and expected output; the suite checks the
+pinned [matcher implementation](https://github.com/thantthet/keymagic-3/blob/2db30dc8e8a5f091d1434a2bc1702b29cf113804/keymagic-core/src/engine/matching/matcher.rs).
+Offline tests enforce the complete input range, distinct scenario signatures,
+and at least one explicit expectation per scenario.
+
+Each case starts with a fresh engine. An event may omit composing text or action
+when the original test did not assert it; omission is not an empty value. Events
+can include physical keys, modifiers, reset, composing-text replacement and
+non-mutating preview. The self-hosted reference workflow compiles the scripts
+and compares asserted fields against the separately fetched, pinned upstream
+compiler and engine. [Run 44987233685](https://github.com/codewiththiha/keymagic-rs/actions/runs/44987233685)
+checked 158 cases with zero differences. This validates the inputs and transcriptions, not parity with this
+project's unimplemented engine. The upstream reference is external code
+and includes unsafe FFI; it is not a workspace crate or a claim that dependencies
+are unsafe-free.
 
 `python3 -m unittest discover -s scripts -p test_corpus.py` verifies fixture
 SHA-256 and Git blob hashes, case references, and selected transcribed
@@ -71,9 +83,9 @@ it does not establish that these exact bundled KM2 bytes are covered. A
 is MIT-licensed, but is a different implementation, not evidence of the
 KeyMagic binary's terms.
 
-There are 32 transcribed behavioral scenarios, 24 derived KMS case scripts,
-three upstream KMS fixtures and one upstream KM2 fixture, alongside the source
-references. The derived scripts are not a substitute for the lab's real keyboard
-corpus. The targets of four bundled KM2 files, ten KMS files, and 150 cases are
-not all met. Many behaviors still need transcription and validation without
-changing expectations.
+There are 158 distinct scenarios (60 test-derived and 98 source-derived), 34
+derived KMS case scripts, three upstream KMS fixtures and one upstream KM2
+fixture, alongside the source references. The derived scripts are not a
+substitute for the lab's real keyboard corpus. Four bundled KM2 files with
+verified redistribution terms remain missing. Several upstream non-engine tests
+and behavioral assertions are still not represented by runnable case scripts.

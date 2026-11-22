@@ -57,3 +57,21 @@ name = "vk_sequence"
 keyboard = "kms/cases/vk_sequence.kms"
 upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_multiple_vk_in_sequence"
 events = [{ vk = 68, composing = "[F1]" }, { vk = 69, composing = "[F1][F2]" }]
+
+[[case]]
+name = "vk_shift_rule"
+keyboard = "kms/cases/vk_shift.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_virtual_key_with_modifiers"
+events = [{ vk = 26, key = "A", modifiers = ["shift"], composing = "A", action = "insert", text = "A" }]
+
+[[case]]
+name = "vk_test_text"
+keyboard = "kms/cases/vk_text.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_special_key_backspace"
+events = [{ key = "t" }, { key = "e" }, { key = "s" }, { key = "t", composing = "TEST" }]
+
+[[case]]
+name = "vk_modifier_only_ignored"
+keyboard = "kms/cases/vk_modifier_only.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_modifier_only_virtual_key_ignored"
+events = [{ key = "a", composing = "A", action = "insert", text = "A" }]

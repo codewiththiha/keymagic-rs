@@ -2,6 +2,7 @@
 name = "smart_undo"
 keyboard = "kms/cases/smart_backspace.kms"
 upstream_test = "keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_enabled"
+also_tests = ["keymagic-core/tests/auto_backspace_test.rs::test_auto_backspace_with_successful_match"]
 events = [
   { key = "k", vk = 36, composing = "k", action = "insert", text = "k", processed = true },
   { key = "a", vk = 26, composing = "က", action = "replace", delete = 1, text = "က", processed = true },
