@@ -15,7 +15,7 @@ def read_toml(path):
 class WorkspaceSkeletonTests(unittest.TestCase):
     def test_workspace_configuration(self):
         root = read_toml(ROOT / 'Cargo.toml')['workspace']
-        self.assertEqual(root['members'], ['crates/keymagic-engine', 'crates/keymagic-kms', 'crates/keymagic-km2', 'crates/keymagic-types', 'xtask'])
+        self.assertEqual(root['members'], ['crates/keymagic-cli', 'crates/keymagic-engine', 'crates/keymagic-kms', 'crates/keymagic-km2', 'crates/keymagic-types', 'xtask'])
         self.assertEqual(root['resolver'], '3')
         self.assertEqual(root['package']['edition'], '2024')
         self.assertEqual(root['lints']['rust']['unsafe_code'], 'forbid')

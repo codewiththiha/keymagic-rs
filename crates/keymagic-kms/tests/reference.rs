@@ -26,10 +26,12 @@ fn corpus() -> PathBuf {
 
 fn sources() -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut found = Vec::new();
-    for entry in fs::read_dir(corpus().join("cases"))? {
-        let path = entry?.path();
-        if path.extension().is_some_and(|ext| ext == "kms") {
-            found.push(path);
+    for dir in ["cases", "upstream"] {
+        for entry in fs::read_dir(corpus().join(dir))? {
+            let path = entry?.path();
+            if path.extension().is_some_and(|ext| ext == "kms") {
+                found.push(path);
+            }
         }
     }
     for name in ALTERNATIVES {
@@ -48,7 +50,7 @@ fn resolver_for(path: &Path) -> Dir {
 fn every_corpus_script_matches_pinned_compiler() -> TestResult {
     let reference = PathBuf::from(std::env::var("KEYMAGIC_REFERENCE_KM2_DIRECTORY")?);
     let found = sources()?;
-    assert_eq!(found.len(), 37);
+    assert_eq!(found.len(), 40);
     let mut failures = Vec::new();
     for source in found {
         let relative = source.strip_prefix(corpus())?.with_extension("km2");

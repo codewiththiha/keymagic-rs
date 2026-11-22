@@ -10,6 +10,7 @@ on:
       - 'crates/keymagic-types/**'
       - 'crates/keymagic-km2/**'
       - 'crates/keymagic-kms/**'
+      - 'crates/keymagic-cli/**'
       - 'crates/keymagic-engine/**'
       - '.github/workflows/reference-corpus.yml'
   workflow_dispatch:
@@ -53,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           driver="$PWD/upstream/target/debug/corpus_reference_driver"
-          for source in corpus/kms/cases/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms; do
+          for source in corpus/kms/cases/*.kms corpus/kms/upstream/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms; do
             relative="${source#corpus/kms/}"
             destination="$PWD/reference-engine-km2/${relative%.kms}.km2"
             mkdir -p "$(dirname "$destination")"
@@ -63,6 +64,8 @@ jobs:
         env:
           KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2
         run: cargo test --locked --package keymagic-kms --test reference -- --ignored --exact every_corpus_script_matches_pinned_compiler
+      - name: Replay corpus cases with the keymagic CLI
+        run: cargo run --locked --package keymagic-cli -- test corpus/cases
       - name: Replay corpus scenarios against the engine
         env:
           KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2

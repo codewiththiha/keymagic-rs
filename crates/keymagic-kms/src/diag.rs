@@ -1,6 +1,5 @@
 //! Diagnostics shared by the lexer, parser, lowering and the CLI.
 
-use std::fmt::Write as _;
 use std::ops::Range;
 
 /// A byte range in the source text.
@@ -59,13 +58,13 @@ impl Diagnostic {
 
     /// Renders the message, location, and root-file excerpt.
     #[must_use]
-    pub fn render(&self, src: &str) -> String {
+    pub fn render(&self, src: &str, root: &str) -> String {
         let label = match self.severity {
             Severity::Error => "error",
             Severity::Warning => "warning",
         };
         let file = if self.file.is_empty() {
-            "<input>"
+            root
         } else {
             self.file.as_str()
         };
@@ -78,26 +77,6 @@ impl Diagnostic {
             out = format!("{out}help: {help}\n");
         }
         out
-    }
-
-    /// Returns one JSON object describing the diagnostic.
-    #[must_use]
-    pub fn to_json(&self) -> String {
-        let severity = match self.severity {
-            Severity::Error => "error",
-            Severity::Warning => "warning",
-        };
-        let help = self
-            .help
-            .as_deref()
-            .map_or_else(|| "null".to_owned(), json_string);
-        format!(
-            "{{\"severity\":\"{severity}\",\"file\":{},\"start\":{},\"end\":{},\"message\":{},\"help\":{help}}}",
-            json_string(&self.file),
-            self.span.start,
-            self.span.end,
-            json_string(&self.message)
-        )
     }
 }
 
@@ -125,25 +104,4 @@ fn line_col(src: &str, offset: usize) -> (usize, usize) {
     let line_start = before.rfind('\n').map_or(0, |index| index + 1);
     let col = before[line_start..].chars().count() + 1;
     (line, col)
-}
-
-/// Quotes `text` as a JSON string.
-#[must_use]
-pub fn json_string(text: &str) -> String {
-    let mut out = String::from("\"");
-    for ch in text.chars() {
-        match ch {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            control if control < ' ' => {
-                let _ = write!(out, "\\u{:04x}", u32::from(control));
-            }
-            other => out.push(other),
-        }
-    }
-    out.push('"');
-    out
 }

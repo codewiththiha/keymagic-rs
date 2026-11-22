@@ -47,7 +47,7 @@ fn every_corpus_script_lexes_without_error() -> TestResult {
     for path in found {
         let src = fs::read_to_string(&path)?;
         if let Err(error) = lexer::lex(&src) {
-            panic!("{}: {}", path.display(), error.render(&src));
+            panic!("{}: {}", path.display(), error.render(&src, "<input>"));
         }
     }
     Ok(())
@@ -66,7 +66,7 @@ fn token_snapshots_match() -> TestResult {
     let mut failures = Vec::new();
     for name in names {
         let src = fs::read_to_string(corpus().join(format!("{name}.kms")))?;
-        let lexed = lexer::lex(&src).map_err(|error| error.render(&src))?;
+        let lexed = lexer::lex(&src).map_err(|error| error.render(&src, "<input>"))?;
         let mut dump = String::new();
         for token in &lexed.tokens {
             let _ = writeln!(

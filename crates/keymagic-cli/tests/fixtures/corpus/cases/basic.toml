@@ -1,0 +1,9 @@
+[[case]]
+name = "rule_fires"
+keyboard = "kms/good.kms"
+events = [{ key = "a", composing = "b" }]
+
+[[case]]
+name = "mismatch"
+keyboard = "kms/good.kms"
+events = [{ key = "a", composing = "zz" }]

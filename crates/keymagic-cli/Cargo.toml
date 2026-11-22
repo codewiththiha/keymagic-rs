@@ -1,0 +1,26 @@
+[package]
+name = "keymagic-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "keymagic"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
+keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
+keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
+owo-colors = "4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+[dev-dependencies]
+trycmd = "1"
+
+[lints]
+workspace = true

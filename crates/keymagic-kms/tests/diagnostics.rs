@@ -34,7 +34,7 @@ fn thirty_broken_scripts_have_snapshot_diagnostics() -> TestResult {
         let src = fs::read_to_string(path)?;
         let rendered: String = check(&src, &NoFiles)
             .iter()
-            .map(|diagnostic| diagnostic.render(&src))
+            .map(|diagnostic| diagnostic.render(&src, "<input>"))
             .collect();
         let stem = path
             .file_stem()

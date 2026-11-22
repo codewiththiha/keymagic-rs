@@ -1,0 +1,9 @@
+```console
+$ keymagic test tests/fixtures/corpus/cases
+CASE        RESULT
+rule_fires  PASS
+mismatch    FAIL
+    event 1: composing: expected "zz", got "b"
+1 passed, 1 failed
+? failed
+```
