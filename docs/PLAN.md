@@ -42,15 +42,15 @@ Evidence and deviations: exact-SHA CI and fuzz are in `progress.md`. Deviations:
 - [x] p2-3: Rule application & recursion
 - [x] p2-4: Differential harness + bench + fuzz
 
-Evidence and deviations: exact-SHA CI, bench (3.64 M keys/s on Pyidaungsu MM, final head `31185cd`), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses Pyidaungsu MM at the user's request. The file has no license in its source repository, and the user chose to commit it anyway. See `corpus/licenses/Pyidaungsu-MM-NOTICE.md`; 52 of 54 engine-relevant upstream tests are mapped to corpus cases that run differentially against the pinned upstream engine; the other two are an assertion-free upstream TODO and a repeat of a mapped test. The recursion cap is 10, and `smallvec` is a required runtime dependency. Capture numbering follows upstream: `Key` and `State` elements yield no capture, though the card says each LHS element does. `auto_bksp` rewinds to the previous snapshot when one exists, not a single-character pop. The tests were added alongside the implementation, not written first. The card's "no allocation for ≤ 32 chars" item is verified by inline storage, not by a heap counter. The user accepted that evidence on 2026-11-22.
+Evidence and deviations: the identity-cap test is in `5b8bab8` (runs 45014856703 and 45014856731). The ANY mutation check ran as run 45015076181 on the temporary branch `dcf6a14`, which was deleted afterwards. Exact-SHA CI, bench (3.64 M keys/s on Pyidaungsu MM, final head `31185cd`), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses Pyidaungsu MM at the user's request. The file has no license in its source repository, and the user chose to commit it anyway. See `corpus/licenses/Pyidaungsu-MM-NOTICE.md`; 52 of 54 engine-relevant upstream tests are mapped to corpus cases that run differentially against the pinned upstream engine; the other two are an assertion-free upstream TODO and a repeat of a mapped test. The recursion cap is 10, and `smallvec` is a required runtime dependency. Capture numbering follows upstream: `Key` and `State` elements yield no capture, though the card says each LHS element does. `auto_bksp` rewinds to the previous snapshot when one exists, not a single-character pop. The tests were added alongside the implementation, not written first. The card's "no allocation for ≤ 32 chars" item is verified by inline storage, not by a heap counter. The user accepted that evidence on 2026-11-22.
 
 ## Phase 03: KMS compiler & CLI
 
-- [ ] p3-1: Lexer
-- [ ] p3-2: Parser + semantic checks
-- [ ] p3-3: Formatter
-- [ ] p3-4: CLI
-- [ ] p3-5: C FFI + header
+- [x] p3-1: Lexer
+- [ ] p3-2: Parser + semantic checks (myWin blocked; see progress.md)
+- [x] p3-3: Formatter
+- [ ] p3-4: CLI (trycmd DoD substituted; see progress.md)
+- [x] p3-5: C FFI + header
 
 ## Phase 04: Host layer
 
