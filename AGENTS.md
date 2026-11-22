@@ -6,7 +6,7 @@ Read this file before changing the project. The [lab](https://01a1ff77-4137-7a69
 
 1. Read the external notes, progress, relevant phase file and repo plan. Inspect Git status and actual code; review CI logs for the current SHA. Ask for confirmation of user-only manual steps. Never infer completion from a plan, checkbox, old run or existing code.
 2. Choose the next useful task; inspect its lab card and upstream resources. Identify three behaviors to preserve, write tests first, then implement the smallest real change. Record exact checks, logs, SHA, blockers and next steps in progress.
-3. Develop directly on `main`, committing and pushing regular commits. Do not create branches or PRs unless the user explicitly asks. Never force-push unless separately instructed; use a lease if explicitly required.
+3. Develop directly on `main`, committing and pushing regular commits. Do not create branches or PRs unless the user explicitly asks. At session end, squash related very small commits; fold failed-CI commits into their fixes. The user authorizes force-pushing these rewrites with an exact lease, without overwriting unrelated remote work. Validate the final SHA. Other force pushes need separate authorization; old GitHub Actions records may remain visible.
 
 ## Execution and Git
 

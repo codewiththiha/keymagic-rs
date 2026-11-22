@@ -15,7 +15,7 @@ Read [AGENTS.md](AGENTS.md), [docs/PLAN.md](docs/PLAN.md), and the relevant phas
 
 All commits must have author `codewiththiha <kt007441@gmail.com>`. Set repository-local `git config user.name codewiththiha` and `git config user.email kt007441@gmail.com`; these settings may need to be reapplied in ephemeral workspaces. Verify with `git log` and `python3 scripts/check_commit_authors.py --range <revision-range>`.
 
-Use a Conventional Commit such as `feat: add key parser` or `fix(engine): handle input`, on one line of at most **50 Unicode characters** total. Before committing run `python3 scripts/check_commit_messages.py --message 'feat: add key parser'`. CI checks the commit range for both policies. Do not force-push unless the user explicitly requests it; if requested inspect the remote and use `--force-with-lease`.
+Use a Conventional Commit such as `feat: add key parser` or `fix(engine): handle input`, on one line of at most **50 Unicode characters** total. Before committing run `python3 scripts/check_commit_messages.py --message 'feat: add key parser'`. CI checks the commit range for both policies. At session end, squash related very small commits; fold failed-CI commits into their fixes. The user authorizes force-pushing those rewrites with an exact lease after inspecting the remote, without overwriting unrelated work. Validate the final SHA. Other force pushes require separate authorization. Rewriting history does not necessarily remove GitHub Actions records.
 
 ## Scope and license
 
