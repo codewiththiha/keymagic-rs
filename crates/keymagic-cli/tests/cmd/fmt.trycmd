@@ -5,4 +5,5 @@ $ keymagic fmt tests/fixtures/good.kms
 */
 $v = "a"
 "a" => "b"
+
 ```

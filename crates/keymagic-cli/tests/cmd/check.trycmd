@@ -1,4 +1,5 @@
 ```console
 $ keymagic check tests/fixtures/good.kms
 ok: tests/fixtures/good.kms
+
 ```
