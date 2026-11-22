@@ -12,9 +12,16 @@ jobs:
         with:
           persist-credentials: false
       - name: Generate lockfile on self-hosted runner
-        run: cargo generate-lockfile
+        run: |
+          cargo generate-lockfile
+          cargo generate-lockfile --manifest-path fuzz/Cargo.toml
       - uses: actions/upload-artifact@v4
         with:
           name: cargo-lockfile
           path: Cargo.lock
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-lockfile
+          path: fuzz/Cargo.lock
           if-no-files-found: error

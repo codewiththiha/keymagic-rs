@@ -1,0 +1,30 @@
+[package]
+name = "keymagic-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+keymagic-types = { path = "../crates/keymagic-types" }
+keymagic-km2 = { path = "../crates/keymagic-km2" }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_km2_parse"
+path = "fuzz_targets/fuzz_km2_parse.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_km2_write"
+path = "fuzz_targets/fuzz_km2_write.rs"
+test = false
+doc = false
+bench = false

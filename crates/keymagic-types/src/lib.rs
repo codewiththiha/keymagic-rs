@@ -2,11 +2,26 @@
 
 #![forbid(unsafe_code)]
 
+mod ir;
+pub mod opcodes;
+pub use ir::*;
+
+#[cfg(feature = "evdev")]
+pub mod evdev;
+#[cfg(feature = "mac_keycode")]
+pub mod mac_keycode;
+#[cfg(feature = "win_vk")]
+pub mod win_vk;
+#[cfg(feature = "xkb_keysym")]
+pub mod xkb_keysym;
+
 macro_rules! virtual_keys {
     ($( $variant:ident = $id:literal => $name:literal $( | $alias:literal )*; )+) => {
         /// Internal `KeyMagic` key identifiers, not platform key codes.
         #[repr(u16)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+        #[doc = include_str!("../docs/virtual_key.md")]
         pub enum VirtualKey {
             $( $variant = $id, )+
         }
@@ -29,6 +44,14 @@ macro_rules! virtual_keys {
                 }
             }
 
+            /// Return the alternate script names for this key.
+            #[must_use]
+            pub const fn aliases(self) -> &'static [&'static str] {
+                match self {
+                    $( Self::$variant => &[$( $alias ),*], )+
+                }
+            }
+
             /// Resolve a canonical name or a documented alias.
             #[must_use]
             pub fn from_kms_name(name: &str) -> Option<Self> {
@@ -42,6 +65,7 @@ macro_rules! virtual_keys {
 }
 
 virtual_keys! {
+    Null = 1 => "NULL";
     Back = 2 => "VK_BACK";
     Tab = 3 => "VK_TAB";
     Return = 4 => "VK_RETURN" | "VK_ENTER";

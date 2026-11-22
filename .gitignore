@@ -5,3 +5,7 @@ target/
 __pycache__/
 *.py[cod]
 *.profraw
+/fuzz/artifacts/
+/fuzz/corpus/
+/fuzz/coverage/
+/fuzz/target/

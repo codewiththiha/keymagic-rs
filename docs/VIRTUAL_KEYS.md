@@ -5,8 +5,15 @@ This table transcribes the KeyMagic 3 internal predefined-key IDs at revision
 The order and names were cross-checked against the legacy
 [KeyCodes.h](https://github.com/thantthet/keymagic/blob/6a662fb071e1f0e0c9271f84e28712b9e78962ab/cross-platform/libkeymagic/KeyCodes.h).
 These are **KeyMagic internal IDs**, not Windows virtual-key numbers. For
-example `VK_BACK` is 2 here, not the Windows `VK_BACK` value. The Rust enum and name/ID tests are in progress; platform conversions remain
-phase p1-1 work.
+example `VK_BACK` is 2 here, not the Windows `VK_BACK` value. The Rust enum also includes `Null = 1`, the RHS deletion marker.
+Snapshot tests regenerate both tables from the implementation.
+
+Optional `win_vk`, `mac_keycode`, `evdev`, and `xkb_keysym` features provide
+pure conversion tables. Windows and XKB mappings follow the pinned KM3 core
+and IBus sources; macOS follows its `KeycodeMapping.swift` and Carbon virtual
+key codes, while evdev uses Linux input-event codes. XKB keysyms are logical
+symbols and do not identify physical keys; macOS and evdev codes are physical.
+Mappings return no value for unsupported codes and are not platform adapters.
 
 ## Internal IDs
 

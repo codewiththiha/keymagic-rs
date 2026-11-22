@@ -1,7 +1,7 @@
 //! Check `KeyMagic` internal IDs and corpus names against the upstream table.
 
 use keymagic_types::VirtualKey;
-use std::{error::Error, fs, path::Path};
+use std::{error::Error, fmt::Write, fs, path::Path};
 
 #[test]
 fn documented_names_and_ids_round_trip() -> Result<(), Box<dyn Error>> {
@@ -85,4 +85,23 @@ fn corpus_virtual_key_names_are_known() -> Result<(), Box<dyn Error>> {
         env!("CARGO_MANIFEST_DIR"),
         "/../../corpus/kms"
     )))
+}
+
+#[test]
+fn regenerated_reference_tables_match_snapshot() -> Result<(), Box<dyn Error>> {
+    let doc = include_str!("../../../docs/VIRTUAL_KEYS.md");
+    let mut ids =
+        String::from("| ID | KM3 Rust variant | Legacy ID name |\n| ---: | --- | --- |\n");
+    let mut aliases = String::from("| Alias | Variant | ID |\n| --- | --- | ---: |\n");
+    for id in 2..=101 {
+        let key = VirtualKey::from_u16(id).ok_or("missing key")?;
+        writeln!(ids, "| {id} | `{key:?}` | `{}` |", key.kms_name())?;
+        for alias in key.aliases() {
+            writeln!(aliases, "| `{alias}` | `{key:?}` | {id} |")?;
+        }
+    }
+    assert!(doc.contains(&ids));
+    assert!(doc.contains(&aliases));
+    assert_eq!(VirtualKey::from_u16(1), Some(VirtualKey::Null));
+    Ok(())
 }

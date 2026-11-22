@@ -4,7 +4,7 @@ import tomllib
 import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGES = {'xtask': ('xtask', 'bin'), 'crates/keymagic-types': ('keymagic-types', 'lib')}
+PACKAGES = {'xtask': ('xtask', 'bin'), 'crates/keymagic-types': ('keymagic-types', 'lib'), 'crates/keymagic-km2': ('keymagic-km2', 'lib')}
 
 
 def read_toml(path):
@@ -15,7 +15,7 @@ def read_toml(path):
 class WorkspaceSkeletonTests(unittest.TestCase):
     def test_workspace_configuration(self):
         root = read_toml(ROOT / 'Cargo.toml')['workspace']
-        self.assertEqual(root['members'], ['crates/keymagic-types', 'xtask'])
+        self.assertEqual(root['members'], ['crates/keymagic-km2', 'crates/keymagic-types', 'xtask'])
         self.assertEqual(root['resolver'], '3')
         self.assertEqual(root['package']['edition'], '2024')
         self.assertEqual(root['lints']['rust']['unsafe_code'], 'forbid')
@@ -33,7 +33,8 @@ class WorkspaceSkeletonTests(unittest.TestCase):
         self.assertIn('corpus-sync', source)
         self.assertTrue((ROOT / 'crates/keymagic-types/Cargo.toml').is_file())
         packages = read_toml(ROOT / 'Cargo.lock')['package']
-        self.assertEqual([package['name'] for package in packages], ['keymagic-types', 'xtask'])
+        names = {package['name'] for package in packages}
+        self.assertTrue({'keymagic-km2', 'keymagic-types', 'xtask'} <= names)
 
     def test_toolchain_and_hygiene(self):
         toolchain = read_toml(ROOT / 'rust-toolchain.toml')['toolchain']

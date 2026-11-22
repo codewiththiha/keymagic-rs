@@ -1,0 +1,34 @@
+name: KM2 fuzz checks
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fuzz:
+    runs-on: self-hosted
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install fuzzing tools
+        run: |
+          rustup toolchain install nightly-2026-11-21 --profile minimal
+          cargo install cargo-fuzz --locked --version 0.13.2
+          cargo fuzz --version
+          rustc +nightly-2026-11-21 --version
+      - name: Seed parser corpus
+        run: |
+          mkdir -p fuzz/corpus/fuzz_km2_parse
+          find corpus/km2 -name '*.km2' -exec cp '{}' fuzz/corpus/fuzz_km2_parse/ ';'
+      - name: Fuzz arbitrary keyboard serialization
+        run: cargo +nightly-2026-11-21 fuzz run fuzz_km2_write -- -max_total_time=120 -timeout=10
+      - name: Fuzz parser for ten minutes
+        run: cargo +nightly-2026-11-21 fuzz run fuzz_km2_parse -- -max_total_time=600 -timeout=10
+      - name: Save failing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: km2-fuzz-failures
+          path: fuzz/artifacts/
+          if-no-files-found: ignore

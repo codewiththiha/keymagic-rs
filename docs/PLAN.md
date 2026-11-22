@@ -4,7 +4,7 @@ Derived from the [lab roadmap](https://01a1ff77-4137-7a69-a0fa-36ed3fcc921d.aren
 
 ## Current status — 2026-11-22
 
-**Phase 00 complete under the user's adapted scope; phase 01 is next.** Branch protection is optional and deferred. Unused product/platform stubs were removed at the user's direction; the workspace contains the implemented corpus-sync tool only. The engine and KM2 codec are not implemented.
+**Phase 00 is complete under the user's adapted scope; Phase 01 is complete as of `412885c`, pending the final-SHA verification recorded in `progress.md`.** Branch protection remains deferred. Product crates are added as implemented. The engine is not yet implemented; Phase 01 codec work is being validated.
 
 | Card | Status | Remaining work |
 | --- | --- | --- |
@@ -28,10 +28,12 @@ Critical path: 00 → 01 → 02 → 03 → 04 → 05 → (06 ∥ 07 ∥ 08) → 
 
 ## Phase 01 — Types + KM2 codec
 
-- [ ] p1-1 — VirtualKey enum & tables
-- [ ] p1-2 — Rule IR
-- [ ] p1-3 — KM2 reader
-- [ ] p1-4 — KM2 writer
+- [x] p1-1 — VirtualKey enum & tables
+- [x] p1-2 — Rule IR
+- [x] p1-3 — KM2 reader
+- [x] p1-4 — KM2 writer
+
+Evidence and deviations: exact-SHA CI and fuzz are in `progress.md`. Deviations: the engine-level preserved behaviors are recorded but their executable tests belong to Phase 02; the codec tests were written after implementation, not test-first.
 
 ## Phase 02 — The engine
 

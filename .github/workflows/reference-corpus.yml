@@ -6,6 +6,9 @@ on:
       - 'corpus/**'
       - 'scripts/reference_cases.py'
       - 'tools/reference_driver.rs'
+      - 'tools/codec_reference.rs'
+      - 'crates/keymagic-types/**'
+      - 'crates/keymagic-km2/**'
       - '.github/workflows/reference-corpus.yml'
   workflow_dispatch:
 permissions:
@@ -43,3 +46,13 @@ jobs:
           cargo clippy --locked --offline --manifest-path reference-driver/Cargo.toml -- -D warnings -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::unwrap_used -D clippy::expect_used
       - name: Compare corpus cases
         run: python3 scripts/reference_cases.py upstream/target/debug/corpus_reference_driver
+      - name: Build and compare the upstream KM2 writer
+        shell: bash
+        run: |
+          rustfmt --edition 2024 --check tools/codec_reference.rs
+          cp tools/codec_reference.rs upstream/kms2km2/src/bin/codec_reference.rs
+          cargo build --locked --manifest-path upstream/Cargo.toml --package kms2km2 --bin codec_reference
+          mkdir -p reference-km2
+          sources=(corpus/kms/cases/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms)
+          upstream/target/debug/codec_reference reference-km2 "${sources[@]}"
+          KM2_REFERENCE_DIRECTORY="$PWD/reference-km2" cargo test --locked --package keymagic-km2 --test codec matches_upstream_writer -- --ignored --exact
