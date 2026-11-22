@@ -21,6 +21,6 @@ jobs:
         shell: bash
         run: test -f Cargo.toml || { echo '::error::Cargo workspace not implemented'; exit 1; }
       - name: Check workspace
-        run: cargo check --workspace
+        run: cargo check --locked --workspace
       - name: Test workspace
-        run: cargo test --workspace
+        run: cargo test --locked --workspace
