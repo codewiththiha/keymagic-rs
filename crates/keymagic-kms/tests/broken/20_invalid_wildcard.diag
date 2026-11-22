@@ -1,0 +1,4 @@
+error: expected '*' or '^' inside [ ], found '+'
+ --> <input>:1:4
+   1 | $v[+] => "a"
+     |    ^

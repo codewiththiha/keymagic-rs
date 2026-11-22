@@ -1,0 +1,4 @@
+error: undefined variable '$missing'
+ --> <input>:1:1
+   1 | $missing => "a"
+     | ^

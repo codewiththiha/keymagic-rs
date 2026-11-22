@@ -224,6 +224,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "keymagic-kms"
+version = "0.1.0"
+dependencies = [
+ "keymagic-km2",
+ "keymagic-types",
+]
+
+[[package]]
 name = "keymagic-types"
 version = "0.1.0"
 dependencies = [

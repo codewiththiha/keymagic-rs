@@ -1,0 +1,5 @@
+error: unterminated string
+ --> <input>:1:11
+   1 | "abc => "x"
+     |           ^
+help: close the string with the same quote character

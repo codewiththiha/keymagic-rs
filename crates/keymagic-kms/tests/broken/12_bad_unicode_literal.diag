@@ -1,0 +1,4 @@
+error: expected a pattern before '=>', found 'U12'
+ --> <input>:1:1
+   1 | U12 => "a"
+     | ^

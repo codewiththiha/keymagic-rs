@@ -1,0 +1,4 @@
+error: expected a pattern element after '+', found '=>'
+ --> <input>:1:7
+   1 | "a" + => "b"
+     |       ^

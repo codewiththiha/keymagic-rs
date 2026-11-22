@@ -1,0 +1,4 @@
+error: virtual keys are only allowed on the left side of '=>'
+ --> <input>:1:8
+   1 | "a" => <VK_SHIFT>
+     |        ^

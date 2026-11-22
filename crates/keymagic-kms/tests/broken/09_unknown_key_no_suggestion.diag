@@ -1,0 +1,4 @@
+error: unknown virtual key 'VK_NOPE_ZZZZZZ'
+ --> <input>:1:2
+   1 | <VK_NOPE_ZZZZZZ> => "a"
+     |  ^

@@ -1,0 +1,4 @@
+warning: option 'EAT_KEYS' is set more than once; the last value is used
+ --> <input>:1:1
+   1 | /*
+     | ^

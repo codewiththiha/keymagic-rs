@@ -1,0 +1,15 @@
+0..6 Var("row1K")
+7..8 Equals
+9..17 Str("qwerty")
+18..24 Var("row1U")
+25..26 Equals
+27..47 Str("ဆတနမအပ")
+48..54 Var("row1K")
+54..55 LBracket
+55..56 Star
+56..57 RBracket
+58..60 Arrow
+61..67 Var("row1U")
+67..68 LBracket
+68..70 BackRef(1)
+70..71 RBracket

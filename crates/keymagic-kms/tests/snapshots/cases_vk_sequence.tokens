@@ -1,0 +1,10 @@
+0..1 LAngle
+1..6 Ident("VK_F1")
+6..7 RAngle
+8..10 Arrow
+11..17 Str("[F1]")
+18..19 LAngle
+19..24 Ident("VK_F2")
+24..25 RAngle
+26..28 Arrow
+29..35 Str("[F2]")

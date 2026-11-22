@@ -1,0 +1,4 @@
+error: invalid escape \u12G4
+ --> <input>:1:1
+   1 | "\u12G4" => "a"
+     | ^

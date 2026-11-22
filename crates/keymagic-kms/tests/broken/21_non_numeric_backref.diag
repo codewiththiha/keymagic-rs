@@ -1,0 +1,4 @@
+error: expected a back-reference such as $1 inside [ ], found 'x'
+ --> <input>:2:11
+   2 | "a" => $v[x]
+     |           ^

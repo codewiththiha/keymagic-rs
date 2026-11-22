@@ -1,0 +1,5 @@
+error: icon file not found: missing.png
+ --> <input>:1:1
+   1 | // @ICON = "missing.png"
+     | ^
+help: check @ICON in the file header

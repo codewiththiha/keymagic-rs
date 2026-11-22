@@ -1,0 +1,4 @@
+error: UD800 is not a character
+ --> <input>:1:8
+   1 | "a" => UD800
+     |        ^

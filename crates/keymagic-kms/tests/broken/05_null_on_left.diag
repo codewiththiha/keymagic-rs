@@ -1,0 +1,4 @@
+error: NULL is only allowed on the right side of '=>'
+ --> <input>:1:1
+   1 | NULL => "a"
+     | ^

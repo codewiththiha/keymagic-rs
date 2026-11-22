@@ -1,0 +1,5 @@
+error: unknown virtual key 'VK_SHFT'
+ --> <input>:1:2
+   1 | <VK_SHFT> => "a"
+     |  ^
+help: did you mean 'VK_SHIFT'?

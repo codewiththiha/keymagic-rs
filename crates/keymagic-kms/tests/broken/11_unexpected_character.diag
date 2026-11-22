@@ -1,0 +1,4 @@
+error: unexpected character '?'
+ --> <input>:1:12
+   1 | "a" => "b" ?
+     |            ^

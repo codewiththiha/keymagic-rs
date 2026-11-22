@@ -1,0 +1,5 @@
+error: unterminated comment
+ --> <input>:1:1
+   1 | /* open
+     | ^
+help: close the comment with */

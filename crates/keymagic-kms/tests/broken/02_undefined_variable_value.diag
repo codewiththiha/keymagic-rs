@@ -1,0 +1,4 @@
+error: undefined variable '$b'
+ --> <input>:1:6
+   1 | $a = $b
+     |      ^

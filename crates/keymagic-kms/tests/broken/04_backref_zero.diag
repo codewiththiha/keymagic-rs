@@ -1,0 +1,5 @@
+error: $0 is not a capture of the left side
+ --> <input>:1:8
+   1 | "a" => $0
+     |        ^
+help: valid references: $1

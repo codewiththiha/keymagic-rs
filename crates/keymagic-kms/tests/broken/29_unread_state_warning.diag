@@ -1,0 +1,4 @@
+warning: state 'lonely' is set here but no left side reads it
+ --> <input>:1:8
+   1 | "x" => ('lonely')
+     |        ^

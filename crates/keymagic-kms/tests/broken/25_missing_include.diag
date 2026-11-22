@@ -1,0 +1,4 @@
+error: cannot read included file 'nothere.kms'
+ --> <input>:1:1
+   1 | include("nothere.kms")
+     | ^

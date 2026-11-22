@@ -1,0 +1,15 @@
+[package]
+name = "keymagic-kms"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
+
+[dev-dependencies]
+keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
+
+[lints]
+workspace = true

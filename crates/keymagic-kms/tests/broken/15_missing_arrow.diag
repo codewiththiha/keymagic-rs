@@ -1,0 +1,4 @@
+error: expected '=>', found end of file
+ --> <input>:1:8
+   1 | "a" "b"
+     |        ^

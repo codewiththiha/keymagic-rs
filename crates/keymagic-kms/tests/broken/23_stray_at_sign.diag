@@ -1,0 +1,4 @@
+error: '@' options must be inside a comment
+ --> <input>:1:1
+   1 | @NAME = "x"
+     | ^

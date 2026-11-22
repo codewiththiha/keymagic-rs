@@ -1,0 +1,4 @@
+warning: variable '$v' is defined again; later uses see the new value
+ --> <input>:2:1
+   2 | $v = "b"
+     | ^

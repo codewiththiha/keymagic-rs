@@ -1,0 +1,4 @@
+error: '\' must be the last character on its line
+ --> <input>:1:5
+   1 | "a" \ x => "b"
+     |     ^

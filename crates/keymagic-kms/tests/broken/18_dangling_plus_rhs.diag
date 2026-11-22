@@ -1,0 +1,4 @@
+error: expected an output element after '+', found end of file
+ --> <input>:1:13
+   1 | "a" => "b" +
+     |             ^

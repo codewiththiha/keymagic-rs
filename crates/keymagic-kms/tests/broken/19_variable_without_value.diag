@@ -1,0 +1,4 @@
+error: expected a value after '=', found end of file
+ --> <input>:1:5
+   1 | $v =
+     |     ^

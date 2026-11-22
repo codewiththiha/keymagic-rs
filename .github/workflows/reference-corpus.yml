@@ -9,6 +9,7 @@ on:
       - 'tools/codec_reference.rs'
       - 'crates/keymagic-types/**'
       - 'crates/keymagic-km2/**'
+      - 'crates/keymagic-kms/**'
       - 'crates/keymagic-engine/**'
       - '.github/workflows/reference-corpus.yml'
   workflow_dispatch:
@@ -58,6 +59,10 @@ jobs:
             mkdir -p "$(dirname "$destination")"
             "$driver" --emit-km2 "$source" "$destination"
           done
+      - name: Compare KMS compiler output with the pinned compiler
+        env:
+          KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2
+        run: cargo test --locked --package keymagic-kms --test reference -- --ignored --exact every_corpus_script_matches_pinned_compiler
       - name: Replay corpus scenarios against the engine
         env:
           KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2
