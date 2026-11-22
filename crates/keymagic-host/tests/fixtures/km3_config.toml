@@ -1,0 +1,36 @@
+# Hand-written from keymagic-ibus/src/config.c (save_config writer).
+[general]
+start_with_system = true
+check_for_updates = false
+last_update_check = "2026-11-01"
+last_scanned_version = "0.3.0"
+update_remind_after = "2026-12-01"
+
+[keyboards]
+active = "myanmar3"
+last_used = ["myanmar3", "zawgyi"]
+
+[[keyboards.installed]]
+id = "myanmar3"
+name = "Myanmar3"
+filename = "myanmar3.km2"
+hash = "abc123"
+enabled = true
+
+[[keyboards.installed]]
+id = "zawgyi"
+name = "Zawgyi"
+filename = "zawgyi.km2"
+hotkey = ""
+enabled = false
+
+[[keyboards.installed]]
+id = "legacy"
+name = "Legacy"
+filename = "legacy.km2"
+
+[composition_mode]
+enabled_hosts = ["notepad.exe"]
+
+[direct_mode]
+enabled_hosts = ["code"]

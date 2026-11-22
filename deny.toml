@@ -4,6 +4,8 @@ confidence-threshold = 0.8
 allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
+    # Approved by the user on 2026-11-22: notify (file watcher).
+    "CC0-1.0",
     "GPL-2.0-only",
     "GPL-2.0-or-later",
     "ISC",
@@ -12,6 +14,8 @@ allow = [
     "LGPL-2.1-or-later",
     "MIT",
     "MPL-2.0",
+    # Approved by the user on 2026-11-22: image (BMP to PNG) via flate2 and png.
+    "Zlib",
 ]
 
 [bans]

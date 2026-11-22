@@ -1,0 +1,25 @@
+[package]
+name = "keymagic-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+directories = "6"
+image = { version = "0.25", default-features = false, features = ["bmp", "png"] }
+notify = "8"
+keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
+keymagic-km2 = { path = "../keymagic-km2", version = "0.1.0" }
+keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
+keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
+semver = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true
