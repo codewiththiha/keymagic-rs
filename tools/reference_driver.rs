@@ -18,17 +18,27 @@ fn hex(text: &str) -> Result<String, std::fmt::Error> {
     Ok(result)
 }
 
+fn compile_kms(path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
+    let file = kms2km2::compile_kms_file(path)?;
+    let mut bytes = Vec::new();
+    kms2km2::binary::Km2Writer::new(&mut bytes).write_km2_file(&file)?;
+    Ok(bytes)
+}
+
 fn run() -> Result<(), Box<dyn Error>> {
     let mut args = env::args().skip(1);
     let keyboard = args.next().ok_or("missing keyboard")?;
+    if keyboard == "--emit-km2" {
+        let source = args.next().ok_or("missing source")?;
+        let destination = args.next().ok_or("missing destination")?;
+        std::fs::write(destination, compile_kms(Path::new(&source))?)?;
+        return Ok(());
+    }
     let path = Path::new(&keyboard);
     let bytes = if path.extension().is_some_and(|ext| ext == "km2") {
         std::fs::read(path)?
     } else {
-        let file = kms2km2::compile_kms_file(path)?;
-        let mut bytes = Vec::new();
-        kms2km2::binary::Km2Writer::new(&mut bytes).write_km2_file(&file)?;
-        bytes
+        compile_kms(path)?
     };
     let keyboard = Km2Loader::load(&bytes)?;
     let mut engine = KeyMagicEngine::new(keyboard)?;

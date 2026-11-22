@@ -9,6 +9,7 @@ on:
       - 'tools/codec_reference.rs'
       - 'crates/keymagic-types/**'
       - 'crates/keymagic-km2/**'
+      - 'crates/keymagic-engine/**'
       - '.github/workflows/reference-corpus.yml'
   workflow_dispatch:
 permissions:
@@ -46,6 +47,26 @@ jobs:
           cargo clippy --locked --offline --manifest-path reference-driver/Cargo.toml -- -D warnings -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::unwrap_used -D clippy::expect_used
       - name: Compare corpus cases
         run: python3 scripts/reference_cases.py upstream/target/debug/corpus_reference_driver
+      - name: Compile corpus KMS keyboards with the pinned compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          driver="$PWD/upstream/target/debug/corpus_reference_driver"
+          for source in corpus/kms/cases/*.kms corpus/kms/alternatives/Eastern-Pwo_kjp.kms corpus/kms/alternatives/Sgaw-Kawthoolei_ksw.kms corpus/kms/alternatives/Western-Pwo_pwo.kms; do
+            relative="${source#corpus/kms/}"
+            destination="$PWD/reference-engine-km2/${relative%.kms}.km2"
+            mkdir -p "$(dirname "$destination")"
+            "$driver" --emit-km2 "$source" "$destination"
+          done
+      - name: Replay corpus scenarios against the engine
+        env:
+          KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2
+        run: cargo test --locked --package keymagic-engine --test corpus -- --ignored --exact every_corpus_scenario_matches_upstream
+      - name: Differential replay against the pinned driver
+        env:
+          KEYMAGIC_REFERENCE_DRIVER: ${{ github.workspace }}/upstream/target/debug/corpus_reference_driver
+          KEYMAGIC_REFERENCE_KM2_DIRECTORY: ${{ github.workspace }}/reference-engine-km2
+        run: cargo test --locked --release --package keymagic-engine --test differential -- --ignored --exact seeded_streams_match_upstream_on_every_corpus_keyboard
       - name: Build and compare the upstream KM2 writer
         shell: bash
         run: |
