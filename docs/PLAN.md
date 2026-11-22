@@ -49,7 +49,7 @@ Evidence and deviations: the identity-cap test is in `5b8bab8` (runs 45014856703
 - [x] p3-1: Lexer
 - [ ] p3-2: Parser + semantic checks (myWin blocked; see progress.md)
 - [x] p3-3: Formatter
-- [ ] p3-4: CLI (trycmd DoD substituted; see progress.md)
+- [x] p3-4: CLI (trycmd DoD met by in-house trycmd-style cases; see progress.md)
 - [x] p3-5: C FFI + header
 
 ## Phase 04: Host layer
