@@ -1,0 +1,57 @@
+[[case]]
+name = "vowel_basic"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_reordering_basic"
+events = [{ key = "a", action = "insert", text = "\u200Aေ", composing = "\u200Aေ" }]
+
+[[case]]
+name = "vowel_consonant"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_reordering_with_consonant"
+events = [
+  { key = "a", composing = "\u200Aေ" },
+  { key = "u", action = "replace", delete = 2, text = "ကေ", composing = "ကေ" },
+]
+
+[[case]]
+name = "vowel_stacked"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_reordering_with_stacked_consonant"
+events = [
+  { key = "a" }, { key = "u" }, { key = "F", composing = "ကေ္" },
+  { key = "u", composing = "က္ကေ", action = "replace", delete = 2, text = "္ကေ" },
+]
+
+[[case]]
+name = "vowel_medial"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_reordering_with_medial"
+events = [
+  { key = "a" }, { key = "s", action = "replace", delete = 1, text = "ျေ" },
+]
+
+[[case]]
+name = "vowel_complex"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_complex_reordering"
+events = [
+  { key = "a" }, { key = "u" }, { key = "s", action = "replace", delete = 1, text = "ျေ" },
+]
+
+[[case]]
+name = "vowel_two_consonants"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_vowel_e_with_multiple_consonants"
+events = [
+  { key = "a" }, { key = "u", composing = "ကေ" },
+  { key = "i", action = "insert", text = "င" },
+]
+
+[[case]]
+name = "vowel_remove_filler"
+keyboard = "kms/cases/vowel_reordering.kms"
+upstream_test = "keymagic-core/tests/vowel_e_reordering_test.rs::test_filler_removal_at_end"
+events = [
+  { key = "a", composing = "\u200Aေ" },
+  { key = "O", action = "replace", delete = 2, text = "ဿေ" },
+]

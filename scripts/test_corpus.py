@@ -62,6 +62,21 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_vowel_reordering_cases_preserve_upstream_assertions(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/vowel_reordering.toml')['case']}
+        self.assertEqual(set(cases), {'vowel_basic', 'vowel_consonant', 'vowel_stacked',
+                                     'vowel_medial', 'vowel_complex', 'vowel_two_consonants',
+                                     'vowel_remove_filler'})
+        self.assertEqual(cases['vowel_stacked']['events'][-1],
+                         {'key': 'u', 'composing': 'က္ကေ', 'action': 'replace',
+                          'delete': 2, 'text': '္ကေ'})
+        self.assertEqual(cases['vowel_remove_filler']['events'][-1],
+                         {'key': 'O', 'action': 'replace', 'delete': 2, 'text': 'ဿေ'})
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            self.assertIn('fn ' + case['upstream_test'].split('::')[1] + '()',
+                          (ROOT / 'reference/km3/vowel_e_reordering_test.rs').read_text())
+
     def test_any_exhausts_printable_ascii_and_boundaries(self):
         cases = load(ROOT / 'cases/any_ascii.toml')['case']
         by_key = {case['events'][1]['key']: case for case in cases}
