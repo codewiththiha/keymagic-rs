@@ -1,3 +1,3 @@
-//! C ABI boundary for KeyMagic.
+//! C ABI boundary for `KeyMagic`.
 
 #![forbid(unsafe_code)]

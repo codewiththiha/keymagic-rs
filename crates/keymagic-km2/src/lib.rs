@@ -1,3 +1,3 @@
-//! KeyMagic KM2 binary format codec.
+//! `KeyMagic` KM2 binary format codec.
 
 #![forbid(unsafe_code)]
