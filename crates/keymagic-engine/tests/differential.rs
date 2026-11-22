@@ -69,7 +69,7 @@ impl Rng {
         self.0.wrapping_mul(0x2545_F491_4F6C_DD1D)
     }
 
-    fn below(&mut self, bound: u64) -> u64 {
+    const fn below(&mut self, bound: u64) -> u64 {
         self.next_u64() % bound
     }
 
@@ -78,11 +78,11 @@ impl Rng {
         items[usize::try_from(self.below(bound)).unwrap_or(0)]
     }
 
-    fn flag(&mut self) -> bool {
+    const fn flag(&mut self) -> bool {
         self.below(2) == 0
     }
 
-    fn preview(&mut self) -> bool {
+    const fn preview(&mut self) -> bool {
         self.below(5) == 0
     }
 }
