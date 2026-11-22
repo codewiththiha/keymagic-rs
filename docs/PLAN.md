@@ -42,7 +42,7 @@ Evidence and deviations: exact-SHA CI and fuzz are in `progress.md`. Deviations:
 - [x] p2-3 — Rule application & recursion
 - [x] p2-4 — Differential harness + bench + fuzz
 
-Evidence and deviations: exact-SHA CI, bench (1.42 M keys/s), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses the licensed myWin alternative; upstream tests are covered by the corpus and hand-written behavior tests, not ported one-for-one.
+Evidence and deviations: exact-SHA CI, bench (1.42 M keys/s), and fuzz (657,231 runs in 601 s) for `2ac31e0` are in `progress.md`. Deviations: recursion cap 10 (upstream parity) instead of the card's 32; the benchmark uses the licensed myWin alternative; 52 of 54 engine-relevant upstream tests are mapped to corpus cases that run differentially against the pinned upstream engine; the other two are an assertion-free upstream TODO and a repeat of a mapped test. The recursion cap is 10, and `smallvec` is a required runtime dependency. The tests were added alongside the implementation, not written first.
 
 ## Phase 03 — KMS compiler & CLI
 
