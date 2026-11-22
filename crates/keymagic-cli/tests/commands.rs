@@ -49,10 +49,7 @@ fn compile_writes_km2_that_dump_reads() -> TestResult {
 
 #[test]
 fn compile_reports_errors_and_fails() -> TestResult {
-    let output = keymagic()
-        .arg("compile")
-        .arg(fixture("bad.kms"))
-        .output()?;
+    let output = keymagic().arg("compile").arg(fixture("bad.kms")).output()?;
     assert_eq!(output.status.code(), Some(1));
     assert!(text(&output.stderr).contains("undefined variable '$b'"));
     Ok(())
@@ -120,15 +117,14 @@ fn repl_types_characters_through_the_engine() -> TestResult {
 #[test]
 fn test_command_counts_passes_and_fails() -> TestResult {
     let cases = fixture("corpus/cases");
-    let output = keymagic()
-        .arg("--json")
-        .arg("test")
-        .arg(&cases)
-        .output()?;
+    let output = keymagic().arg("--json").arg("test").arg(&cases).output()?;
     assert_eq!(output.status.code(), Some(1));
     let shown = text(&output.stdout);
     assert!(shown.starts_with("{\"passed\":1,\"failed\":1,"), "{shown}");
-    assert!(shown.contains("\"name\":\"mismatch\",\"passed\":false"), "{shown}");
+    assert!(
+        shown.contains("\"name\":\"mismatch\",\"passed\":false"),
+        "{shown}"
+    );
     Ok(())
 }
 

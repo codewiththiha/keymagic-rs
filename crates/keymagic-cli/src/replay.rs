@@ -1,9 +1,9 @@
 //! Replays corpus cases through the engine and prints a result table.
 
+use crate::json::Json;
 use crate::resolver::DirResolver;
 use crate::style;
 use keymagic_engine::{Action, Engine, KeyEvent, Modifiers, Output, VirtualKey};
-use crate::json::Json;
 use keymagic_kms::Keyboard;
 use std::fmt::Debug;
 use std::fs;
@@ -65,7 +65,10 @@ pub fn run(cases_dir: &Path, json: bool) -> Result<ExitCode, String> {
         let body = Json::Object(vec![
             ("passed", Json::Number(passed)),
             ("failed", Json::Number(failed)),
-            ("cases", Json::Array(outcomes.iter().map(outcome_json).collect())),
+            (
+                "cases",
+                Json::Array(outcomes.iter().map(outcome_json).collect()),
+            ),
         ]);
         println!("{}", body.render());
     } else {

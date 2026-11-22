@@ -2,8 +2,8 @@
 
 mod compile;
 mod json;
-mod replay;
 mod repl;
+mod replay;
 mod resolver;
 mod style;
 
