@@ -354,11 +354,31 @@ fn any_of_captures_index_into_the_variable() -> TestResult {
 fn any_matches_printable_ascii_only() -> TestResult {
     let mut engine = engine(vec![rule(
         vec![PatternElement::Any],
-        vec![OutputElement::Ref(0)],
+        vec![OutputElement::Text("M".to_owned())],
     )])?;
-    assert_eq!(engine.process(char_event('~')).composing, "~");
-    let space = engine.process(char_event(' '));
-    assert_eq!(space.composing, "~ ");
+    for ch in ['!', '~', 'A'] {
+        engine.reset();
+        assert_eq!(engine.process(char_event(ch)).composing, "M");
+    }
+    for ch in [' ', '\u{7f}', 'é'] {
+        engine.reset();
+        assert_eq!(engine.process(char_event(ch)).composing, ch.to_string());
+    }
+    Ok(())
+}
+
+#[test]
+fn text_and_any_elements_each_yield_one_capture() -> TestResult {
+    let mut engine = engine(vec![rule(
+        vec![
+            PatternElement::Text("x".to_owned()),
+            PatternElement::Any,
+            PatternElement::Any,
+        ],
+        vec![OutputElement::Ref(0), OutputElement::Ref(2)],
+    )])?;
+    let output = type_text(&mut engine, "xyz")?;
+    assert_eq!(output.composing, "xz");
     Ok(())
 }
 
