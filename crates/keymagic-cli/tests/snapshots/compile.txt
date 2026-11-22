@@ -1,0 +1,4 @@
+exit: 0
+--- stdout ---
+wrote <tmp>/good.km2 (48 bytes)
+--- stderr ---

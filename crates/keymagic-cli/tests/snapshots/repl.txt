@@ -1,0 +1,7 @@
+exit: 0
+--- stdout ---
+text: b
+composing: b
+text: b
+composing: 
+--- stderr ---

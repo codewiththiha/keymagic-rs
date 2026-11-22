@@ -1,5 +1,8 @@
+exit: 1
+--- stdout ---
 CASE        RESULT
 rule_fires  PASS
 mismatch    FAIL
     event 1: composing: expected "zz", got "b"
 1 passed, 1 failed
+--- stderr ---

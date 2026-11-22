@@ -1,0 +1,10 @@
+exit: 0
+--- stdout ---
+name: Eastern Pwo Karen
+description: Eastern Pwo Karen keyboard layout with smart shortcuts
+font: -
+hotkey: -
+rules: 108
+strings: 12
+options: track_caps=false auto_bksp=true eat=false pos_based=true right_alt=true
+--- stderr ---
