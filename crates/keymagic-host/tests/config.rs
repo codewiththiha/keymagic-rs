@@ -144,6 +144,9 @@ fn enabled_languages_round_trip_and_default_to_none() -> TestResult {
     let mut config = Config::default();
     config.general.enabled_languages = vec!["my".to_owned(), "en-US".to_owned()];
     let parsed = Config::from_toml(&config.to_toml()?)?;
-    assert_eq!(parsed.general.enabled_languages, config.general.enabled_languages);
+    assert_eq!(
+        parsed.general.enabled_languages,
+        config.general.enabled_languages
+    );
     Ok(())
 }
