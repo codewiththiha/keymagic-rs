@@ -54,7 +54,7 @@ class CorpusTests(unittest.TestCase):
             'alternatives-mit.tsv': ('https://github.com/kokoye2007/myanmar-linux-keyboards',
                                      '07464582f16c9976d0521ebfad1d93fe6c6ba44a', 10),
             'alternatives-lgpl.tsv': ('https://github.com/thantthet/keymagic-keyboards',
-                                      '61da86297fdb99da56b2892190f73009dfe8bc07', 2),
+                                      '61da86297fdb99da56b2892190f73009dfe8bc07', 3),
             'alternatives-unlicensed.tsv': ('https://github.com/thantthet/keymagic-keyboards',
                                             'f5ea7555efa8ef08f13a985ea1d7f9df34885fe3', 1),
         }
