@@ -3,7 +3,7 @@
 use keymagic_engine::Action;
 use std::env;
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Returns the repository corpus directory.
 pub fn corpus_dir() -> PathBuf {
@@ -15,7 +15,7 @@ pub fn corpus_dir() -> PathBuf {
 
 /// Returns the KM2 path for a corpus keyboard.
 pub fn keyboard_path(relative: &str) -> Result<PathBuf, Box<dyn Error>> {
-    if relative.ends_with(".km2") {
+    if Path::new(relative).extension().is_some_and(|ext| ext == "km2") {
         return Ok(corpus_dir().join(relative));
     }
     let reference = PathBuf::from(env::var("KEYMAGIC_REFERENCE_KM2_DIRECTORY")?);

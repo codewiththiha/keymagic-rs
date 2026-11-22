@@ -11,7 +11,7 @@ type TestResult = Result<(), Box<dyn Error>>;
 
 const STATE: StateId = 1;
 
-fn rule(lhs: Vec<PatternElement>, rhs: Vec<OutputElement>) -> Rule {
+const fn rule(lhs: Vec<PatternElement>, rhs: Vec<OutputElement>) -> Rule {
     Rule {
         lhs,
         rhs,
