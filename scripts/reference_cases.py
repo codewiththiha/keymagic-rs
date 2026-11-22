@@ -15,7 +15,17 @@ def encode_events(events):
         key, vk = event.get('key'), event.get('vk')
         valid_key = isinstance(key, str) and len(key) == 1
         valid_vk = type(vk) is int and 0 <= vk <= 65535
-        if valid_key and valid_vk:
+        if 'modifiers' in event:
+            modifiers = event['modifiers']
+            flags = {'shift': 1, 'ctrl': 2, 'alt': 4, 'caps_lock': 8}
+            if (not valid_vk or ('key' in event and not valid_key)
+                    or not isinstance(modifiers, list)
+                    or any(not isinstance(item, str) or item not in flags for item in modifiers)
+                    or len(set(modifiers)) != len(modifiers)):
+                raise ValueError(f'unsupported event: {event!r}')
+            mask = sum(flags[item] for item in modifiers)
+            encoded.append(f'm:{mask}:{vk}:{key if valid_key else ""}')
+        elif valid_key and valid_vk:
             encoded.append(f'k:{vk}:{key}')
         elif valid_key and 'vk' not in event:
             encoded.append('c:' + key)

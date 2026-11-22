@@ -36,6 +36,25 @@ fn run() -> Result<(), Box<dyn Error>> {
             KeyInput::from_char(character)
         } else if let Some(value) = key.strip_prefix("v:") {
             KeyInput::from_vk(value.parse()?, ModifierState::default())
+        } else if let Some(value) = key.strip_prefix("m:") {
+            let (mask, rest) = value.split_once(':').ok_or("missing modifiers")?;
+            let (code, text) = rest.split_once(':').ok_or("missing key code")?;
+            let flags: u8 = mask.parse()?;
+            if flags > 15 {
+                return Err("invalid modifiers".into());
+            }
+            let mut chars = text.chars();
+            let character = chars.next();
+            if chars.next().is_some() {
+                return Err("expected at most one character".into());
+            }
+            let modifiers = ModifierState::new(
+                flags & 1 != 0,
+                flags & 2 != 0,
+                flags & 4 != 0,
+                flags & 8 != 0,
+            );
+            KeyInput::new(code.parse()?, modifiers, character)
         } else if let Some(value) = key.strip_prefix("k:") {
             let (code, text) = value.split_once(':').ok_or("missing key code")?;
             let mut chars = text.chars();

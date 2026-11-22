@@ -62,6 +62,24 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual({path.relative_to(ROOT / 'reference/km3').as_posix()
                           for path in (ROOT / 'reference/km3').rglob('*') if path.is_file()}, ENGINE_TEST_FILES)
 
+    def test_modifier_cases_preserve_upstream_assertions(self):
+        cases = {case['name']: case for case in load(ROOT / 'cases/modifiers.toml')['case']}
+        self.assertEqual(set(cases), {'shift_a', 'ctrl_a', 'shift_ctrl_a',
+                                     'shift_alt_no_match', 'plain_a', 'all_no_match',
+                                     'caps_lock_shift_a', 'vk_before_character',
+                                     'vk_f1', 'vk_sequence'})
+        self.assertEqual(cases['shift_alt_no_match']['events'], [
+            {'vk': 26, 'modifiers': ['shift', 'alt'], 'composing': '', 'processed': False},
+        ])
+        self.assertEqual(cases['caps_lock_shift_a']['events'], [
+            {'vk': 26, 'key': 'a', 'modifiers': ['shift', 'caps_lock'], 'composing': 'Shift+A'},
+        ])
+        for case in cases.values():
+            self.assertTrue((ROOT / case['keyboard']).is_file())
+            source, name = case['upstream_test'].split('::')
+            path = ROOT / 'reference/km3' / source.removeprefix('keymagic-core/tests/')
+            self.assertIn('fn ' + name + '()', path.read_text())
+
     def test_backspace_cases_preserve_upstream_sequences(self):
         cases = {case['name']: case for case in load(ROOT / 'cases/backspace.toml')['case']}
         self.assertEqual(set(cases), {'smart_undo', 'plain_delete', 'empty_backspace',

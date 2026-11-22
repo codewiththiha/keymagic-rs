@@ -15,6 +15,19 @@ class ReferenceCaseTests(unittest.TestCase):
             with self.subTest(event=event), self.assertRaises(ValueError):
                 encode_events([event])
 
+    def test_encode_modifiers_with_and_without_characters(self):
+        self.assertEqual(encode_events([
+            {'vk': 26, 'key': 'A', 'modifiers': ['shift']},
+            {'vk': 26, 'modifiers': ['ctrl', 'alt']},
+            {'vk': 26, 'key': 'a', 'modifiers': ['shift', 'caps_lock']},
+        ]), ['m:1:26:A', 'm:6:26:', 'm:9:26:a'])
+        for event in ({'key': 'a', 'modifiers': ['shift']},
+                      {'vk': 26, 'modifiers': ['unknown']},
+                      {'vk': 26, 'modifiers': ['shift', 'shift']},
+                      {'vk': 26, 'modifiers': 'shift'}):
+            with self.subTest(event=event), self.assertRaises(ValueError):
+                encode_events([event])
+
     def test_decodes_unicode_actions_and_ignores_reference_logs(self):
         output = 'upstream log\nCORPUS\tinsert\t0\te18080\te18080\ttrue\n'
         self.assertEqual(decode_output(output), [

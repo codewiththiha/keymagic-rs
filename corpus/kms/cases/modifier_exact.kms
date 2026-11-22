@@ -1,0 +1,5 @@
+<VK_SHIFT & VK_KEY_A> => "Shift+A"
+<VK_CTRL & VK_KEY_A> => "Ctrl+A"
+<VK_ALT & VK_KEY_A> => "Alt+A"
+<VK_SHIFT & VK_CTRL & VK_KEY_A> => "Shift+Ctrl+A"
+<VK_KEY_A> => "Just A"

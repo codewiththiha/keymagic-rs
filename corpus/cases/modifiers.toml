@@ -1,0 +1,59 @@
+[[case]]
+name = "shift_a"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, key = "A", modifiers = ["shift"], composing = "Shift+A" }]
+
+[[case]]
+name = "ctrl_a"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, modifiers = ["ctrl"], composing = "Ctrl+A" }]
+
+[[case]]
+name = "shift_ctrl_a"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, modifiers = ["shift", "ctrl"], composing = "Shift+Ctrl+A" }]
+
+[[case]]
+name = "shift_alt_no_match"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, modifiers = ["shift", "alt"], composing = "", processed = false }]
+
+[[case]]
+name = "plain_a"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, modifiers = [], composing = "Just A" }]
+
+[[case]]
+name = "all_no_match"
+keyboard = "kms/cases/modifier_exact.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_exact_modifier_matching"
+events = [{ vk = 26, modifiers = ["shift", "ctrl", "alt"], composing = "", processed = false }]
+
+[[case]]
+name = "caps_lock_shift_a"
+keyboard = "kms/cases/modifier_caps.kms"
+upstream_test = "keymagic-core/tests/modifier_exact_match_test.rs::test_caps_lock_independent"
+events = [{ vk = 26, key = "a", modifiers = ["shift", "caps_lock"], composing = "Shift+A" }]
+
+[[case]]
+name = "vk_before_character"
+keyboard = "kms/cases/vk_priority.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_virtual_key_priority_over_char"
+events = [{ vk = 26, key = "a", composing = "VK_A" }]
+
+[[case]]
+name = "vk_f1"
+keyboard = "kms/cases/vk_f1.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_virtual_key_without_modifiers"
+events = [{ vk = 68, composing = "F1 pressed", action = "insert", text = "F1 pressed" }]
+
+[[case]]
+name = "vk_sequence"
+keyboard = "kms/cases/vk_sequence.kms"
+upstream_test = "keymagic-core/tests/virtual_key_tests.rs::test_multiple_vk_in_sequence"
+events = [{ vk = 68, composing = "[F1]" }, { vk = 69, composing = "[F1][F2]" }]
