@@ -58,9 +58,9 @@ Phase 03 evidence is at code head `1b25aca`: Development `45035525104`, FFI plat
 
 - [x] p4-1: Config + KeyboardStore (watcher and BMP→PNG restored with `image` and `notify`, approved 2026-11-22; Development `45046378062` success at `19b5fa5`; see progress.md)
 - [x] p4-2: Session policy (42 matrix rows, `session_policy.rs`; Development `45044740802` success at `a81e285`; ADR-30 and ADR-31)
-- [ ] p4-3: IPC + Updater (open: `interprocess` transport and `ureq` GET deferred by the user, ADR-34; the loopback test is in-memory)
+- [x] p4-3: IPC + Updater (socket transport and reconnect via `interprocess`, HTTP fetch via `ureq`, approved 2026-11-22; loopback on a real local socket and in memory; Development `45049655393` success at `188b1a0`; see progress.md)
 
-Phase 04 evidence is in `progress.md`. Open items: p4-3 transport and fetch (deferred), ADR-35 to ADR-37, and the config fields and conflict-check listed there.
+Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS socket not run on a hosted runner, no OS focus verification (no adapters yet), reconnect after a dropped link untested, update channel not implemented (ADR-36).
 
 ## Phase 05: egui GUI
 
