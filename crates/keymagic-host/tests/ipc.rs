@@ -154,3 +154,23 @@ fn connect_fails_without_a_server_once_retries_run_out() -> TestResult {
     assert!(ipc::connect(missing, [Duration::ZERO, Duration::ZERO]).is_err());
     Ok(())
 }
+
+#[test]
+fn client_waits_for_a_server_that_starts_late() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let path = dir.path().join("late.sock");
+    let server_path = path.clone();
+    let server = std::thread::spawn(move || -> io::Result<Message> {
+        std::thread::sleep(Duration::from_millis(150));
+        let server = ipc::Server::bind(&server_path)?;
+        server.accept()?.recv()
+    });
+    let backoff = Backoff::new(Duration::from_millis(20), Duration::from_millis(200));
+    let mut client = ipc::Client::new(&path, backoff);
+    client.send(&Message::ReloadConfig)?;
+    let received = server
+        .join()
+        .map_err(|_| io::Error::other("server thread panicked"))??;
+    assert_eq!(received, Message::ReloadConfig);
+    Ok(())
+}

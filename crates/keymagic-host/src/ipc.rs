@@ -7,7 +7,7 @@ use interprocess::local_socket::{
 };
 use serde::{Deserialize, Serialize};
 use std::io::{self, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 /// Largest body accepted, so a bad peer cannot force a huge allocation.
@@ -153,6 +153,8 @@ impl Server {
     }
 }
 
+const RETRIES: usize = 10;
+
 /// Connects to a [`Server`] at `path`, retrying with `delays` between attempts.
 #[doc = "# Errors\n\nReturns the last connection error once `delays` runs out."]
 pub fn connect(path: &Path, delays: impl IntoIterator<Item = Duration>) -> io::Result<Connection> {
@@ -165,4 +167,41 @@ pub fn connect(path: &Path, delays: impl IntoIterator<Item = Duration>) -> io::R
         delays,
         std::thread::sleep,
     )
+}
+
+/// Sends to a [`Server`], reconnecting after a failure.
+#[derive(Debug)]
+pub struct Client {
+    path: PathBuf,
+    backoff: Backoff,
+    link: Option<Connection>,
+}
+
+impl Client {
+    /// Remembers `path` and the retry delays. Connects on the first send.
+    #[must_use]
+    pub fn new(path: &Path, backoff: Backoff) -> Self {
+        Self {
+            path: path.to_path_buf(),
+            backoff,
+            link: None,
+        }
+    }
+
+    /// Sends, reconnecting first when the link is down or a send fails.
+    #[doc = "# Errors\n\nReturns an error when no connection is made or the send fails."]
+    pub fn send(&mut self, message: &Message) -> io::Result<()> {
+        let reused = self
+            .link
+            .take()
+            .and_then(|mut link| link.send(message).ok().map(|()| link));
+        if let Some(link) = reused {
+            self.link = Some(link);
+            return Ok(());
+        }
+        let mut link = connect(&self.path, self.backoff.clone().take(RETRIES))?;
+        link.send(message)?;
+        self.link = Some(link);
+        Ok(())
+    }
 }
