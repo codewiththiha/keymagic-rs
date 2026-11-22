@@ -32,10 +32,13 @@ class WorkspaceSkeletonTests(unittest.TestCase):
     def test_workspace_configuration(self):
         root = read_toml(ROOT / 'Cargo.toml')['workspace']
         self.assertEqual(root['members'], ['crates/*', 'platform/*/*', 'xtask'])
-        self.assertEqual(root['resolver'], '2')
-        self.assertEqual(root['package']['edition'], '2021')
-        self.assertEqual(root['lints']['clippy']['all']['level'], 'deny')
-        self.assertEqual(root['lints']['clippy']['unwrap_used'], 'warn')
+        self.assertEqual(root['resolver'], '3')
+        self.assertEqual(root['package']['edition'], '2024')
+        self.assertEqual(root['lints']['rust']['unsafe_code'], 'forbid')
+        for group in ('all', 'pedantic', 'nursery'):
+            self.assertEqual(root['lints']['clippy'][group]['level'], 'deny')
+        self.assertEqual(root['lints']['clippy']['unwrap_used'], 'deny')
+        self.assertEqual(root['lints']['clippy']['expect_used'], 'deny')
 
     def test_all_packages_have_correct_stubs(self):
         for path, (name, kind) in PACKAGES.items():
@@ -49,8 +52,7 @@ class WorkspaceSkeletonTests(unittest.TestCase):
                 self.assertIn('//!', source.read_text())
                 if kind == 'cdylib':
                     self.assertIn('cdylib', manifest['lib']['crate-type'])
-                if path.startswith('crates/') and kind != 'cdylib':
-                    self.assertIn('#![forbid(unsafe_code)]', source.read_text())
+                self.assertIn('#![forbid(unsafe_code)]', source.read_text())
 
     def test_member_globs_and_platform_binary_fallbacks(self):
         workspace = read_toml(ROOT / 'Cargo.toml')['workspace']

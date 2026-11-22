@@ -2,4 +2,7 @@
 
 #![forbid(unsafe_code)]
 
-fn main() {}
+fn main() -> std::process::ExitCode {
+    eprintln!("xtask: not implemented yet");
+    std::process::ExitCode::FAILURE
+}

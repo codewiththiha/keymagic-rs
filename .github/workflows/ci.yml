@@ -13,6 +13,9 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: self-hosted
     timeout-minutes: 30
+    env:
+      RUSTFLAGS: -D warnings
+      RUSTDOCFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,7 +24,7 @@ jobs:
           persist-credentials: false
       - name: Test commit policy script
         run: python3 -m unittest discover -s scripts -p 'test_*.py'
-      - name: Check commit messages
+      - name: Check commit messages and authors
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -30,18 +33,24 @@ jobs:
         run: |
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             range="$HEAD_SHA^!"
-          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+          elif [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            # New branches and force pushes may not have their old base available.
             range="$HEAD_SHA"
           else
             range="$BASE_SHA..$HEAD_SHA"
           fi
           python3 scripts/check_commit_messages.py --range "$range"
+          python3 scripts/check_commit_authors.py --range "$range"
       - name: Require Rust workspace
         run: test -f Cargo.toml || { echo '::error::Cargo workspace not implemented; Rust checks have not run'; exit 1; }
       - name: Verify committed lockfile
         run: cargo metadata --locked --no-deps --format-version 1 > /dev/null
       - name: Check formatting
         run: cargo fmt --all -- --check
+      - name: Check all workspace targets
+        run: cargo check --locked --workspace --all-targets
+      - name: Build workspace
+        run: cargo build --locked --workspace
       - name: Clippy
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
       - name: Tests

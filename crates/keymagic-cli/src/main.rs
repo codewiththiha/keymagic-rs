@@ -1,5 +1,8 @@
-//! KeyMagic command-line application.
+//! `KeyMagic` command-line application.
 
 #![forbid(unsafe_code)]
 
-fn main() {}
+fn main() -> std::process::ExitCode {
+    eprintln!("keymagic-cli: not implemented yet");
+    std::process::ExitCode::FAILURE
+}
