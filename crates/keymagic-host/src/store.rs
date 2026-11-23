@@ -5,6 +5,7 @@ use crate::invalid_data;
 use crate::paths::Paths;
 use keymagic_kms::{Diagnostic, Keyboard, Resolver, check, compile};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
+use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
@@ -129,6 +130,25 @@ impl KeyboardStore {
         Ok(keyboards.installed.len() != before)
     }
 
+    /// Appends a tester case to `<id>.cases.toml` and returns the file path.
+    #[doc = "# Errors\n\nReturns an error when the case file cannot be read, parsed or written."]
+    pub fn record_case(&self, id: &str, input: &str, expected: &str) -> io::Result<PathBuf> {
+        let name = format!("{id}.cases.toml");
+        let mut file = match fs::read_to_string(self.dir.join(&name)) {
+            Ok(text) => toml::from_str::<CaseFile>(&text).map_err(text_invalid)?,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => CaseFile::default(),
+            Err(error) => return Err(error),
+        };
+        file.cases.push(Case {
+            input: input.to_owned(),
+            expected: expected.to_owned(),
+        });
+        let text = toml::to_string(&file).map_err(text_invalid)?;
+        fs::create_dir_all(&self.dir)?;
+        self.write_file(&name, text.as_bytes())?;
+        Ok(self.dir.join(name))
+    }
+
     /// Reads the compiled keyboard `<id>.km2`.
     #[doc = "# Errors\n\nReturns an error when the file is missing or is not KM2."]
     pub fn load(&self, id: &str) -> io::Result<Keyboard> {
@@ -231,6 +251,20 @@ fn to_png(icon: &[u8]) -> Option<Vec<u8>> {
     Some(png.into_inner())
 }
 
+/// Tester cases saved next to a keyboard, in `<id>.cases.toml`.
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct CaseFile {
+    #[serde(default, rename = "case")]
+    cases: Vec<Case>,
+}
+
+/// One typed input and the text it must produce.
+#[derive(Debug, Serialize, Deserialize)]
+struct Case {
+    input: String,
+    expected: String,
+}
+
 /// Makes config entries match the files found on disk.
 fn reconcile(config: &mut Config, found: &[Found]) {
     let installed = &mut config.keyboards.installed;
@@ -247,6 +281,10 @@ fn reconcile(config: &mut Config, found: &[Found]) {
             installed.push(entry(&item.id, &item.name));
         }
     }
+}
+
+fn text_invalid(error: impl std::fmt::Display) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, error.to_string())
 }
 
 fn ignore_missing(error: io::Error) -> io::Result<()> {

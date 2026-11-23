@@ -211,3 +211,31 @@ fn ctrl_one_returns_to_the_keyboards_page() -> TestResult {
     assert_eq!(harness.state().page(), Page::Keyboards);
     Ok(())
 }
+
+#[test]
+fn author_edits_formats_saves_compiles_and_tests() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, name) = host_with_tiny(&dir)?;
+    let mut harness = app(host);
+    compile_in_editor(&mut harness, &name);
+    harness.get_by_label("Format").click();
+    harness.run();
+    harness.get_by_label("Save").click();
+    harness.run();
+    assert!(
+        harness
+            .state()
+            .pages()
+            .editor
+            .notice()
+            .is_some_and(|text| text.starts_with("Saved")),
+    );
+    harness.get_by_label("Compile").click();
+    harness.run();
+    open_page(&mut harness, "Tester");
+    harness.event(Event::Text("a".to_owned()));
+    harness.run();
+    let text = harness.state().pages().tester.text();
+    assert_eq!(format!("{}{}", text.committed(), text.preedit()), "x");
+    Ok(())
+}

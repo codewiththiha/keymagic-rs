@@ -5,6 +5,7 @@ use keymagic_host::store::Found;
 use keymagic_host::{Config, HostAction};
 use keymagic_kms::{Diagnostic, Severity};
 use keymagic_types::Hotkey;
+use std::ops::Range;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -61,6 +62,71 @@ pub fn matches_filter(row: &KeyboardRow, query: &str) -> bool {
     query.is_empty()
         || row.name.to_lowercase().contains(&query)
         || row.id.to_lowercase().contains(&query)
+}
+
+/// The highlighting class of a span of KMS source.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Token {
+    Comment,
+    Directive,
+    Operator,
+    Str,
+    Variable,
+}
+
+/// Highlighted spans of KMS source in order. Text between spans is plain.
+#[must_use]
+pub fn kms_tokens(source: &str) -> Vec<(Range<usize>, Token)> {
+    let mut tokens = Vec::new();
+    let mut start = 0;
+    for line in source.split_inclusive('\n') {
+        let body = line.trim_end_matches(['\r', '\n']);
+        let trimmed = body.trim_start();
+        if trimmed.starts_with('&') {
+            let from = start + (body.len() - trimmed.len());
+            tokens.push((from..start + body.len(), Token::Directive));
+        } else {
+            scan_line(body, start, &mut tokens);
+        }
+        start += line.len();
+    }
+    tokens
+}
+
+fn scan_line(line: &str, offset: usize, tokens: &mut Vec<(Range<usize>, Token)>) {
+    let mut index = 0;
+    while index < line.len() {
+        let rest = &line[index..];
+        let (len, token) = if rest.starts_with("//") {
+            (rest.len(), Token::Comment)
+        } else if rest.starts_with("=>") {
+            (2, Token::Operator)
+        } else if rest.starts_with('"') {
+            let close = rest[1..].find('"').map_or(rest.len(), |close| close + 2);
+            (close, Token::Str)
+        } else if rest.starts_with('$') {
+            let name = rest[1..]
+                .find(|ch: char| !(ch.is_alphanumeric() || ch == '_'))
+                .map_or(rest.len(), |end| end + 1);
+            (name, Token::Variable)
+        } else {
+            index += rest.chars().next().map_or(1, char::len_utf8);
+            continue;
+        };
+        tokens.push((offset + index..offset + index + len, token));
+        index += len;
+    }
+}
+
+/// The character a US key gives with Shift, for the layout preview.
+#[must_use]
+pub fn shifted_char(ch: char) -> Option<char> {
+    const BASE: &str = "1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./";
+    const SHIFTED: &str = "!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?";
+    BASE.chars()
+        .zip(SHIFTED.chars())
+        .find(|(base, _)| *base == ch)
+        .map(|(_, shifted)| shifted)
 }
 
 /// A key the user typed into the tester.
@@ -282,8 +348,8 @@ pub fn hotkey_text(modifiers: [bool; 4], key: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Check, EditorText, Fallback, KeyboardRow, TesterText, TypedKey, hotkey_text, keyboard_rows,
-        line_diagnostics, matches_filter, parse_hotkey,
+        Check, EditorText, Fallback, KeyboardRow, TesterText, Token, TypedKey, hotkey_text,
+        keyboard_rows, kms_tokens, line_diagnostics, matches_filter, parse_hotkey, shifted_char,
     };
     use keymagic_engine::VirtualKey;
     use keymagic_host::HostAction;
@@ -361,6 +427,32 @@ mod tests {
         assert!(matches_filter(&row, "zg"));
         assert!(matches_filter(&row, ""));
         assert!(!matches_filter(&row, "unicode"));
+    }
+
+    #[test]
+    fn kms_tokens_mark_directives_comments_strings_and_variables() {
+        let source = "&NAME = \"x\"\n// note\nA => $v \"y\"";
+        let found: Vec<(&str, Token)> = kms_tokens(source)
+            .into_iter()
+            .map(|(range, token)| (&source[range], token))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                ("&NAME = \"x\"", Token::Directive),
+                ("// note", Token::Comment),
+                ("=>", Token::Operator),
+                ("$v", Token::Variable),
+                ("\"y\"", Token::Str),
+            ]
+        );
+    }
+
+    #[test]
+    fn shifted_char_follows_the_us_layout() {
+        assert_eq!(shifted_char('1'), Some('!'));
+        assert_eq!(shifted_char('q'), Some('Q'));
+        assert_eq!(shifted_char(' '), None);
     }
 
     #[test]

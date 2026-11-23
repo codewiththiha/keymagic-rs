@@ -68,6 +68,12 @@ impl Host {
         &mut self.config
     }
 
+    /// Appends a tester case to the keyboard's case file.
+    #[doc = "# Errors\n\nReturns an error when the case file cannot be written."]
+    pub fn record_case(&self, id: &str, input: &str, expected: &str) -> io::Result<PathBuf> {
+        self.store.record_case(id, input, expected)
+    }
+
     /// Writes `config.toml`, creating its folder when needed.
     #[doc = "# Errors\n\nReturns an error when the file cannot be written."]
     pub fn save(&self) -> io::Result<()> {

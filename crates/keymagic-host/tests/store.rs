@@ -181,3 +181,16 @@ fn source_is_none_for_km2_only_keyboards() -> TestResult {
     assert!(store.load(&id).is_ok());
     Ok(())
 }
+
+#[test]
+fn recorded_cases_append_to_the_keyboard_case_file() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempfile::tempdir()?;
+    let paths = keymagic_host::Paths::under(dir.path(), dir.path());
+    let store = keymagic_host::KeyboardStore::new(&paths);
+    store.record_case("demo", "ka", "က")?;
+    let path = store.record_case("demo", "kha", "ခ")?;
+    let text = std::fs::read_to_string(path)?;
+    assert_eq!(text.matches("[[case]]").count(), 2);
+    assert!(text.contains("input = \"kha\""));
+    Ok(())
+}

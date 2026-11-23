@@ -8,12 +8,17 @@ use crate::widgets;
 use egui::{
     Align, Button, CornerRadius, Layout, Pos2, Rect, RichText, TextEdit, TextStyle, Ui, Vec2,
 };
-use keymagic_engine::{Engine, KeyEvent};
+use keymagic_engine::{Engine, KeyEvent, Modifiers};
 use keymagic_kms::{Diagnostic, Severity};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 /// Width reserved left of the text for the diagnostic markers.
+use crate::model::{Token, kms_tokens, shifted_char};
+use egui::text::{LayoutJob, TextFormat};
+use egui::{Color32, FontId, Galley, TextBuffer};
+use std::sync::Arc;
+
 const GUTTER: f32 = 18.0;
 /// Largest key in the layout preview; smaller windows shrink the keys.
 const PREVIEW_UNIT: f32 = 32.0;
@@ -31,6 +36,73 @@ const LAYOUT: [(f32, &str); 5] = [
     (1.25, "zxcvbnm,./"),
     (0.0, " "),
 ];
+
+/// Colours KMS source for the editor; the monospace font is kept.
+fn highlight(ui: &Ui, text: &dyn TextBuffer, wrap_width: f32) -> Arc<Galley> {
+    let source = text.as_str();
+    let visuals = ui.visuals();
+    let font = TextStyle::Monospace.resolve(ui.style());
+    let mut job = LayoutJob::default();
+    job.wrap.max_width = wrap_width;
+    let mut cursor = 0;
+    for (range, token) in kms_tokens(source) {
+        append_text(&mut job, &font, &source[cursor..range.start], visuals.text_color());
+        append_text(&mut job, &font, &source[range.clone()], token_color(token, ui));
+        cursor = range.end;
+    }
+    append_text(&mut job, &font, &source[cursor..], visuals.text_color());
+    ui.painter().layout_job(job)
+}
+
+fn append_text(job: &mut LayoutJob, font: &FontId, text: &str, color: Color32) {
+    job.append(text, 0.0, TextFormat::simple(font.clone(), color));
+}
+
+fn token_color(token: Token, ui: &Ui) -> Color32 {
+    match token {
+        Token::Comment | Token::Operator => theme::muted_color(ui.visuals()),
+        Token::Directive => theme::accent_color(),
+        Token::Str => ui.visuals().hyperlink_color,
+        Token::Variable => ui.visuals().strong_text_color(),
+    }
+}
+
+/// The layer of the layout preview, chosen by the held modifier keys.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Layer {
+    Plain,
+    Shift,
+    AltGr,
+}
+
+impl Layer {
+    const fn caption(self) -> &'static str {
+        match self {
+            Self::Plain => "Hold Shift or AltGr to see those layers.",
+            Self::Shift => "Shift layer",
+            Self::AltGr => "AltGr layer (Ctrl+Alt)",
+        }
+    }
+
+    const fn modifiers(self) -> Modifiers {
+        Modifiers {
+            shift: matches!(self, Self::Shift),
+            ctrl: matches!(self, Self::AltGr),
+            alt: matches!(self, Self::AltGr),
+            caps_lock: false,
+        }
+    }
+}
+
+const fn layer_of(modifiers: egui::Modifiers) -> Layer {
+    if modifiers.alt && modifiers.ctrl {
+        Layer::AltGr
+    } else if modifiers.shift {
+        Layer::Shift
+    } else {
+        Layer::Plain
+    }
+}
 
 /// View state of the Editor page.
 #[derive(Default)]
@@ -180,6 +252,7 @@ impl View {
                     TextEdit::multiline(&mut self.text.source)
                         .font(TextStyle::Monospace)
                         .code_editor()
+                        .layouter(&mut highlight)
                         .desired_width(f32::INFINITY)
                         .desired_rows(8)
                         .min_size(Vec2::new(0.0, height)),
@@ -305,20 +378,31 @@ impl View {
                 ));
                 return;
             };
+            let layer = layer_of(ui.input(|input| input.modifiers));
+            ui.label(widgets::muted(ui, layer.caption()));
             let gap = ui.spacing().item_spacing.x;
             let unit = (ui.available_width() / PREVIEW_ROW_KEYS - gap).min(PREVIEW_UNIT);
             for (indent, row) in LAYOUT {
                 ui.horizontal(|ui| {
                     ui.add_space(indent * unit);
                     for ch in row.chars() {
+                        let typed = match layer {
+                            Layer::Shift => shifted_char(ch).unwrap_or(ch),
+                            Layer::Plain | Layer::AltGr => ch,
+                        };
                         let output = engine.peek(KeyEvent {
-                            ch: Some(ch),
+                            ch: Some(typed),
+                            mods: layer.modifiers(),
                             ..KeyEvent::default()
                         });
+                        let legend = match layer {
+                            Layer::AltGr => String::new(),
+                            Layer::Plain | Layer::Shift => typed.to_string(),
+                        };
                         let label = if output.consumed {
                             output.composing
                         } else {
-                            ch.to_string()
+                            legend
                         };
                         let width = if ch == ' ' { 6.0 } else { 1.0 };
                         widgets::key_cap(ui, &label, width, unit);
@@ -329,10 +413,14 @@ impl View {
     }
 }
 
-/// Myanmar consonants, then the common vowel signs, marks and the virama.
+/// Myanmar consonants and marks, then Myanmar Extended-A and -B letters.
 fn glyphs() -> impl Iterator<Item = char> {
-    ('\u{1000}'..='\u{1021}').chain([
-        '\u{102B}', '\u{102C}', '\u{102D}', '\u{102E}', '\u{102F}', '\u{1030}', '\u{1031}',
-        '\u{1032}', '\u{103A}', '\u{1036}', '\u{1037}', '\u{1038}', '\u{1039}',
-    ])
+    ('\u{1000}'..='\u{1021}')
+        .chain([
+            '\u{102B}', '\u{102C}', '\u{102D}', '\u{102E}', '\u{102F}', '\u{1030}',
+            '\u{1031}', '\u{1032}', '\u{103A}', '\u{1036}', '\u{1037}', '\u{1038}',
+            '\u{1039}',
+        ])
+        .chain('\u{A9E0}'..='\u{A9FE}')
+        .chain('\u{AA60}'..='\u{AA7F}')
 }

@@ -5,8 +5,9 @@ use crate::model::{TesterText, TypedKey};
 use crate::state::{Host, lock};
 use crate::widgets;
 use egui::{Align, Context, Event, Key, Layout, RichText, Ui};
-use keymagic_engine::Engine;
+use keymagic_engine::{Action, Engine, KeyEvent, TraceStep};
 use keymagic_host::Session;
+use keymagic_types::SourceSpan;
 use std::sync::{Arc, Mutex};
 
 /// View state of the Tester page: its session and typed text.
@@ -14,6 +15,11 @@ use std::sync::{Arc, Mutex};
 pub struct View {
     keyboard: Option<String>,
     session: Option<Session>,
+    probe: Option<Engine>,
+    source: String,
+    spans: Vec<Option<SourceSpan>>,
+    last: Option<Probe>,
+    typed: String,
     text: TesterText,
     notice: Notice,
 }
@@ -43,11 +49,23 @@ impl View {
         });
         self.notice.show(ui);
         ui.add_space(8.0);
-        widgets::card(ui, |ui| {
-            ui.set_min_size(egui::vec2(ui.available_width(), 200.0));
-            ui.label(RichText::new(self.text.committed()).size(28.0));
-            ui.label(widgets::muted(ui, self.text.preedit()).size(28.0));
+        let mut record_clicked = false;
+        ui.columns(2, |columns| {
+            let [typing, pane] = columns else {
+                return;
+            };
+            widgets::card(typing, |ui| {
+                ui.set_min_size(egui::vec2(ui.available_width(), 240.0));
+                ui.label(RichText::new(self.text.committed()).size(28.0));
+                ui.label(widgets::muted(ui, self.text.preedit()).size(28.0));
+            });
+            widgets::card(pane, |ui| {
+                record_clicked = self.details(ui);
+            });
         });
+        if record_clicked {
+            self.record_case(host);
+        }
         ui.add_space(8.0);
         ui.label(widgets::muted(
             ui,
@@ -63,13 +81,21 @@ impl View {
         }
         self.keyboard.clone_from(&active);
         self.session = None;
+        self.probe = None;
+        self.last = None;
+        self.typed.clear();
         self.text.clear();
         let Some(id) = active else {
             return;
         };
         let opened = open_session(&lock(host), &id);
         match opened {
-            Ok(session) => self.session = Some(session),
+            Ok(opened) => {
+                self.session = Some(opened.session);
+                self.probe = Some(opened.probe);
+                self.source = opened.source;
+                self.spans = opened.spans;
+            }
             Err(error) => self.notice.set(format!("Could not load {id}: {error}")),
         }
     }
@@ -82,7 +108,18 @@ impl View {
             let Some(session) = self.session.as_mut() else {
                 return;
             };
-            let actions = session.key(key.event());
+            let event = key.event();
+            let actions = session.key(event);
+            if let Some(probe) = self.probe.as_mut() {
+                self.last = Some(probe_key(probe, event, &self.source, &self.spans));
+            }
+            match key {
+                TypedKey::Char(ch) => self.typed.push(ch),
+                TypedKey::Backspace => {
+                    self.typed.pop();
+                }
+                TypedKey::Enter => {}
+            }
             if let Some(id) = self.text.apply(&actions, key.fallback()) {
                 self.switch(host, &id);
             }
@@ -91,9 +128,51 @@ impl View {
 
     fn clear(&mut self) {
         self.text.clear();
+        self.typed.clear();
+        self.last = None;
+        if let Some(probe) = self.probe.as_mut() {
+            probe.reset();
+        }
         if let Some(session) = self.session.as_mut() {
             session.sync("");
         }
+    }
+
+    /// Draws the diagnostics pane; returns true when Record case is clicked.
+    fn details(&self, ui: &mut Ui) -> bool {
+        let probe = self.last.as_ref();
+        detail(ui, "Key", probe.map_or("—", |p| p.key.as_str()));
+        detail(
+            ui,
+            "Handled",
+            probe.map_or("—", |p| if p.handled { "Yes" } else { "No, passed through" }),
+        );
+        detail(ui, "Output", probe.map_or("—", |p| p.output.as_str()));
+        detail(ui, "Composing", probe.map_or("—", |p| p.composing.as_str()));
+        let rule = probe.and_then(|p| p.rule.as_ref());
+        detail(
+            ui,
+            "Rule",
+            &rule.map_or_else(
+                || "No rule matched".to_owned(),
+                |hit| format!("#{} at line {}", hit.rank, hit.line),
+            ),
+        );
+        detail(ui, "Source", rule.map_or("—", |hit| hit.text.as_str()));
+        ui.add_space(8.0);
+        widgets::button(ui, "Record case").clicked()
+    }
+
+    fn record_case(&mut self, host: &Mutex<Host>) {
+        let Some(id) = self.keyboard.clone() else {
+            return;
+        };
+        let expected = self.text.committed().to_owned();
+        let result = lock(host).record_case(&id, &self.typed, &expected);
+        self.notice.set(match result {
+            Ok(path) => format!("Recorded a case in {}.", path.display()),
+            Err(error) => format!("Could not record the case: {error}"),
+        });
     }
 
     fn switch(&mut self, host: &Mutex<Host>, id: &str) {
@@ -106,12 +185,102 @@ impl View {
     }
 }
 
-fn open_session(host: &Host, id: &str) -> Result<Session, String> {
+/// Engines, source and rule spans for one keyboard.
+struct Opened {
+    session: Session,
+    probe: Engine,
+    source: String,
+    spans: Vec<Option<SourceSpan>>,
+}
+
+/// What the last key did on the active keyboard.
+struct Probe {
+    key: String,
+    handled: bool,
+    output: String,
+    composing: String,
+    rule: Option<RuleHit>,
+}
+
+/// The primary rule behind the last output.
+struct RuleHit {
+    rank: usize,
+    line: usize,
+    text: String,
+}
+
+fn open_session(host: &Host, id: &str) -> Result<Opened, String> {
     let keyboard = host.load_keyboard(id).map_err(|error| error.to_string())?;
-    let engine = Engine::new(Arc::new(keyboard)).map_err(|error| error.message.to_owned())?;
+    let spans = keyboard.rules.iter().map(|rule| rule.source).collect();
+    let keyboard = Arc::new(keyboard);
+    let engine = Engine::new(Arc::clone(&keyboard)).map_err(|error| error.message.to_owned())?;
+    let probe = Engine::new(keyboard).map_err(|error| error.message.to_owned())?;
     let mut session = Session::new(engine, host.config());
     session.focus_in("KeyMagic Tester");
-    Ok(session)
+    let source = host.source(id).ok().flatten().unwrap_or_default();
+    Ok(Opened {
+        session,
+        probe,
+        source,
+        spans,
+    })
+}
+
+fn probe_key(
+    engine: &mut Engine,
+    event: KeyEvent,
+    source: &str,
+    spans: &[Option<SourceSpan>],
+) -> Probe {
+    let output = engine.process(event);
+    let applied = output.trace.as_ref().and_then(|trace| {
+        trace.steps.iter().find_map(|step| match step {
+            TraceStep::Applied {
+                rule,
+                rank,
+                recursive: false,
+                ..
+            } => Some((*rule, *rank)),
+            _ => None,
+        })
+    });
+    let rule = applied.and_then(|(index, rank)| {
+        let span = spans.get(index).copied().flatten()?;
+        let text = source
+            .get(span.start..span.end)
+            .unwrap_or_default()
+            .trim()
+            .to_owned();
+        let line = source
+            .get(..span.start)
+            .map_or(1, |head| head.matches('\n').count() + 1);
+        Some(RuleHit { rank, line, text })
+    });
+    Probe {
+        key: event
+            .ch
+            .map_or_else(|| "Special key".to_owned(), |ch| ch.to_string()),
+        handled: output.consumed,
+        output: describe(&output.action),
+        composing: output.composing,
+        rule,
+    }
+}
+
+fn describe(action: &Action) -> String {
+    match action {
+        Action::None => "No change".to_owned(),
+        Action::Insert(text) => format!("Insert {text}"),
+        Action::Delete(count) => format!("Delete {count}"),
+        Action::Replace { delete, insert } => format!("Replace {delete} with {insert}"),
+    }
+}
+
+fn detail(ui: &mut Ui, label: &str, value: &str) {
+    ui.horizontal(|ui| {
+        ui.add_sized([96.0, 18.0], egui::Label::new(widgets::muted(ui, label)));
+        ui.label(RichText::new(value).monospace());
+    });
 }
 
 /// The printable characters, Backspace and Enter typed this frame.
