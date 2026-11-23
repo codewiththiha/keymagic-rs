@@ -145,7 +145,13 @@ impl View {
         detail(
             ui,
             "Handled",
-            probe.map_or("—", |p| if p.handled { "Yes" } else { "No, passed through" }),
+            probe.map_or("—", |p| {
+                if p.handled {
+                    "Yes"
+                } else {
+                    "No, passed through"
+                }
+            }),
         );
         detail(ui, "Output", probe.map_or("—", |p| p.output.as_str()));
         detail(ui, "Composing", probe.map_or("—", |p| p.composing.as_str()));

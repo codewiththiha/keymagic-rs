@@ -46,8 +46,18 @@ fn highlight(ui: &Ui, text: &dyn TextBuffer, wrap_width: f32) -> Arc<Galley> {
     job.wrap.max_width = wrap_width;
     let mut cursor = 0;
     for (range, token) in kms_tokens(source) {
-        append_text(&mut job, &font, &source[cursor..range.start], visuals.text_color());
-        append_text(&mut job, &font, &source[range.clone()], token_color(token, ui));
+        append_text(
+            &mut job,
+            &font,
+            &source[cursor..range.start],
+            visuals.text_color(),
+        );
+        append_text(
+            &mut job,
+            &font,
+            &source[range.clone()],
+            token_color(token, ui),
+        );
         cursor = range.end;
     }
     append_text(&mut job, &font, &source[cursor..], visuals.text_color());
@@ -417,9 +427,8 @@ impl View {
 fn glyphs() -> impl Iterator<Item = char> {
     ('\u{1000}'..='\u{1021}')
         .chain([
-            '\u{102B}', '\u{102C}', '\u{102D}', '\u{102E}', '\u{102F}', '\u{1030}',
-            '\u{1031}', '\u{1032}', '\u{103A}', '\u{1036}', '\u{1037}', '\u{1038}',
-            '\u{1039}',
+            '\u{102B}', '\u{102C}', '\u{102D}', '\u{102E}', '\u{102F}', '\u{1030}', '\u{1031}',
+            '\u{1032}', '\u{103A}', '\u{1036}', '\u{1037}', '\u{1038}', '\u{1039}',
         ])
         .chain('\u{A9E0}'..='\u{A9FE}')
         .chain('\u{AA60}'..='\u{AA7F}')
