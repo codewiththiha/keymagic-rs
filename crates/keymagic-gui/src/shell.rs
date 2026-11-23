@@ -150,6 +150,23 @@ impl KeyMagicApp {
                         )),
                     }
                 }
+                Command::Toggle => {
+                    let result = {
+                        let mut host = lock(&self.host);
+                        if host.config().keyboards.active.is_some() {
+                            host.turn_off()
+                        } else {
+                            host.turn_on()
+                        }
+                    };
+                    match result {
+                        Ok(true) => self.notice.clear(),
+                        Ok(false) => self.notice.set("Enable a keyboard first.".to_owned()),
+                        Err(error) => self
+                            .notice
+                            .set(format!("KeyMagic was not switched: {error}")),
+                    }
+                }
                 Command::Open => {
                     ctx.send_viewport_cmd(ViewportCommand::Visible(true));
                     ctx.send_viewport_cmd(ViewportCommand::Focus);

@@ -193,3 +193,41 @@ fn km3_defaults_apply_and_entries_without_an_id_are_skipped() -> TestResult {
     assert!(zawgyi.enabled, "enabled defaults to true");
     Ok(())
 }
+
+#[test]
+fn activating_a_keyboard_makes_it_the_last_used() -> Result<(), Box<dyn std::error::Error>> {
+    let mut config = Config::from_toml(
+        r#"
+        [keyboards]
+        last_used = ["zawgyi"]
+
+        [[keyboards.installed]]
+        id = "zawgyi"
+
+        [[keyboards.installed]]
+        id = "unicode"
+        "#,
+    )?;
+    assert!(config.keyboards.set_active("unicode"));
+    assert_eq!(config.keyboards.last_used, ["unicode", "zawgyi"]);
+    assert!(config.keyboards.set_active("zawgyi"));
+    assert_eq!(config.keyboards.last_used, ["zawgyi", "unicode"]);
+    Ok(())
+}
+
+#[test]
+fn absent_and_empty_hotkeys_both_leave_no_switch_hotkey() -> Result<(), Box<dyn Error>> {
+    let config = Config::from_toml(
+        r#"
+        [[keyboards.installed]]
+        id = "a"
+        hotkey = ""
+
+        [[keyboards.installed]]
+        id = "b"
+        "#,
+    )?;
+    assert!(config.hotkey_conflicts().is_empty());
+    assert_eq!(config.shortcut_taken_by("Ctrl+K"), None);
+    Ok(())
+}

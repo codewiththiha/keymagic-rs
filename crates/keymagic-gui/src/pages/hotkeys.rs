@@ -42,8 +42,12 @@ impl View {
         let conflicts: Vec<String> = config
             .hotkey_conflicts()
             .into_iter()
-            .map(|(first, second)| format!("{first} and {second} use the same shortcut."))
+            .map(|(first, second)| format!("Shortcut conflict: {first} and {second}."))
             .collect();
+        let draft_owner = parse_hotkey(&self.draft)
+            .ok()
+            .flatten()
+            .and_then(|text| config.shortcut_taken_by(&text).map(str::to_owned));
         widgets::section(ui, "Next keyboard", |ui| {
             ui.horizontal(|ui| {
                 ui.add(
@@ -59,12 +63,21 @@ impl View {
                 if widgets::button(ui, label).clicked() {
                     self.recording = !self.recording;
                 }
+                if let Ok(Some(text)) = parse_hotkey(&self.draft) {
+                    widgets::chip(ui, &text);
+                }
             });
             if self.recording {
                 self.record(ui);
             }
             if let Err(message) = parse_hotkey(&self.draft) {
                 ui.colored_label(theme::color(theme::ERROR), message);
+            }
+            if let Some(owner) = &draft_owner {
+                ui.colored_label(
+                    theme::color(theme::ERROR),
+                    format!("Already used by {owner}."),
+                );
             }
             ui.add_space(8.0);
             ui.label(widgets::muted(
@@ -120,6 +133,13 @@ impl View {
                 return;
             }
         };
+        let taken = parsed
+            .as_deref()
+            .and_then(|text| guard.config().shortcut_taken_by(text).map(str::to_owned));
+        if let Some(owner) = taken {
+            self.notice.set(format!("Already used by {owner}."));
+            return;
+        }
         guard.config_mut().hotkeys.next_keyboard = parsed;
         let message = match guard.save() {
             Ok(()) => "Shortcut saved.".to_owned(),

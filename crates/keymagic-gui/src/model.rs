@@ -14,6 +14,7 @@ use std::str::FromStr;
 pub struct KeyboardRow {
     pub id: String,
     pub name: String,
+    pub description: Option<String>,
     pub icon: Option<PathBuf>,
     pub hotkey: Option<String>,
     pub enabled: bool,
@@ -40,6 +41,7 @@ pub fn keyboard_rows(config: &Config, found: &[Found]) -> Vec<KeyboardRow> {
                     .and_then(|entry| non_blank(entry.label.as_deref()))
                     .unwrap_or(keyboard.name.as_str())
                     .to_owned(),
+                description: keyboard.description.clone(),
                 icon: keyboard.icon.clone(),
                 hotkey: entry
                     .and_then(|entry| non_blank(entry.hotkey.as_deref()))
@@ -376,6 +378,7 @@ mod tests {
         Found {
             id: id.to_owned(),
             name: name.to_owned(),
+            description: None,
             km2: PathBuf::from(format!("{id}.km2")),
             icon: None,
         }
@@ -424,10 +427,22 @@ mod tests {
     }
 
     #[test]
+    fn keyboard_rows_carry_the_keyboard_description() {
+        let mut keyboard = found("zg", "Zawgyi");
+        keyboard.description = Some("Zawgyi-One compatible layout".to_owned());
+        let rows = keyboard_rows(&Config::default(), &[keyboard]);
+        assert_eq!(
+            rows[0].description.as_deref(),
+            Some("Zawgyi-One compatible layout")
+        );
+    }
+
+    #[test]
     fn filter_matches_name_or_id_ignoring_case() {
         let row = KeyboardRow {
             id: "zg".to_owned(),
             name: "Zawgyi".to_owned(),
+            description: None,
             icon: None,
             hotkey: None,
             enabled: true,

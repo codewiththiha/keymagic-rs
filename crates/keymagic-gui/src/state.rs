@@ -142,6 +142,28 @@ impl Host {
         Ok(true)
     }
 
+    /// Clears the active keyboard, saves it and tells a running IME to reload.
+    #[doc = "# Errors\n\nReturns an error when settings cannot be saved or an IME refuses."]
+    pub fn turn_off(&mut self) -> io::Result<bool> {
+        if !self.config.turn_off() {
+            return Ok(false);
+        }
+        self.save()?;
+        if let Ok(mut link) = ipc::connect(&self.socket, std::iter::empty::<Duration>()) {
+            link.send(&Message::ReloadConfig)?;
+        }
+        Ok(true)
+    }
+
+    /// Turns `KeyMagic` on with the keyboard `Config` picks to turn on.
+    #[doc = "# Errors\n\nReturns an error when settings cannot be saved or an IME refuses."]
+    pub fn turn_on(&mut self) -> io::Result<bool> {
+        let Some(id) = self.config.keyboard_to_turn_on().map(str::to_owned) else {
+            return Ok(false);
+        };
+        self.switch_keyboard(&id)
+    }
+
     /// Whether an IME is listening on the IPC socket right now.
     #[must_use]
     pub fn ime_connected(&self) -> bool {

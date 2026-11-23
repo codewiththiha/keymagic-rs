@@ -22,6 +22,8 @@ pub struct Found {
     pub id: String,
     /// Name from the KM2 info block, or the id when there is none.
     pub name: String,
+    /// Description from the KM2 info block, when it has one.
+    pub description: Option<String>,
     pub km2: PathBuf,
     /// Cached PNG icon, when the keyboard has a PNG or BMP icon.
     pub icon: Option<PathBuf>,
@@ -71,10 +73,12 @@ impl KeyboardStore {
             };
             let info = keymagic_km2::read_info_only(&fs::read(&km2)?).map_err(invalid_data)?;
             let name = info.name().unwrap_or(id.as_str()).to_owned();
+            let description = info.description().map(str::to_owned);
             let icon = self.cache_icon(&id, info.icon())?;
             found.push(Found {
                 id,
                 name,
+                description,
                 km2,
                 icon,
             });

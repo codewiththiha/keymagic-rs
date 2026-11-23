@@ -199,7 +199,7 @@ fn shared_shortcut_is_reported_on_the_hotkeys_page() -> TestResult {
     harness.run();
     assert!(
         harness
-            .query_by_label_contains("use the same shortcut")
+            .query_by_label_contains("Shortcut conflict")
             .is_some()
     );
     Ok(())

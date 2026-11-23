@@ -174,6 +174,17 @@ fn paint_switch(ui: &Ui, rect: Rect, on: bool) {
     );
 }
 
+/// A framed shortcut label, such as `Ctrl+Shift+K`.
+pub fn chip(ui: &mut Ui, text: &str) {
+    Frame::new()
+        .fill(ui.visuals().extreme_bg_color)
+        .corner_radius(CornerRadius::same(CONTROL_ROUNDING))
+        .inner_margin(Margin::symmetric(8, 2))
+        .show(ui, |ui| {
+            ui.label(RichText::new(text).monospace());
+        });
+}
+
 /// A keycap `width` keys wide and `unit` points per key, labelled with `label`.
 pub fn key_cap(ui: &mut Ui, label: &str, width: f32, unit: f32) {
     let (slot, _) = ui.allocate_exact_size(Vec2::new(unit * width, unit), Sense::hover());

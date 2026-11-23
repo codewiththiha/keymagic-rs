@@ -237,37 +237,39 @@ impl View {
                 }
             }
             Action::Move(id, up) => {
-                let keyboards = &mut guard.config_mut().keyboards;
-                keyboards
+                let index = guard
+                    .config()
+                    .keyboards
                     .installed
                     .iter()
-                    .position(|keyboard| keyboard.id == id)
-                    .map_or_else(
-                        || format!("{id} is not installed."),
-                        |index| {
-                            let target = if up {
-                                index.saturating_sub(1)
-                            } else {
-                                index + 1
-                            };
-                            keyboards.move_to(&id, target);
-                            format!("Moved {id}.")
-                        },
-                    )
+                    .position(|keyboard| keyboard.id == id);
+                index.map_or_else(
+                    || format!("{id} is not installed."),
+                    |index| {
+                        let target = if up {
+                            index.saturating_sub(1)
+                        } else {
+                            index + 1
+                        };
+                        guard.move_to(&id, target);
+                        format!("Moved {id}.")
+                    },
+                )
             }
             Action::MoveTo(id, target) => {
-                let keyboards = &mut guard.config_mut().keyboards;
-                keyboards
+                let index = guard
+                    .config()
+                    .keyboards
                     .installed
                     .iter()
-                    .position(|keyboard| keyboard.id == target)
-                    .map_or_else(
-                        || format!("{target} is not installed."),
-                        |index| {
-                            keyboards.move_to(&id, index);
-                            format!("Moved {id}.")
-                        },
-                    )
+                    .position(|keyboard| keyboard.id == target);
+                index.map_or_else(
+                    || format!("{target} is not installed."),
+                    |index| {
+                        guard.move_to(&id, index);
+                        format!("Moved {id}.")
+                    },
+                )
             }
             Action::Reveal(id) => {
                 let path = guard
@@ -373,6 +375,9 @@ fn keyboard_card(
                 ui.add_space(12.0);
                 ui.vertical(|ui| {
                     ui.label(RichText::new(&row.name).strong());
+                    if let Some(description) = &row.description {
+                        ui.label(widgets::muted(ui, description));
+                    }
                     ui.label(widgets::muted(ui, &format!("{}.km2", row.id)).small());
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -390,9 +395,7 @@ fn keyboard_card(
                     let state = if row.enabled { "Enabled" } else { "Disabled" };
                     ui.label(widgets::muted(ui, state));
                     match &row.hotkey {
-                        Some(hotkey) => {
-                            ui.label(RichText::new(hotkey).monospace());
-                        }
+                        Some(hotkey) => widgets::chip(ui, hotkey),
                         None => {
                             ui.label(widgets::muted(ui, "No hotkey"));
                         }

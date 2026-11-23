@@ -127,7 +127,7 @@ impl Config {
     /// Enabled keyboard id pairs whose switch hotkeys are equal.
     #[must_use]
     pub fn hotkey_conflicts(&self) -> Vec<(&str, &str)> {
-        let hotkeys: Vec<(&str, Hotkey)> = self
+        let mut hotkeys: Vec<(&str, Hotkey)> = self
             .keyboards
             .installed
             .iter()
@@ -137,6 +137,12 @@ impl Config {
                 Some((keyboard.id.as_str(), hotkey))
             })
             .collect();
+        if self.hotkeys.enabled {
+            let next = self.hotkeys.next_keyboard.as_deref();
+            if let Some(hotkey) = next.and_then(|text| text.parse::<Hotkey>().ok()) {
+                hotkeys.insert(0, ("Next keyboard", hotkey));
+            }
+        }
         let mut conflicts = Vec::new();
         for (index, (first, hotkey)) in hotkeys.iter().enumerate() {
             for (second, other) in &hotkeys[index + 1..] {
@@ -146,6 +152,52 @@ impl Config {
             }
         }
         conflicts
+    }
+
+    /// Clears the active keyboard. False when none was active.
+    #[must_use]
+    pub fn turn_off(&mut self) -> bool {
+        self.keyboards.active.take().is_some()
+    }
+
+    /// The keyboard to turn on: the last one used, else the first enabled.
+    #[must_use]
+    pub fn keyboard_to_turn_on(&self) -> Option<&str> {
+        let installed = &self.keyboards.installed;
+        let enabled = |id: &str| {
+            installed
+                .iter()
+                .any(|keyboard| keyboard.enabled && keyboard.id == id)
+        };
+        self.keyboards
+            .last_used
+            .iter()
+            .map(String::as_str)
+            .find(|&id| enabled(id))
+            .or_else(|| {
+                installed
+                    .iter()
+                    .find(|keyboard| keyboard.enabled)
+                    .map(|keyboard| keyboard.id.as_str())
+            })
+    }
+
+    /// The enabled keyboard whose switch hotkey is `text`, if any.
+    #[must_use]
+    pub fn shortcut_taken_by(&self, text: &str) -> Option<&str> {
+        let wanted: Hotkey = text.parse().ok()?;
+        self.keyboards
+            .installed
+            .iter()
+            .filter(|keyboard| keyboard.enabled)
+            .find(|keyboard| {
+                keyboard
+                    .hotkey
+                    .as_deref()
+                    .and_then(|hotkey| hotkey.parse::<Hotkey>().ok())
+                    .is_some_and(|hotkey| hotkey == wanted)
+            })
+            .map(|keyboard| keyboard.id.as_str())
     }
 
     /// Parses TOML text. Missing sections take their defaults.
@@ -194,6 +246,8 @@ impl Keyboards {
             .any(|keyboard| keyboard.id == id && keyboard.enabled);
         if usable {
             self.active = Some(id.to_owned());
+            self.last_used.retain(|used| used != id);
+            self.last_used.insert(0, id.to_owned());
         }
         usable
     }
