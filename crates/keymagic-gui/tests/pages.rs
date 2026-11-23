@@ -308,6 +308,31 @@ fn author_edits_formats_saves_compiles_and_tests() -> TestResult {
     Ok(())
 }
 
+/// Types a rule in the editor, then compiles and tests in one window.
+#[test]
+fn author_types_a_rule_then_compiles_and_tests_in_one_window() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, name) = host_with_tiny(&dir)?;
+    let mut harness = app(host);
+    compile_in_editor(&mut harness, &name);
+    harness.get_by_label("KMS source").focus();
+    harness.run();
+    harness
+        .get_by_label("KMS source")
+        .replace_selected_text_accesskit("\"b\" => \"y\"\n");
+    harness.run();
+    harness.get_by_label("Save").click();
+    harness.run();
+    harness.get_by_label("Compile").click();
+    harness.run();
+    open_page(&mut harness, "Tester");
+    harness.event(Event::Text("b".to_owned()));
+    harness.run();
+    let text = harness.state().pages().tester.text();
+    assert_eq!(format!("{}{}", text.committed(), text.preedit()), "y");
+    Ok(())
+}
+
 #[test]
 fn record_case_writes_the_typed_case() -> TestResult {
     let dir = tempfile::tempdir()?;
