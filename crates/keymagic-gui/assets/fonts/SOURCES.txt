@@ -1,0 +1,8 @@
+Bundled fonts, all under the SIL Open Font License 1.1 (OFL-*.txt).
+
+Inter-Variable.ttf         https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf
+NotoSansMyanmar-Variable.ttf  https://raw.githubusercontent.com/google/fonts/main/ofl/notosansmyanmar/NotoSansMyanmar%5Bwdth%2Cwght%5D.ttf
+JetBrainsMono-Variable.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf
+
+Checked 2026-11-23: each bundled file is byte-identical to its upstream file
+(sha256 in SHA256SUMS). Verify with: sha256sum -c SHA256SUMS

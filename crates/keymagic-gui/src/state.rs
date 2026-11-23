@@ -1,5 +1,6 @@
 //! Shared state: settings, the keyboard list, file actions and the watcher.
 
+use keymagic_host::ipc::{self, Message};
 use keymagic_host::store::Found;
 use keymagic_host::{Config, KeyboardStore, Paths};
 use keymagic_kms::{Diagnostic, Keyboard};
@@ -7,12 +8,14 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
+use std::time::Duration;
 
 /// Settings and installed keyboards, read from `keymagic-host`.
 pub struct Host {
     store: KeyboardStore,
     config: Config,
     config_path: PathBuf,
+    socket: PathBuf,
     keyboards: Vec<Found>,
 }
 
@@ -25,6 +28,7 @@ impl Host {
             store: KeyboardStore::new(paths),
             config: Config::load_or_default(&config_path)?,
             config_path,
+            socket: paths.socket_path(),
             keyboards: Vec::new(),
         };
         host.rescan()?;
@@ -93,6 +97,25 @@ impl Host {
     #[must_use]
     pub fn use_keyboard(&mut self, id: &str) -> bool {
         self.config.keyboards.set_active(id)
+    }
+
+    /// Makes `id` active, saves it and tells a running IME. False if absent.
+    #[doc = "# Errors\n\nReturns an error when settings cannot be saved or an IME refuses."]
+    pub fn switch_keyboard(&mut self, id: &str) -> io::Result<bool> {
+        if !self.use_keyboard(id) {
+            return Ok(false);
+        }
+        self.save()?;
+        if let Ok(mut link) = ipc::connect(&self.socket, std::iter::empty::<Duration>()) {
+            link.send(&Message::SetActive { id: id.to_owned() })?;
+        }
+        Ok(true)
+    }
+
+    /// Whether an IME is listening on the IPC socket right now.
+    #[must_use]
+    pub fn ime_connected(&self) -> bool {
+        ipc::connect(&self.socket, std::iter::empty::<Duration>()).is_ok()
     }
 
     /// Turns keyboard `id` on or off. Returns `false` when it is not installed.

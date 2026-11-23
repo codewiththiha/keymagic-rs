@@ -40,7 +40,7 @@ impl View {
         });
         self.notice.show(ui);
         egui::Frame::group(ui.style()).show(ui, |ui| {
-            ui.set_min_height(160.0);
+            ui.set_min_size(egui::vec2(ui.available_width(), 160.0));
             ui.label(RichText::new(self.text.committed()).size(28.0));
             ui.label(RichText::new(self.text.preedit()).size(28.0).weak());
         });
@@ -89,11 +89,8 @@ impl View {
     }
 
     fn switch(&mut self, host: &Mutex<Host>, id: &str) {
-        let mut guard = lock(host);
-        if !guard.use_keyboard(id) {
-            return;
-        }
-        if let Err(error) = guard.save() {
+        let result = lock(host).switch_keyboard(id);
+        if let Err(error) = result {
             self.notice.set(format!(
                 "Switched to {id}, but settings were not saved: {error}"
             ));

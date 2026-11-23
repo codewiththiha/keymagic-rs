@@ -37,3 +37,14 @@ wildcards = "deny"
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
+
+# Permissive licence exception: Apache-2.0 with the LLVM linking exception.
+# Pulled in by cfg-expr and system-deps for the Linux tray backend.
+[[licenses.exceptions]]
+name = "target-lexicon"
+allow = ["Apache-2.0 WITH LLVM-exception"]
+
+[advisories]
+# Build-time only, through the GTK 3 bindings used by the Linux tray backend.
+# No maintained replacement exists for those bindings yet.
+ignore = [{ id = "RUSTSEC-2024-0370", reason = "proc-macro-error via gtk3 bindings (build-time)" }]

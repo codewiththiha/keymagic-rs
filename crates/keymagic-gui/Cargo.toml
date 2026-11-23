@@ -8,11 +8,17 @@ repository.workspace = true
 [dependencies]
 eframe = { version = "=0.37.0", default-features = false, features = ["clipboard", "glow", "wayland", "x11"] }
 egui = "=0.37.0"
+image = { version = "0.25", default-features = false, features = ["png"] }
 keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
 keymagic-host = { path = "../keymagic-host", version = "0.1.0" }
 keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
 keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
 rfd = "=0.18.0"
+sysinfo = { version = "=0.40.4", default-features = false, features = ["system"] }
+tray-icon = "=0.26.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"
 
 [dev-dependencies]
 egui_kittest = { version = "=0.37.0", features = ["snapshot", "wgpu"] }

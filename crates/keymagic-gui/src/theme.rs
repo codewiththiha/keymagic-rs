@@ -204,7 +204,7 @@ const fn color(rgb: Rgb) -> Color32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{ACCENT, ROUNDING, SPACING, Variant, contrast};
+    use super::{ACCENT, ROUNDING, SPACING, Variant, contrast, set_reduced_motion};
 
     #[test]
     fn accent_is_the_amber_from_the_design() {
@@ -246,6 +246,15 @@ mod tests {
         assert_eq!(Variant::Light.toggled(), Variant::Dark);
         assert_eq!(Variant::Dark.switch_label(), "Light mode");
         assert_eq!(Variant::Light.switch_label(), "Dark mode");
+    }
+
+    #[test]
+    fn reduced_motion_zeroes_the_animation_time() {
+        let ctx = egui::Context::default();
+        set_reduced_motion(&ctx, true);
+        assert!(ctx.global_style().animation_time.abs() < f32::EPSILON);
+        set_reduced_motion(&ctx, false);
+        assert!(ctx.global_style().animation_time > 0.0);
     }
 
     #[test]

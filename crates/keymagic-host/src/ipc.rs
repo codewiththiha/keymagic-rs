@@ -134,9 +134,12 @@ pub struct Server {
 }
 
 impl Server {
-    /// Binds `path`, replacing a stale socket file from an earlier run.
+    /// Binds `path`, creating its folder and replacing a stale socket file.
     #[doc = "# Errors\n\nReturns an error for a non-UTF-8 path or when the socket cannot be bound."]
     pub fn bind(path: &Path) -> io::Result<Self> {
+        if let Some(folder) = path.parent() {
+            std::fs::create_dir_all(folder)?;
+        }
         let listener = ListenerOptions::new()
             .name(socket_name(path)?)
             .try_overwrite(true)

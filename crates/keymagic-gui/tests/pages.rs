@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 type TestResult = Result<(), Box<dyn Error>>;
 
 const TINY: &str = "\"a\" => \"x\"\n";
+const OTHER: &str = "\"b\" => \"y\"\n";
 
 fn paths_in(dir: &tempfile::TempDir) -> Paths {
     Paths::under(&dir.path().join("config"), &dir.path().join("cache"))
@@ -119,6 +120,44 @@ fn settings_survive_a_restart() -> TestResult {
     harness.run();
     let reopened = Host::open(&paths_in(&dir))?;
     assert!(reopened.config().general.reduce_motion);
+    Ok(())
+}
+
+#[test]
+fn reduce_motion_setting_reaches_the_window() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let host = Arc::new(Mutex::new(Host::open(&paths_in(&dir))?));
+    let mut harness = app(host);
+    open_page(&mut harness, "Settings");
+    harness.run();
+    assert!(harness.ctx.global_style().animation_time > f32::EPSILON);
+    harness.get_by_label("Reduce motion").click();
+    harness.run();
+    assert!(harness.ctx.global_style().animation_time < f32::EPSILON);
+    Ok(())
+}
+
+#[test]
+fn shared_shortcut_is_reported_on_the_hotkeys_page() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    {
+        let mut guard = host.lock().map_err(|_| "host lock poisoned")?;
+        let other = dir.path().join("other.kms");
+        fs::write(&other, OTHER)?;
+        guard.import(&other)?;
+        for entry in &mut guard.config_mut().keyboards.installed {
+            entry.hotkey = Some("Ctrl+Shift+K".to_owned());
+        }
+    }
+    let mut harness = app(host);
+    open_page(&mut harness, "Hotkeys");
+    harness.run();
+    assert!(
+        harness
+            .query_by_label_contains("use the same shortcut")
+            .is_some()
+    );
     Ok(())
 }
 
