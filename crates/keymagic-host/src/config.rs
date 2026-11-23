@@ -38,6 +38,7 @@ impl Default for Hotkeys {
 /// The `[general]` table.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
+#[expect(clippy::struct_excessive_bools, reason = "Independent settings switches")]
 pub struct General {
     pub start_with_system: bool,
     pub check_for_updates: bool,

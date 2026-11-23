@@ -63,20 +63,20 @@ impl View {
                 &mut config.general.check_for_updates,
             );
         });
-        widgets::section(ui, "Feedback", |ui| {
-            widgets::setting(
-                ui,
-                "Keyboard HUD",
-                "Shows the keyboard name when you switch keyboards.",
-                &mut config.general.show_hud,
-            );
-        });
         widgets::section(ui, "Motion", |ui| {
             widgets::setting(
                 ui,
                 "Reduce motion",
                 "Turns off window animations.",
                 &mut config.general.reduce_motion,
+            );
+        });
+        widgets::section(ui, "Feedback", |ui| {
+            widgets::setting(
+                ui,
+                "Keyboard HUD",
+                "Shows the keyboard name when you switch keyboards.",
+                &mut config.general.show_hud,
             );
         });
         widgets::section(ui, "Per-app input modes", |ui| {
