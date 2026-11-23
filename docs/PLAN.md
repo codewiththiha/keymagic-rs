@@ -64,10 +64,10 @@ Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS 
 
 ## Phase 05: egui GUI
 
-- [x] p5-1: App shell + theme (windowed launch on ubuntu, macos, windows in `gui-launch` `45100306168` at `3abbcf1`, screenshots in `docs/launch/`; shell kittest snapshots)
-- [x] p5-2: Keyboards page (`imported_kms_appears_in_the_keyboard_list`; `page_keyboards` and `page_keyboards_with_tiny` snapshots)
-- [x] p5-3: Tester + Editor pages (`editor_compiles_the_selected_keyboard`, `tester_types_through_the_active_keyboard`; 150 ms check debounce `CHECK_DELAY`; snapshots `page_tester`, `page_editor_compiled`)
-- [x] p5-4: Settings, Hotkeys, About, Tray (`settings_survive_a_restart`, `shared_shortcut_is_reported_on_the_hotkeys_page`, `reduce_motion_setting_reaches_the_window`, `tray_switch_reaches_a_fake_ime_over_ipc`; Development `45101524325` at `c06db78`)
+- [ ] p5-1: App shell + theme (windowed launch on ubuntu, macos, windows in `gui-launch` `45100306168` at `3abbcf1`; shell kittest snapshots. Re-run on the phase-close SHA is pending.)
+- [ ] p5-2: Keyboards page (import and snapshots exist; toolbar, context menu, hotkey chip, filter, reorder, bundled banner and empty illustration are open. See progress.md, Phase 05 audit 2026-11-23)
+- [ ] p5-3: Tester + Editor pages (round-trip test, Record case, syntax highlighting, Shift/AltGr layers and glyph ranges are open. See progress.md)
+- [ ] p5-4: Settings, Hotkeys, About, Tray (HUD, tray icon state, About changelog and cargo-about licences are open. See progress.md)
 
 ## Phase 06: Linux (IBus → Wayland → KDE → Arch)
 
