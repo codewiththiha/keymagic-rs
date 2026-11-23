@@ -310,7 +310,9 @@ fn keyboard_card(
                     ui.label(widgets::muted(ui, &format!("{}.km2", row.id)).small());
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    requested = card_menu(ui, row, editing).or(requested);
+                    if let Some(action) = card_menu(ui, row, editing) {
+                        requested = Some(action);
+                    }
                     if ui.radio(row.active, "Active").clicked() && !row.active {
                         requested = Some(Action::Use(row.id.clone()));
                     }
@@ -331,7 +333,9 @@ fn keyboard_card(
                     }
                 });
             });
-            requested = editor(ui, row, editing).or(requested);
+            if let Some(action) = editor(ui, row, editing) {
+                requested = Some(action);
+            }
         });
     requested
 }
