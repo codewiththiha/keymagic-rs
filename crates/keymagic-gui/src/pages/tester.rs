@@ -173,7 +173,7 @@ impl View {
         let Some(id) = self.keyboard.clone() else {
             return;
         };
-        let expected = self.text.committed().to_owned();
+        let expected = format!("{}{}", self.text.committed(), self.text.preedit());
         let result = lock(host).record_case(&id, &self.typed, &expected);
         self.notice.set(match result {
             Ok(path) => format!("Recorded a case in {}.", path.display()),
