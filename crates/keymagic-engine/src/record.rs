@@ -20,6 +20,8 @@ pub enum TraceStep {
         recursive: bool,
         /// Text the right-hand side produced.
         output: String,
+        /// Text each left-hand-side capture matched, in capture order.
+        captures: Vec<String>,
     },
     /// Recursion stopped at the iteration cap.
     Capped,

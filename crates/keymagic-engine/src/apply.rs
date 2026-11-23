@@ -46,6 +46,15 @@ fn span(text: Text<'_>, capture: Capture) -> impl Iterator<Item = char> + '_ {
     (capture.start..capture.start + capture.len).filter_map(move |pos| text.at(pos))
 }
 
+/// The text each capture matched, in left-hand-side order.
+#[must_use]
+pub fn captured(text: Text<'_>, captures: &Captures) -> Vec<String> {
+    captures
+        .iter()
+        .map(|&capture| span(text, capture).collect::<String>())
+        .collect()
+}
+
 fn push_capture(out: &mut String, text: Text<'_>, capture: Option<&Capture>) {
     if let Some(&capture) = capture {
         out.extend(span(text, capture));

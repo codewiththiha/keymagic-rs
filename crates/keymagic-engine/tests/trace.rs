@@ -31,6 +31,7 @@ fn trace_records_the_first_match_then_the_capped_recursion() -> Result<(), Box<d
             rank: 1,
             recursive: false,
             output: "aa".into(),
+            captures: vec!["a".into()],
         })
     );
     let recursive = steps
@@ -73,5 +74,35 @@ fn identity_rule_of_two_chars_hits_the_cap_and_keeps_its_text() -> Result<(), Bo
     assert_eq!(output.composing, "ab");
     let steps = output.trace.ok_or("trace missing")?.steps;
     assert_eq!(steps.last(), Some(&TraceStep::Capped));
+    Ok(())
+}
+
+#[test]
+fn trace_records_the_text_each_capture_matched() -> Result<(), Box<dyn Error>> {
+    let rule = Rule {
+        lhs: vec![PatternElement::Any],
+        rhs: vec![OutputElement::Ref(0), OutputElement::Text("!".into())],
+        source: None,
+    };
+    let keyboard = Keyboard {
+        rules: vec![rule],
+        ..Keyboard::default()
+    };
+    let mut engine = Engine::new(Arc::new(keyboard))?;
+    let output = engine.process(KeyEvent {
+        ch: Some('k'),
+        ..KeyEvent::default()
+    });
+    let steps = output.trace.ok_or("trace missing")?.steps;
+    assert_eq!(
+        steps.first(),
+        Some(&TraceStep::Applied {
+            rule: 0,
+            rank: 1,
+            recursive: false,
+            output: "k!".into(),
+            captures: vec!["k".into()],
+        })
+    );
     Ok(())
 }

@@ -1,6 +1,6 @@
 //! Public engine: composing session, key processing, peek and external control.
 
-use crate::apply::{render, stops_recursion};
+use crate::apply::{captured, render, stops_recursion};
 use crate::input::KeyEvent;
 use crate::matcher::find;
 use crate::record::{Recorder, TraceStep};
@@ -222,6 +222,7 @@ impl Core<'_> {
             rank: found.rank,
             recursive: false,
             output: output.clone(),
+            captures: captured(found.text, &found.captures),
         });
         Some((found.rule.match_len, found.rule.has_vk(), output))
     }
@@ -263,6 +264,7 @@ impl Core<'_> {
             rank: found.rank,
             recursive: true,
             output: output.clone(),
+            captures: captured(found.text, &found.captures),
         });
         Some((found.rule.match_len, output))
     }
