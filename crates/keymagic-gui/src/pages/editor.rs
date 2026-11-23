@@ -13,12 +13,11 @@ use keymagic_kms::{Diagnostic, Severity};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-/// Width reserved left of the text for the diagnostic markers.
 use crate::model::{Token, kms_tokens, shifted_char};
 use egui::text::{LayoutJob, TextFormat};
 use egui::{Color32, FontId, Galley, TextBuffer};
-use std::sync::Arc;
 
+/// Width reserved left of the text for the diagnostic markers.
 const GUTTER: f32 = 18.0;
 /// Largest key in the layout preview; smaller windows shrink the keys.
 const PREVIEW_UNIT: f32 = 32.0;
