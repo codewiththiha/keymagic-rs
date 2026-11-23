@@ -22,6 +22,12 @@ allow = [
     "Apache-2.0",
     # Approved by the user on 2026-11-22: ureq TLS roots (webpki-roots).
     "CDLA-Permissive-2.0",
+    # Approved by the user on 2026-11-22: clipboard-win and error-code (egui clipboard).
+    "BSL-1.0",
+    # Approved by the user on 2026-11-22: walkdir and same-file (egui_kittest snapshots).
+    "Unlicense",
+    # Approved by the user on 2026-11-22: embedded Inter, Noto Sans Myanmar and JetBrains Mono.
+    "OFL-1.1",
 ]
 
 [bans]

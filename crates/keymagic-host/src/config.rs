@@ -46,6 +46,8 @@ pub struct General {
     pub update_remind_after: Option<String>,
     pub enabled_languages: Vec<String>,
     pub update_channel: String,
+    /// Turns off interface animation.
+    pub reduce_motion: bool,
 }
 
 impl Default for General {
@@ -58,6 +60,7 @@ impl Default for General {
             update_remind_after: None,
             enabled_languages: Vec::new(),
             update_channel: "stable".to_owned(),
+            reduce_motion: false,
         }
     }
 }

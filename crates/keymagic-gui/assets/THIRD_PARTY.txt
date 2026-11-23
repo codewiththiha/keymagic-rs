@@ -1,0 +1,8 @@
+Bundled fonts, under the SIL Open Font License 1.1. The licence texts are in
+crates/keymagic-gui/assets/fonts.
+
+  Inter: Copyright 2020 The Inter Project Authors
+  Noto Sans Myanmar: Copyright 2022 The Noto Project Authors
+  JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors
+
+Rust dependencies are checked against the licence allow-list in deny.toml.

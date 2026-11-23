@@ -3,7 +3,7 @@
 use crate::config::{Config, Installed};
 use crate::invalid_data;
 use crate::paths::Paths;
-use keymagic_kms::{Resolver, compile};
+use keymagic_kms::{Diagnostic, Keyboard, Resolver, check, compile};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::ffi::OsStr;
 use std::fs;
@@ -127,6 +127,60 @@ impl KeyboardStore {
             keyboards.active = None;
         }
         Ok(keyboards.installed.len() != before)
+    }
+
+    /// Reads the compiled keyboard `<id>.km2`.
+    #[doc = "# Errors\n\nReturns an error when the file is missing or is not KM2."]
+    pub fn load(&self, id: &str) -> io::Result<Keyboard> {
+        let bytes = fs::read(self.dir.join(format!("{id}.km2")))?;
+        keymagic_km2::parse(&bytes).map_err(invalid_data)
+    }
+
+    /// Reads the KMS source of `id`, or `None` for KM2-only imports.
+    #[doc = "# Errors\n\nReturns an error when the source file exists but cannot be read."]
+    pub fn source(&self, id: &str) -> io::Result<Option<String>> {
+        match fs::read_to_string(self.dir.join(format!("{id}.kms"))) {
+            Ok(text) => Ok(Some(text)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Reports every diagnostic for KMS `source`, resolving from the folder.
+    #[must_use]
+    pub fn check(&self, source: &str) -> Vec<Diagnostic> {
+        check(source, &FolderResolver(&self.dir))
+    }
+
+    /// Compiles `source` in memory; nothing is written.
+    #[doc = "# Errors\n\nReturns the error diagnostics when `source` does not compile."]
+    pub fn compile(&self, source: &str) -> Result<Keyboard, Vec<Diagnostic>> {
+        compile(source, &FolderResolver(&self.dir))
+    }
+
+    /// Formats `source` into canonical KMS text.
+    #[doc = "# Errors\n\nReturns the error diagnostics when `source` does not parse."]
+    pub fn format(&self, source: &str) -> Result<String, Vec<Diagnostic>> {
+        keymagic_kms::format(source)
+    }
+
+    /// Writes only `<id>.kms`, leaving the compiled `<id>.km2` unchanged.
+    #[doc = "# Errors\n\nReturns an error when the file cannot be written."]
+    pub fn write_source(&self, id: &str, source: &str) -> io::Result<()> {
+        self.write_file(&format!("{id}.kms"), source.as_bytes())
+    }
+
+    /// Stores `source` as `<id>.kms` and `<id>.km2` if it compiles.
+    #[doc = "# Errors\n\nReturns an error when the compiled files cannot be written."]
+    pub fn save_source(&self, id: &str, source: &str) -> io::Result<Vec<Diagnostic>> {
+        let keyboard = match self.compile(source) {
+            Ok(keyboard) => keyboard,
+            Err(diagnostics) => return Ok(diagnostics),
+        };
+        let bytes = keymagic_km2::write(&keyboard).map_err(invalid_data)?;
+        self.write_file(&format!("{id}.kms"), source.as_bytes())?;
+        self.write_file(&format!("{id}.km2"), &bytes)?;
+        Ok(Vec::new())
     }
 
     fn write_file(&self, name: &str, bytes: &[u8]) -> io::Result<()> {

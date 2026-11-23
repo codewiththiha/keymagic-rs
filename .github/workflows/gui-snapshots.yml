@@ -1,0 +1,22 @@
+name: GUI snapshots
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshots:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Record shell and page screenshots on the self-hosted runner
+        run: cargo test --locked -p keymagic-gui --test snapshots --test pages --all-features
+        env:
+          UPDATE_SNAPSHOTS: '1'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gui-snapshots
+          path: crates/keymagic-gui/tests/snapshots
+          if-no-files-found: error

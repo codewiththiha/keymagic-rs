@@ -157,3 +157,27 @@ fn watch_reports_a_new_keyboard_file() -> TestResult {
     assert!(seen, "no event for {file_name}");
     Ok(())
 }
+
+#[test]
+fn save_source_writes_only_when_the_source_compiles() -> TestResult {
+    let fixture = Fixture::new()?;
+    let store = fixture.store();
+    let good = store.save_source("tiny", "\"a\" => \"x\"\n")?;
+    assert!(good.is_empty());
+    assert_eq!(store.source("tiny")?.as_deref(), Some("\"a\" => \"x\"\n"));
+    assert!(store.load("tiny").is_ok());
+    let bad = store.save_source("tiny", "$x => \"a\"\n")?;
+    assert!(!bad.is_empty());
+    assert_eq!(store.source("tiny")?.as_deref(), Some("\"a\" => \"x\"\n"));
+    Ok(())
+}
+
+#[test]
+fn source_is_none_for_km2_only_keyboards() -> TestResult {
+    let fixture = Fixture::new()?;
+    let store = fixture.store();
+    let id = store.import_km2(MYWIN, &mut Config::default())?;
+    assert_eq!(store.source(&id)?, None);
+    assert!(store.load(&id).is_ok());
+    Ok(())
+}

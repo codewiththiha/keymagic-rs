@@ -1,0 +1,22 @@
+[package]
+name = "keymagic-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+eframe = { version = "=0.37.0", default-features = false, features = ["clipboard", "glow", "wayland", "x11"] }
+egui = "=0.37.0"
+keymagic-engine = { path = "../keymagic-engine", version = "0.1.0" }
+keymagic-host = { path = "../keymagic-host", version = "0.1.0" }
+keymagic-kms = { path = "../keymagic-kms", version = "0.1.0" }
+keymagic-types = { path = "../keymagic-types", version = "0.1.0" }
+rfd = "=0.18.0"
+
+[dev-dependencies]
+egui_kittest = { version = "=0.37.0", features = ["snapshot", "wgpu"] }
+tempfile = "3"
+
+[lints]
+workspace = true
