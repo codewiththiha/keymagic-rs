@@ -13,6 +13,7 @@ use std::time::Duration;
 /// Settings and installed keyboards, read from `keymagic-host`.
 pub struct Host {
     store: KeyboardStore,
+    folder: PathBuf,
     config: Config,
     config_path: PathBuf,
     socket: PathBuf,
@@ -26,6 +27,7 @@ impl Host {
         let config_path = paths.config_file();
         let mut host = Self {
             store: KeyboardStore::new(paths),
+            folder: paths.keyboards_dir(),
             config: Config::load_or_default(&config_path)?,
             config_path,
             socket: paths.socket_path(),
@@ -40,6 +42,12 @@ impl Host {
     pub fn rescan(&mut self) -> io::Result<()> {
         self.keyboards = self.store.scan(&mut self.config)?;
         Ok(())
+    }
+
+    /// The folder that holds the installed keyboards.
+    #[must_use]
+    pub fn keyboards_dir(&self) -> &Path {
+        &self.folder
     }
 
     /// The keyboards found by the last scan.

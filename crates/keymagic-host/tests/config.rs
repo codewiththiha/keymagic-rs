@@ -14,6 +14,7 @@ fn installed(id: &str, enabled: bool) -> Installed {
         filename: format!("{id}.km2"),
         hotkey: None,
         hash: None,
+        label: None,
         enabled,
     }
 }
@@ -159,4 +160,17 @@ fn update_channel_defaults_to_stable_and_round_trips() -> TestResult {
     let parsed = Config::from_toml(&config.to_toml()?)?;
     assert_eq!(parsed.general.update_channel, "beta");
     Ok(())
+}
+
+#[test]
+fn hotkey_and_label_are_per_keyboard() {
+    let mut keyboards = Config::default().keyboards;
+    keyboards.installed = vec![installed("a", true)];
+    assert!(keyboards.set_hotkey("a", Some("Ctrl+K".to_owned())));
+    assert!(keyboards.rename("a", Some("  Kana ".to_owned())));
+    assert_eq!(keyboards.installed[0].hotkey.as_deref(), Some("Ctrl+K"));
+    assert_eq!(keyboards.installed[0].label.as_deref(), Some("Kana"));
+    assert!(keyboards.set_hotkey("a", Some("  ".to_owned())));
+    assert_eq!(keyboards.installed[0].hotkey, None);
+    assert!(!keyboards.rename("missing", None));
 }

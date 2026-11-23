@@ -252,6 +252,7 @@ fn keyboard(hotkey: Option<&str>, enabled: bool) -> Config {
         filename: "zawgyi.km2".to_owned(),
         hotkey: hotkey.map(str::to_owned),
         hash: None,
+        label: None,
         enabled,
     }];
     config
@@ -314,6 +315,7 @@ fn installed_as(id: &str, name: &str, enabled: bool) -> Installed {
         filename: format!("{id}.km2"),
         hotkey: None,
         hash: None,
+        label: None,
         enabled,
     }
 }

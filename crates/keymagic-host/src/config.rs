@@ -82,6 +82,9 @@ pub struct Installed {
     pub name: String,
     #[serde(default)]
     pub filename: String,
+    /// Name shown in place of the keyboard's own name, when set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
     /// `None` and `Some("")` both mean no switch hotkey.
     pub hotkey: Option<String>,
     pub hash: Option<String>,
@@ -188,6 +191,26 @@ impl Keyboards {
                 .find(|keyboard| keyboard.enabled)
                 .map(|keyboard| keyboard.id.clone());
         }
+        true
+    }
+
+    /// Sets the switch hotkey of `id`. Blank or `None` removes it.
+    pub fn set_hotkey(&mut self, id: &str, hotkey: Option<String>) -> bool {
+        let Some(keyboard) = self.installed.iter_mut().find(|keyboard| keyboard.id == id) else {
+            return false;
+        };
+        keyboard.hotkey = hotkey.filter(|text| !text.trim().is_empty());
+        true
+    }
+
+    /// Sets the display name of `id`. Blank or `None` resets it.
+    pub fn rename(&mut self, id: &str, label: Option<String>) -> bool {
+        let Some(keyboard) = self.installed.iter_mut().find(|keyboard| keyboard.id == id) else {
+            return false;
+        };
+        keyboard.label = label
+            .map(|text| text.trim().to_owned())
+            .filter(|text| !text.is_empty());
         true
     }
 

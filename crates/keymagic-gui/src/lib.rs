@@ -6,6 +6,7 @@ pub mod integration;
 pub mod model;
 pub mod nav;
 pub mod pages;
+pub mod reveal;
 pub mod shell;
 pub mod state;
 pub mod theme;

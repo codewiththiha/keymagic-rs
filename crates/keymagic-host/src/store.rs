@@ -264,6 +264,7 @@ fn entry(id: &str, name: &str) -> Installed {
         filename: format!("{id}.km2"),
         hotkey: None,
         hash: None,
+        label: None,
         enabled: true,
     }
 }

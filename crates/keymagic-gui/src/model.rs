@@ -5,6 +5,7 @@ use keymagic_host::store::Found;
 use keymagic_host::{Config, HostAction};
 use keymagic_kms::{Diagnostic, Severity};
 use keymagic_types::Hotkey;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 /// One row of the Keyboards page.
@@ -12,30 +13,57 @@ use std::str::FromStr;
 pub struct KeyboardRow {
     pub id: String,
     pub name: String,
+    pub icon: Option<PathBuf>,
+    pub hotkey: Option<String>,
     pub enabled: bool,
     pub active: bool,
 }
 
-/// Rows for every keyboard found on disk, in scan order.
+/// Rows for every keyboard on disk, in saved order, then unsaved ones.
 #[must_use]
 pub fn keyboard_rows(config: &Config, found: &[Found]) -> Vec<KeyboardRow> {
-    found
+    let installed = &config.keyboards.installed;
+    let mut order: Vec<&Found> = installed
         .iter()
+        .filter_map(|entry| found.iter().find(|keyboard| keyboard.id == entry.id))
+        .collect();
+    order.extend(
+        found
+            .iter()
+            .filter(|keyboard| !installed.iter().any(|entry| entry.id == keyboard.id)),
+    );
+    order
+        .into_iter()
         .map(|keyboard| {
-            let enabled = config
-                .keyboards
-                .installed
-                .iter()
-                .find(|entry| entry.id == keyboard.id)
-                .is_none_or(|entry| entry.enabled);
+            let entry = installed.iter().find(|entry| entry.id == keyboard.id);
             KeyboardRow {
                 id: keyboard.id.clone(),
-                name: keyboard.name.clone(),
-                enabled,
+                name: entry
+                    .and_then(|entry| non_blank(entry.label.as_deref()))
+                    .unwrap_or(keyboard.name.as_str())
+                    .to_owned(),
+                icon: keyboard.icon.clone(),
+                hotkey: entry
+                    .and_then(|entry| non_blank(entry.hotkey.as_deref()))
+                    .map(str::to_owned),
+                enabled: entry.is_none_or(|entry| entry.enabled),
                 active: config.keyboards.active.as_deref() == Some(keyboard.id.as_str()),
             }
         })
         .collect()
+}
+
+fn non_blank(text: Option<&str>) -> Option<&str> {
+    text.map(str::trim).filter(|text| !text.is_empty())
+}
+
+/// Whether `row` matches the typed filter. A blank filter matches all.
+#[must_use]
+pub fn matches_filter(row: &KeyboardRow, query: &str) -> bool {
+    let query = query.trim().to_lowercase();
+    query.is_empty()
+        || row.name.to_lowercase().contains(&query)
+        || row.id.to_lowercase().contains(&query)
 }
 
 /// A key the user typed into the tester.
@@ -257,8 +285,8 @@ pub fn hotkey_text(modifiers: [bool; 4], key: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Check, EditorText, Fallback, TesterText, TypedKey, hotkey_text, keyboard_rows,
-        line_diagnostics, parse_hotkey,
+        Check, EditorText, Fallback, KeyboardRow, TesterText, TypedKey, hotkey_text,
+        keyboard_rows, line_diagnostics, matches_filter, parse_hotkey,
     };
     use keymagic_engine::VirtualKey;
     use keymagic_host::HostAction;
@@ -290,6 +318,7 @@ mod tests {
             filename: "a.km2".to_owned(),
             hotkey: None,
             hash: None,
+            label: None,
             enabled: false,
         }];
         let rows = keyboard_rows(&config, &[found("a", "A"), found("b", "B")]);
@@ -297,6 +326,35 @@ mod tests {
         assert!(!rows[0].active);
         assert!(rows[1].enabled);
         assert!(rows[1].active);
+    }
+
+    #[test]
+    fn rows_follow_the_saved_order_and_show_the_label() {
+        let config = Config::from_toml(
+            "[[keyboards.installed]]\nid = \"b\"\nname = \"B\"\nlabel = \"Bee\"\n\
+             [[keyboards.installed]]\nid = \"a\"\nname = \"A\"\n",
+        )
+        .expect("valid config");
+        let rows = keyboard_rows(&config, &[found("a", "A"), found("b", "B"), found("c", "C")]);
+        let ids: Vec<&str> = rows.iter().map(|row| row.id.as_str()).collect();
+        assert_eq!(ids, ["b", "a", "c"]);
+        assert_eq!(rows[0].name, "Bee");
+    }
+
+    #[test]
+    fn filter_matches_name_or_id_ignoring_case() {
+        let row = KeyboardRow {
+            id: "zg".to_owned(),
+            name: "Zawgyi".to_owned(),
+            icon: None,
+            hotkey: None,
+            enabled: true,
+            active: false,
+        };
+        assert!(matches_filter(&row, "  ZAW "));
+        assert!(matches_filter(&row, "zg"));
+        assert!(matches_filter(&row, ""));
+        assert!(!matches_filter(&row, "unicode"));
     }
 
     #[test]
