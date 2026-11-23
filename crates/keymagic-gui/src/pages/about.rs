@@ -15,10 +15,10 @@ fn plain(markdown: &str) -> String {
         .filter(|line| !line.starts_with("# "))
         .map(|line| {
             let text = line.trim_start_matches('#').trim_start();
-            match text.strip_prefix("- ") {
-                Some(item) => format!("\u{2022} {item}"),
-                None => text.to_owned(),
-            }
+            text.strip_prefix("- ").map_or_else(
+                || text.to_owned(),
+                |item| format!("\u{2022} {item}"),
+            )
         })
         .collect::<Vec<_>>()
         .join("\n")
