@@ -167,12 +167,17 @@ impl View {
         detail(
             ui,
             "Rule",
-            &rule.map_or_else(
-                || "No rule matched".to_owned(),
-                |hit| format!("#{} at line {}", hit.rank, hit.line),
-            ),
+            &rule.map_or_else(|| "No rule matched".to_owned(), rule_label),
         );
-        detail(ui, "Source", rule.map_or("—", |hit| hit.text.as_str()));
+        let source_line = rule.map_or_else(
+            || "—".to_owned(),
+            |hit| {
+                hit.text
+                    .clone()
+                    .unwrap_or_else(|| "No source line".to_owned())
+            },
+        );
+        detail(ui, "Source", &source_line);
         ui.add_space(8.0);
         widgets::button(ui, "Record case").clicked()
     }
@@ -221,8 +226,16 @@ struct Probe {
 /// The primary rule behind the last output.
 struct RuleHit {
     rank: usize,
-    line: usize,
-    text: String,
+    line: Option<usize>,
+    text: Option<String>,
+}
+
+/// The rank of the rule and, when known, its source line.
+fn rule_label(hit: &RuleHit) -> String {
+    hit.line.map_or_else(
+        || format!("#{}", hit.rank),
+        |line| format!("#{} at line {line}", hit.rank),
+    )
 }
 
 fn open_session(host: &Host, id: &str) -> Result<Opened, String> {
@@ -264,17 +277,21 @@ fn probe_key(
     let captures = applied
         .as_ref()
         .map_or_else(Vec::new, |(_, _, captured)| captured.clone());
-    let rule = applied.and_then(|(index, rank, _)| {
-        let span = spans.get(index).copied().flatten()?;
-        let text = source
-            .get(span.start..span.end)
-            .unwrap_or_default()
-            .trim()
-            .to_owned();
-        let line = source
-            .get(..span.start)
-            .map_or(1, |head| head.matches('\n').count() + 1);
-        Some(RuleHit { rank, line, text })
+    let rule = applied.map(|(index, rank, _)| {
+        let span = spans.get(index).copied().flatten();
+        let text = span.map(|span| {
+            source
+                .get(span.start..span.end)
+                .unwrap_or_default()
+                .trim()
+                .to_owned()
+        });
+        let line = span.map(|span| {
+            source
+                .get(..span.start)
+                .map_or(1, |head| head.matches('\n').count() + 1)
+        });
+        RuleHit { rank, line, text }
     });
     Probe {
         key: event

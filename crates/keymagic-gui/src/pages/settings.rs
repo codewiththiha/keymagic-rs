@@ -220,9 +220,10 @@ fn app_list(
                     ui.selectable_value(pick, name.clone(), name.as_str());
                 }
             });
-        picker
-            .response
-            .widget_info(|| WidgetInfo::labeled(Role::ComboBox, true, label));
+        picker.response.widget_info(|| {
+            let name = format!("Choose a running app for {label}");
+            WidgetInfo::labeled(Role::ComboBox, true, name)
+        });
         widgets::focus_ring(ui, &picker.response, theme::CONTROL_ROUNDING);
         let add = ui.add_enabled(!pick.is_empty(), Button::new("Add"));
         widgets::focus_ring(ui, &add, theme::CONTROL_ROUNDING);

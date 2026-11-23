@@ -74,6 +74,15 @@ impl Checker {
             *lock_status(&status) = outcome;
         });
     }
+
+    /// Starts the check at launch unless the setting is off or postponed.
+    pub fn start_at_launch(&self, host: &Arc<Mutex<Host>>) {
+        let general = lock(host).config().general.clone();
+        let remind = general.update_remind_after.as_deref();
+        if general.check_for_updates && !postponed_now(remind) {
+            self.start(host);
+        }
+    }
 }
 
 fn lock_status(status: &Mutex<Status>) -> MutexGuard<'_, Status> {

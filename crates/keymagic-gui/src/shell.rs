@@ -68,6 +68,13 @@ impl KeyMagicApp {
         self
     }
 
+    /// Starts the update check, when the settings allow it at launch.
+    #[must_use]
+    pub fn with_launch_check(self) -> Self {
+        self.update.start_at_launch(&self.host);
+        self
+    }
+
     /// Replaces the update check, for tests and snapshots.
     #[must_use]
     pub fn with_update(mut self, update: Checker) -> Self {

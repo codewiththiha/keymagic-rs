@@ -1,0 +1,4 @@
+# The Linux job renders under Xvfb, which anti-aliases text a little
+# differently from the macOS and Windows machines that recorded the snapshots.
+[linux]
+threshold = 2.0

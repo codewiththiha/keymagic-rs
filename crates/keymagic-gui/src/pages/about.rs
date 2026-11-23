@@ -32,20 +32,7 @@ fn plain(markdown: &str) -> String {
 
 /// Draws the update check, the changelog, the version and the licence texts.
 pub fn show(ui: &mut Ui, host: &Arc<Mutex<Host>>, checker: &Checker) {
-    let (enabled, remind) = {
-        let guard = lock(host);
-        let general = &guard.config().general;
-        let values = (
-            general.check_for_updates,
-            general.update_remind_after.clone(),
-        );
-        drop(guard);
-        values
-    };
-    let idle = checker.status() == Status::Idle;
-    if enabled && idle && !update::postponed_now(remind.as_deref()) {
-        checker.start(host);
-    }
+    let remind = lock(host).config().general.update_remind_after.clone();
     update_card(ui, host, checker, remind.as_deref());
     ui.add_space(24.0);
     crate::widgets::section(ui, "Changelog", |ui| {

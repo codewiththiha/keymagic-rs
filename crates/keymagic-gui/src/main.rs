@@ -47,7 +47,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             };
             let capture = capture_path.map(|path| Capture::new(path, capture_outcome));
-            let app = KeyMagicApp::new(host).with_tray(tray).with_capture(capture);
+            let app = KeyMagicApp::new(host)
+                .with_launch_check()
+                .with_tray(tray)
+                .with_capture(capture);
             Ok(Box::new(app))
         }),
     )?;

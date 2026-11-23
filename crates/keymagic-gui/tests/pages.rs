@@ -3,6 +3,7 @@
 use egui::{Event, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use keymagic_gui::apps;
 use keymagic_gui::nav::Page;
 use keymagic_gui::shell::KeyMagicApp;
 use keymagic_gui::state::{Host, lock};
@@ -406,6 +407,38 @@ fn remind_me_later_postpones_the_update_prompt() -> TestResult {
         harness
             .query_by_label_contains("Reminder postponed until")
             .is_some()
+    );
+    Ok(())
+}
+
+#[test]
+fn running_app_is_added_from_the_picker() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    let mut harness = app_sized(Arc::clone(&host), 960.0, 2400.0);
+    open_page(&mut harness, "Settings");
+    harness.get_by_label("Load running apps").click();
+    harness.run();
+    let name = apps::running()
+        .into_iter()
+        .next()
+        .ok_or("no running apps")?;
+    harness
+        .get_by_label("Choose a running app for Composition apps")
+        .click();
+    harness.run();
+    harness.get_by_label(&name).click();
+    harness.run();
+    harness
+        .get_all_by_label("Add")
+        .next()
+        .ok_or("no Add button")?
+        .click();
+    harness.run();
+    let hosts = lock(&host).config().composition_mode.enabled_hosts.clone();
+    assert!(
+        hosts.iter().any(|app| app.eq_ignore_ascii_case(&name)),
+        "{hosts:?}"
     );
     Ok(())
 }
