@@ -101,10 +101,25 @@ pub fn connect_with_retry<S>(
     }
 }
 
+#[cfg(not(windows))]
 fn socket_name(path: &Path) -> io::Result<Name<'_>> {
     path.to_str()
         .ok_or_else(|| invalid_data("socket path is not UTF-8"))?
         .to_fs_name::<GenericFilePath>()
+}
+
+/// Windows named pipes take a bare name, so the path is folded into one.
+#[cfg(windows)]
+fn socket_name(path: &Path) -> io::Result<Name<'static>> {
+    use interprocess::local_socket::GenericNamespaced;
+    let text = path
+        .to_str()
+        .ok_or_else(|| invalid_data("socket path is not UTF-8"))?;
+    let folded: String = text
+        .chars()
+        .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { '_' })
+        .collect();
+    format!("keymagic-{folded}").to_ns_name::<GenericNamespaced>()
 }
 
 /// A connected peer that exchanges framed messages.

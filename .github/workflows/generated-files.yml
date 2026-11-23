@@ -1,0 +1,26 @@
+name: Generated files
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: self-hosted
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Update ureq and generate the licence list
+        shell: bash
+        run: |
+          test -f Cargo.toml || { echo '::error::Cargo workspace not implemented'; exit 1; }
+          cargo update -p ureq
+          command -v cargo-about >/dev/null || cargo install --locked cargo-about --features cli
+          cargo about generate about.hbs -o crates/keymagic-gui/assets/DEPENDENCIES.txt
+          git diff --binary > generated.patch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-patch
+          path: generated.patch
+          if-no-files-found: error

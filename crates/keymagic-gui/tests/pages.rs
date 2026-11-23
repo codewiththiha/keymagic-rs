@@ -76,6 +76,22 @@ fn imported_kms_appears_in_the_keyboard_list() -> TestResult {
 }
 
 #[test]
+fn bundled_banner_installs_the_missing_keyboards() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let host = Arc::new(Mutex::new(Host::open(&paths_in(&dir))?));
+    let mut harness = app(host.clone());
+    harness.run();
+    harness.get_by_label("Install").click();
+    harness.run();
+    let missing = host
+        .lock()
+        .map_err(|_| "host lock poisoned")?
+        .bundled_missing()?;
+    assert_eq!(missing, 0);
+    Ok(())
+}
+
+#[test]
 fn tester_types_through_the_active_keyboard() -> TestResult {
     let dir = tempfile::tempdir()?;
     let mut harness = app(host_with_tiny(&dir)?.0);
@@ -209,6 +225,58 @@ fn ctrl_one_returns_to_the_keyboards_page() -> TestResult {
     harness.key_press_modifiers(Modifiers::COMMAND, egui::Key::Num1);
     harness.run();
     assert_eq!(harness.state().page(), Page::Keyboards);
+    Ok(())
+}
+
+#[test]
+fn editor_layers_show_shift_and_altgr_outputs() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, name) = host_with_tiny(&dir)?;
+    let mut harness = app(host);
+    open_page(&mut harness, "Editor");
+    compile_in_editor(&mut harness, &name);
+    harness.event(Event::ModifiersChanged(Modifiers::SHIFT));
+    harness.run();
+    assert!(harness.query_by_label_contains("Shift layer").is_some());
+    harness.snapshot("page_editor_shift");
+    harness.event(Event::ModifiersChanged(Modifiers {
+        ctrl: true,
+        alt: true,
+        ..Default::default()
+    }));
+    harness.run();
+    assert!(harness.query_by_label_contains("AltGr layer").is_some());
+    harness.snapshot("page_editor_altgr");
+    Ok(())
+}
+
+#[test]
+fn tester_uses_the_rules_of_a_recompiled_keyboard() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    let shared = Arc::clone(&host);
+    let mut harness = app(host);
+    open_page(&mut harness, "Tester");
+    harness.event(Event::Text("a".to_owned()));
+    harness.run();
+    let id = shared
+        .lock()
+        .map_err(|_| "host lock poisoned")?
+        .config()
+        .keyboards
+        .active
+        .clone()
+        .ok_or("no active keyboard")?;
+    let diagnostics = shared
+        .lock()
+        .map_err(|_| "host lock poisoned")?
+        .save_source(&id, "\"a\" => \"y\"\n")?;
+    assert!(diagnostics.is_empty());
+    harness.run();
+    harness.event(Event::Text("a".to_owned()));
+    harness.run();
+    let text = harness.state().pages().tester.text();
+    assert_eq!(format!("{}{}", text.committed(), text.preedit()), "y");
     Ok(())
 }
 

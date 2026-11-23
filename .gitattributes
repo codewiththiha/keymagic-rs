@@ -1,7 +1,11 @@
+* text=auto eol=lf
+*.png binary
+*.km2 binary
+*.ttf binary
+*.otf binary
 corpus/reference/km3/** -text diff
 corpus/kms/upstream/** -text diff
 corpus/km2/upstream/** -text
 corpus/kms/alternatives/** -text diff
 corpus/km2/alternatives/** -text
 corpus/licenses/** -text diff
-crates/keymagic-cli/tests/snapshots/** text eol=lf

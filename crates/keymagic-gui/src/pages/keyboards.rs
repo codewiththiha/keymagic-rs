@@ -1,7 +1,7 @@
 //! Keyboards page: install, enable, switch, label, hotkey and remove keyboards.
 
 use super::Notice;
-use crate::model::{KeyboardRow, keyboard_rows, matches_filter, parse_hotkey};
+use crate::model::{KeyboardRow, drop_slot, keyboard_rows, matches_filter, parse_hotkey};
 use crate::reveal;
 use crate::state::{Host, lock};
 use crate::theme::{self, CONTROL_ROUNDING, ROUNDING};
@@ -25,6 +25,7 @@ enum Action {
     SetHotkey(String, Option<String>),
     Rename(String, Option<String>),
     Move(String, bool),
+    MoveTo(String, String),
     Reveal(String),
     Remove(String),
 }
@@ -54,6 +55,25 @@ pub struct View {
 }
 
 impl View {
+    /// Offers the bundled keyboards that are not installed yet.
+    fn bundled_banner(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
+        widgets::card(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(widgets::muted(ui, "Bundled keyboards are not installed."));
+                if widgets::button(ui, "Install").clicked() {
+                    let result = lock(host).install_bundled();
+                    let message = match result {
+                        Ok(0) => "Nothing to install.".to_owned(),
+                        Ok(_) => "Installed the bundled keyboards.".to_owned(),
+                        Err(error) => format!("Could not install the bundled keyboards: {error}"),
+                    };
+                    self.notice.set(message);
+                }
+            });
+        });
+        ui.add_space(16.0);
+    }
+
     /// Draws the toolbar, the keyboard cards and the empty state.
     pub fn show(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
         for path in dropped_paths(ui.ctx()) {
@@ -89,6 +109,10 @@ impl View {
         });
         self.notice.show(ui);
         ui.add_space(16.0);
+        let missing = lock(host).bundled_missing().unwrap_or(0);
+        if missing > 0 {
+            self.bundled_banner(ui, host);
+        }
         if rows.is_empty() {
             widgets::card(ui, |ui| {
                 keyboard_art(ui);
@@ -104,13 +128,22 @@ impl View {
         }
         let mut requested = None;
         let mut shown = 0;
+        let mut cards = Vec::new();
+        let mut dropped = None;
         for row in rows.iter().filter(|row| matches_filter(row, &self.filter)) {
             shown += 1;
             let icon = row
                 .icon
                 .as_deref()
                 .and_then(|path| icon_texture(ui.ctx(), &mut self.icons, path));
-            requested = keyboard_card(ui, row, icon.as_ref(), &mut self.editing).or(requested);
+            let card = keyboard_card(ui, row, icon.as_ref(), &mut self.editing);
+            if let Some(action) = card.action {
+                requested = Some(action);
+            }
+            if card.released {
+                dropped = Some(row.id.clone());
+            }
+            cards.push((row.id.clone(), card.rect));
             ui.add_space(8.0);
         }
         if shown == 0 {
@@ -118,6 +151,13 @@ impl View {
                 ui,
                 &format!("No keyboards match \u{201c}{}\u{201d}.", self.filter.trim()),
             ));
+        }
+        let pointer = ui.ctx().input(|input| input.pointer.latest_pos());
+        let reordering = self.filter.trim().is_empty() && requested.is_none();
+        if let (true, Some(dragged), Some(pointer)) = (reordering, dropped, pointer) {
+            let centres: Vec<f32> = cards.iter().map(|(_, rect)| rect.center().y).collect();
+            let target = &cards[drop_slot(&centres, pointer.y)].0;
+            requested = (*target != dragged).then(|| Action::MoveTo(dragged, target.clone()));
         }
         if let Some(action) = requested {
             self.apply(host, action);
@@ -183,14 +223,14 @@ impl View {
                 }
             }
             Action::SetHotkey(id, hotkey) => {
-                if guard.config_mut().keyboards.set_hotkey(&id, hotkey) {
+                if guard.set_hotkey(&id, hotkey) {
                     format!("Updated the hotkey for {id}.")
                 } else {
                     format!("{id} is not installed.")
                 }
             }
             Action::Rename(id, label) => {
-                if guard.config_mut().keyboards.rename(&id, label) {
+                if guard.rename(&id, label) {
                     format!("Renamed {id}.")
                 } else {
                     format!("{id} is not installed.")
@@ -211,6 +251,20 @@ impl View {
                                 index + 1
                             };
                             keyboards.move_to(&id, target);
+                            format!("Moved {id}.")
+                        },
+                    )
+            }
+            Action::MoveTo(id, target) => {
+                let keyboards = &mut guard.config_mut().keyboards;
+                keyboards
+                    .installed
+                    .iter()
+                    .position(|keyboard| keyboard.id == target)
+                    .map_or_else(
+                        || format!("{target} is not installed."),
+                        |index| {
+                            keyboards.move_to(&id, index);
                             format!("Moved {id}.")
                         },
                     )
@@ -284,25 +338,37 @@ fn icon_texture(
         .clone()
 }
 
+/// What one card reports: its action, place, and whether a drag ended on it.
+struct CardOutcome {
+    action: Option<Action>,
+    rect: Rect,
+    released: bool,
+}
+
 /// One keyboard card; returns the change the user asked for, if any.
 fn keyboard_card(
     ui: &mut Ui,
     row: &KeyboardRow,
     icon: Option<&TextureHandle>,
     editing: &mut Option<Editing>,
-) -> Option<Action> {
+) -> CardOutcome {
     let mut requested = None;
+    let mut released = false;
     let fill = if row.active {
         ui.visuals().widgets.inactive.weak_bg_fill
     } else {
         ui.visuals().window_fill
     };
-    Frame::new()
+    let frame = Frame::new()
         .fill(fill)
         .corner_radius(CornerRadius::same(ROUNDING))
         .inner_margin(Margin::symmetric(16, 12))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
+                let grip =
+                    ui.add(egui::Label::new(widgets::muted(ui, "Drag")).sense(Sense::drag()));
+                released = grip.drag_stopped();
+                ui.add_space(12.0);
                 icon_tile(ui, icon, &row.name);
                 ui.add_space(12.0);
                 ui.vertical(|ui| {
@@ -337,7 +403,11 @@ fn keyboard_card(
                 requested = Some(action);
             }
         });
-    requested
+    CardOutcome {
+        action: requested,
+        rect: frame.response.rect,
+        released,
+    }
 }
 
 /// The Options menu of one card; editors and confirmations set `editing`.

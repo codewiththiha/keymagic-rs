@@ -18,6 +18,7 @@ pub struct Host {
     config_path: PathBuf,
     socket: PathBuf,
     keyboards: Vec<Found>,
+    compiles: u64,
 }
 
 impl Host {
@@ -32,6 +33,7 @@ impl Host {
             config_path,
             socket: paths.socket_path(),
             keyboards: Vec::new(),
+            compiles: 0,
         };
         host.rescan()?;
         Ok(host)
@@ -99,6 +101,20 @@ impl Host {
         Ok(id)
     }
 
+    /// Counts the bundled keyboards that are not installed.
+    #[doc = "# Errors\n\nReturns an error when a bundled file is not valid KM2."]
+    pub fn bundled_missing(&self) -> io::Result<usize> {
+        self.store.bundled_missing(&self.config)
+    }
+
+    /// Installs the missing bundled keyboards and rescans the folder.
+    #[doc = "# Errors\n\nReturns an error for invalid KM2 bytes or failed writes."]
+    pub fn install_bundled(&mut self) -> io::Result<usize> {
+        let added = self.store.install_bundled(&mut self.config)?;
+        self.rescan()?;
+        Ok(added)
+    }
+
     /// Deletes keyboard `id` and rescans the folder.
     #[doc = "# Errors\n\nReturns an error when its files cannot be deleted."]
     pub fn remove(&mut self, id: &str) -> io::Result<bool> {
@@ -136,6 +152,21 @@ impl Host {
     #[must_use]
     pub fn set_enabled(&mut self, id: &str, enabled: bool) -> bool {
         self.config.keyboards.set_enabled(id, enabled)
+    }
+
+    /// Sets or clears the switch hotkey of `id`.
+    pub fn set_hotkey(&mut self, id: &str, hotkey: Option<String>) -> bool {
+        self.config.keyboards.set_hotkey(id, hotkey)
+    }
+
+    /// Sets or clears the display name of `id`.
+    pub fn rename(&mut self, id: &str, label: Option<String>) -> bool {
+        self.config.keyboards.rename(id, label)
+    }
+
+    /// Moves `id` to `index` in the saved order.
+    pub fn move_to(&mut self, id: &str, index: usize) -> bool {
+        self.config.keyboards.move_to(id, index)
     }
 
     /// Reads the compiled keyboard `id`.
@@ -176,8 +207,18 @@ impl Host {
 
     /// Stores `source` as keyboard `id` if it compiles; else returns errors.
     #[doc = "# Errors\n\nReturns an error when the compiled files cannot be written."]
-    pub fn save_source(&self, id: &str, source: &str) -> io::Result<Vec<Diagnostic>> {
-        self.store.save_source(id, source)
+    pub fn save_source(&mut self, id: &str, source: &str) -> io::Result<Vec<Diagnostic>> {
+        let diagnostics = self.store.save_source(id, source)?;
+        if diagnostics.is_empty() {
+            self.compiles += 1;
+        }
+        Ok(diagnostics)
+    }
+
+    /// Counts successful compiles, so open sessions know to reload.
+    #[must_use]
+    pub const fn compiles(&self) -> u64 {
+        self.compiles
     }
 }
 

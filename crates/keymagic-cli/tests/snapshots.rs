@@ -83,7 +83,8 @@ fn run(case: &Case) -> io::Result<Outcome> {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr),
     )
-    .replace(env!("CARGO_TARGET_TMPDIR"), "<tmp>");
+    .replace(env!("CARGO_TARGET_TMPDIR"), "<tmp>")
+    .replace("<tmp>\\", "<tmp>/");
     Ok(Outcome { code, transcript })
 }
 

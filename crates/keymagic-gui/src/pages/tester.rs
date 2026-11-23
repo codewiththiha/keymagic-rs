@@ -13,6 +13,7 @@ use std::sync::{Arc, Mutex};
 /// View state of the Tester page: its session and typed text.
 #[derive(Default)]
 pub struct View {
+    compiles: u64,
     keyboard: Option<String>,
     session: Option<Session>,
     probe: Option<Engine>,
@@ -75,10 +76,14 @@ impl View {
 
     /// Reloads the session when the active keyboard changes.
     fn sync_session(&mut self, host: &Mutex<Host>) {
-        let active = lock(host).config().keyboards.active.clone();
-        if active == self.keyboard {
+        let (active, compiles) = {
+            let guard = lock(host);
+            (guard.config().keyboards.active.clone(), guard.compiles())
+        };
+        if active == self.keyboard && compiles == self.compiles {
             return;
         }
+        self.compiles = compiles;
         self.keyboard.clone_from(&active);
         self.session = None;
         self.probe = None;

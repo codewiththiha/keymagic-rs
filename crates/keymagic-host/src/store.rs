@@ -1,5 +1,6 @@
 //! Keyboard files on disk: scan, import, remove and the icon cache.
 
+use crate::bundled;
 use crate::config::{Config, Installed};
 use crate::invalid_data;
 use crate::paths::Paths;
@@ -92,6 +93,22 @@ impl KeyboardStore {
         self.write_file(&format!("{id}.km2"), bytes)?;
         config.keyboards.installed.push(entry(&id, &name));
         Ok(id)
+    }
+
+    /// Counts the bundled keyboards whose name is not installed yet.
+    #[doc = "# Errors\n\nReturns an error when a bundled file is not valid KM2."]
+    pub fn bundled_missing(&self, config: &Config) -> io::Result<usize> {
+        Ok(missing_bundled(config)?.len())
+    }
+
+    /// Installs every missing bundled keyboard and returns how many were added.
+    #[doc = "# Errors\n\nReturns an error for invalid KM2 bytes or a failed write."]
+    pub fn install_bundled(&self, config: &mut Config) -> io::Result<usize> {
+        let missing = missing_bundled(config)?;
+        for bytes in &missing {
+            self.import_km2(bytes, config)?;
+        }
+        Ok(missing.len())
     }
 
     /// Compiles a KMS file and stores its source and `<id>.km2`.
@@ -334,6 +351,24 @@ impl Resolver for FolderResolver<'_> {
     fn read(&self, path: &str) -> Option<Vec<u8>> {
         fs::read(self.0.join(path)).ok()
     }
+}
+
+/// Bundled KM2 files whose keyboard name is not installed.
+fn missing_bundled(config: &Config) -> io::Result<Vec<&'static [u8]>> {
+    let mut missing = Vec::new();
+    for bytes in bundled::KEYBOARDS {
+        let keyboard = keymagic_km2::parse(bytes).map_err(invalid_data)?;
+        let name = keyboard.info.name().unwrap_or("keyboard").to_owned();
+        if !config
+            .keyboards
+            .installed
+            .iter()
+            .any(|item| item.name == name)
+        {
+            missing.push(*bytes);
+        }
+    }
+    Ok(missing)
 }
 
 #[cfg(test)]

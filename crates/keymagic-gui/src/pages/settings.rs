@@ -18,6 +18,8 @@ pub struct View {
     composition_pick: String,
     direct_pick: String,
     connected: Option<bool>,
+    linux_running: Option<Vec<bool>>,
+    pending_fix: Option<usize>,
 }
 
 impl View {
@@ -105,16 +107,49 @@ impl View {
         widgets::section(ui, "Input method integration", |ui| {
             if widgets::button(ui, "Check connection").clicked() {
                 self.connected = Some(guard.ime_connected());
+                self.linux_running = Some(integration::probe_linux());
             }
             ui.add_space(8.0);
-            for panel in integration::panels(integration::current(), self.connected) {
-                if panel_view(ui, &panel) {
+            let current = integration::current();
+            let linux = self.linux_running.clone();
+            for (index, panel) in integration::panels(current, self.connected, linux.as_deref())
+                .iter()
+                .enumerate()
+            {
+                if panel_view(ui, panel) {
                     self.open_settings(panel.os);
+                }
+                if let Some(fix) = panel.fix {
+                    self.fix_row(ui, index, &fix);
                 }
                 ui.add_space(8.0);
             }
         });
         drop(guard);
+    }
+}
+
+impl View {
+    /// The Fix button, then a confirmation before anything runs.
+    fn fix_row(&mut self, ui: &mut Ui, index: usize, fix: &integration::Fix) {
+        if self.pending_fix == Some(index) {
+            ui.horizontal(|ui| {
+                ui.label(widgets::muted(
+                    ui,
+                    &format!("Run `{}` as your user?", fix.command_line()),
+                ));
+                if widgets::primary(ui, fix.label).clicked() {
+                    self.pending_fix = None;
+                    self.linux_running = None;
+                    self.notice.set(integration::run_fix(fix));
+                }
+                if widgets::button(ui, "Cancel").clicked() {
+                    self.pending_fix = None;
+                }
+            });
+        } else if widgets::button(ui, fix.label).clicked() {
+            self.pending_fix = Some(index);
+        }
     }
 }
 

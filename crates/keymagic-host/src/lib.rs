@@ -2,6 +2,7 @@
 //! files, commit rules, IPC framing and update checks. Adapters translate
 //! OS events and apply the actions they receive.
 
+pub mod bundled;
 pub mod config;
 pub mod ipc;
 pub mod paths;

@@ -64,6 +64,16 @@ pub fn matches_filter(row: &KeyboardRow, query: &str) -> bool {
         || row.id.to_lowercase().contains(&query)
 }
 
+/// The card under the pointer: the centres above it, clamped to the last card.
+#[must_use]
+pub fn drop_slot(centres: &[f32], pointer_y: f32) -> usize {
+    centres
+        .iter()
+        .filter(|centre| **centre < pointer_y)
+        .count()
+        .min(centres.len().saturating_sub(1))
+}
+
 /// The highlighting class of a span of KMS source.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Token {
@@ -552,5 +562,20 @@ mod tests {
         assert_eq!(parse_hotkey(&text), Ok(Some(text)));
         assert_eq!(parse_hotkey("  "), Ok(None));
         assert!(parse_hotkey("definitely not a hotkey").is_err());
+    }
+}
+
+#[cfg(test)]
+mod drop_tests {
+    use super::drop_slot;
+
+    #[test]
+    fn drop_lands_on_the_card_under_the_pointer() {
+        let centres = [20.0, 80.0, 140.0];
+        assert_eq!(drop_slot(&centres, 0.0), 0);
+        assert_eq!(drop_slot(&centres, 50.0), 1);
+        assert_eq!(drop_slot(&centres, 100.0), 2);
+        assert_eq!(drop_slot(&centres, 500.0), 2);
+        assert_eq!(drop_slot(&[], 10.0), 0);
     }
 }

@@ -1,32 +1,57 @@
-//! Integration panels: one per operating system, with status for this one.
+//! Integration panels: one set per operating system, with status for this one.
 
-use keymagic_gui::integration::{Os, panels};
+use keymagic_gui::integration::{Health, Os, panels};
 
 #[test]
-fn every_panel_says_not_this_system_except_the_current_one() {
-    let statuses: Vec<_> = panels(Os::Linux, None)
-        .into_iter()
-        .map(|panel| (panel.os, panel.status))
-        .collect();
-    assert_eq!(statuses[0], (Os::Windows, "Not this system.".to_owned()));
-    assert_eq!(statuses[1], (Os::MacOs, "Not this system.".to_owned()));
+fn linux_shows_four_cards_with_repairs_and_no_probe_yet() {
+    let cards = panels(Os::Linux, None, None);
+    let titles: Vec<_> = cards.iter().map(|card| card.title).collect();
     assert_eq!(
-        statuses[2],
-        (
-            Os::Linux,
-            "Not checked yet. Press Check connection.".to_owned()
-        )
+        titles,
+        [
+            "Linux: IBus",
+            "Linux: Wayland",
+            "Linux: KDE Plasma",
+            "Linux: Fcitx5"
+        ]
+    );
+    assert!(cards.iter().all(|card| card.os == Os::Linux
+        && card.health == Health::Unchecked
+        && card.fix.is_some()));
+}
+
+#[test]
+fn linux_cards_report_each_probe_result() {
+    let cards = panels(Os::Linux, None, Some(&[true, false, true, false]));
+    let health: Vec<_> = cards.iter().map(|card| card.health).collect();
+    assert_eq!(
+        health,
+        [
+            Health::Ready,
+            Health::Missing,
+            Health::Ready,
+            Health::Missing
+        ]
     );
 }
 
 #[test]
+fn windows_and_macos_panels_say_not_this_system() {
+    let cards = panels(Os::MacOs, None, None);
+    assert_eq!(cards[0].os, Os::Windows);
+    assert_eq!(cards[0].status, "Not this system.");
+    assert_eq!(cards[1].os, Os::MacOs);
+    assert_eq!(cards[1].status, "Not checked yet. Press Check connection.");
+}
+
+#[test]
 fn the_current_panel_reports_the_connection() {
-    let connected = panels(Os::MacOs, Some(true));
+    let connected = panels(Os::MacOs, Some(true), None);
     assert_eq!(
         connected[1].status,
         "Connected: an input method is listening."
     );
-    let missing = panels(Os::MacOs, Some(false));
+    let missing = panels(Os::MacOs, Some(false), None);
     assert!(
         missing[1]
             .status

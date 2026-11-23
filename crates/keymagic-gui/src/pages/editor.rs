@@ -12,6 +12,7 @@ use keymagic_engine::{Engine, KeyEvent, Modifiers};
 use keymagic_kms::{Diagnostic, Severity};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use unicode_general_category::{GeneralCategory, get_general_category};
 
 use crate::model::{Token, kms_tokens, shifted_char};
 use egui::text::{LayoutJob, TextFormat};
@@ -422,13 +423,39 @@ impl View {
     }
 }
 
-/// Myanmar consonants and marks, then Myanmar Extended-A and -B letters.
+/// Myanmar consonants and marks, then Extended-A and assigned Extended-B.
 fn glyphs() -> impl Iterator<Item = char> {
     ('\u{1000}'..='\u{1021}')
         .chain([
             '\u{102B}', '\u{102C}', '\u{102D}', '\u{102E}', '\u{102F}', '\u{1030}', '\u{1031}',
             '\u{1032}', '\u{103A}', '\u{1036}', '\u{1037}', '\u{1038}', '\u{1039}',
         ])
-        .chain('\u{A9E0}'..='\u{A9FE}')
+        .chain(('\u{A9E0}'..='\u{A9FE}').filter(|glyph| is_assigned(*glyph)))
         .chain('\u{AA60}'..='\u{AA7F}')
+}
+
+fn is_assigned(glyph: char) -> bool {
+    get_general_category(glyph) != GeneralCategory::Unassigned
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{glyphs, is_assigned};
+
+    #[test]
+    fn glyphs_stay_in_the_myanmar_blocks() {
+        assert!(glyphs().all(|glyph| matches!(
+            u32::from(glyph),
+            0x1000..=0x109F | 0xA9E0..=0xA9FF | 0xAA60..=0xAA7F
+        )));
+    }
+
+    #[test]
+    fn extended_b_glyphs_are_assigned() {
+        assert!(
+            glyphs()
+                .filter(|glyph| matches!(u32::from(*glyph), 0xA9E0..=0xA9FF))
+                .all(is_assigned)
+        );
+    }
 }

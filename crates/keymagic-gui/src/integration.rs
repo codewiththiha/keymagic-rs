@@ -29,6 +29,99 @@ pub struct Panel {
     pub title: &'static str,
     pub status: String,
     pub health: Health,
+    pub fix: Option<Fix>,
+}
+
+/// A repair run as the current user: never elevated, never via a shell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Fix {
+    pub label: &'static str,
+    pub program: &'static str,
+    pub args: &'static [&'static str],
+}
+
+impl Fix {
+    /// The command as the user reads it in the confirmation.
+    #[must_use]
+    pub fn command_line(&self) -> String {
+        std::iter::once(self.program)
+            .chain(self.args.iter().copied())
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+}
+
+/// Linux cards: title, daemon process to probe, and its repair.
+const LINUX_CARDS: [(&str, &str, Fix); 4] = [
+    (
+        "Linux: IBus",
+        "ibus-daemon",
+        Fix {
+            label: "Restart IBus",
+            program: "ibus",
+            args: &["restart"],
+        },
+    ),
+    (
+        "Linux: Wayland",
+        "xdg-desktop-portal",
+        Fix {
+            label: "Restart the portal",
+            program: "systemctl",
+            args: &["--user", "restart", "xdg-desktop-portal"],
+        },
+    ),
+    (
+        "Linux: KDE Plasma",
+        "kwin_wayland",
+        Fix {
+            label: "Rebuild KDE cache",
+            program: "kbuildsycoca6",
+            args: &["--noincremental"],
+        },
+    ),
+    (
+        "Linux: Fcitx5",
+        "fcitx5",
+        Fix {
+            label: "Restart Fcitx5",
+            program: "fcitx5",
+            args: &["-r"],
+        },
+    ),
+];
+
+/// Whether each Linux card's process is running now.
+#[must_use]
+pub fn probe_linux() -> Vec<bool> {
+    LINUX_CARDS
+        .iter()
+        .map(|(_, process, _)| process_running(process))
+        .collect()
+}
+
+fn process_running(name: &str) -> bool {
+    std::process::Command::new("pgrep")
+        .args(["-x", name])
+        .stdout(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success())
+}
+
+/// Runs a repair as the current user and returns the message to show.
+#[must_use]
+pub fn run_fix(fix: &Fix) -> String {
+    let command = fix.command_line();
+    match std::process::Command::new(fix.program)
+        .args(fix.args)
+        .status()
+    {
+        Ok(status) if status.success() => {
+            format!("Ran `{command}`. Check connection again.")
+        }
+        Ok(status) => format!("`{command}` exited with {status}."),
+        Err(error) => format!("Could not run `{command}`: {error}."),
+    }
 }
 
 /// How an integration looks right now; drives the status dot.
@@ -59,13 +152,28 @@ const fn health(is_current: bool, connected: Option<bool>) -> Health {
     }
 }
 
-/// The three panels. `connected` is `None` until the user checks.
+/// Panels for this system; Linux cards take the per-card probe results.
 #[must_use]
-pub fn panels(current: Os, connected: Option<bool>) -> Vec<Panel> {
+pub fn panels(current: Os, connected: Option<bool>, linux_running: Option<&[bool]>) -> Vec<Panel> {
+    if current == Os::Linux {
+        return LINUX_CARDS
+            .iter()
+            .enumerate()
+            .map(|(index, (title, _, fix))| {
+                let running = linux_running.and_then(|flags| flags.get(index).copied());
+                Panel {
+                    os: Os::Linux,
+                    title,
+                    status: linux_status(running),
+                    health: linux_health(running),
+                    fix: Some(*fix),
+                }
+            })
+            .collect();
+    }
     [
         (Os::Windows, "Windows: Text Services Framework", "Windows"),
         (Os::MacOs, "macOS: Input Method Kit", "macOS"),
-        (Os::Linux, "Linux: IBus", "Linux"),
     ]
     .into_iter()
     .map(|(os, title, system)| Panel {
@@ -73,8 +181,25 @@ pub fn panels(current: Os, connected: Option<bool>) -> Vec<Panel> {
         title,
         status: status(os == current, connected, system),
         health: health(os == current, connected),
+        fix: None,
     })
     .collect()
+}
+
+const fn linux_health(running: Option<bool>) -> Health {
+    match running {
+        None => Health::Unchecked,
+        Some(true) => Health::Ready,
+        Some(false) => Health::Missing,
+    }
+}
+
+fn linux_status(running: Option<bool>) -> String {
+    match running {
+        None => "Not checked yet. Press Check connection.".to_owned(),
+        Some(true) => "Running.".to_owned(),
+        Some(false) => "Not running. Restart it with the button below.".to_owned(),
+    }
 }
 
 fn status(is_current: bool, connected: Option<bool>, system: &str) -> String {
