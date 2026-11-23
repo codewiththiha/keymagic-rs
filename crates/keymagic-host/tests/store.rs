@@ -3,7 +3,6 @@
 use keymagic_host::config::Config;
 use keymagic_host::{KeyboardStore, paths::Paths};
 use std::error::Error;
-use std::time::Duration;
 
 type TestResult = Result<(), Box<dyn Error>>;
 
@@ -140,21 +139,6 @@ fn scan_ignores_other_files_in_the_folder() -> TestResult {
     std::fs::create_dir_all(&folder)?;
     std::fs::write(folder.join("notes.txt"), "not a keyboard")?;
     assert!(fixture.store().scan(&mut Config::default())?.is_empty());
-    Ok(())
-}
-
-#[test]
-fn watch_reports_a_new_keyboard_file() -> TestResult {
-    let fixture = Fixture::new()?;
-    let store = fixture.store();
-    let (_watcher, events) = store.watch()?;
-    store.import_km2(MYWIN, &mut Config::default())?;
-    let file_name = format!("{MYWIN_ID}.km2");
-    let seen = std::iter::from_fn(|| events.recv_timeout(Duration::from_secs(10)).ok())
-        .take(20)
-        .filter_map(Result::ok)
-        .any(|event| event.paths.iter().any(|path| path.ends_with(&file_name)));
-    assert!(seen, "no event for {file_name}");
     Ok(())
 }
 

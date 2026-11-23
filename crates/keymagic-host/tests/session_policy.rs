@@ -232,6 +232,35 @@ fn explicit_lists_override_the_defaults() -> TestResult {
 }
 
 #[test]
+fn focus_in_drops_pending_text_and_picks_the_next_mode() -> TestResult {
+    let mut session = start(COMPOSITION_APP)?;
+    session.sync("x");
+    session.focus_in(DIRECT_APP);
+    assert_eq!(session.mode(), Mode::Direct);
+    assert_eq!(session.composing(), "");
+    Ok(())
+}
+
+#[test]
+fn focus_out_then_in_starts_with_empty_text() -> TestResult {
+    let mut session = start(COMPOSITION_APP)?;
+    session.sync("x");
+    assert_eq!(session.focus_out(), Some(commit("x")));
+    session.focus_in(COMPOSITION_APP);
+    assert_eq!(session.key(Key::A.event()), [up("x"), HostAction::Eat]);
+    Ok(())
+}
+
+#[test]
+fn a_second_focus_out_has_nothing_to_commit() -> TestResult {
+    let mut session = start(COMPOSITION_APP)?;
+    session.sync("x");
+    assert!(session.focus_out().is_some());
+    assert_eq!(session.focus_out(), None);
+    Ok(())
+}
+
+#[test]
 fn focus_out_commits_only_pending_composition() -> TestResult {
     let mut session = start(COMPOSITION_APP)?;
     session.sync("x");
