@@ -3,7 +3,7 @@
 
 use keymagic_host::config::Config;
 use keymagic_host::ipc::{self, Backoff, Message};
-use keymagic_host::updater::fetch;
+use keymagic_host::updater::{Manifest, fetch};
 use keymagic_host::{KeyboardStore, paths::Paths};
 use std::error::Error;
 use std::io::{self, Read, Write};
@@ -61,7 +61,6 @@ fn local_socket_carries_a_message_both_ways() -> TestResult {
     Ok(())
 }
 
-
 #[test]
 fn connect_fails_without_a_server_once_retries_run_out() -> TestResult {
     let dir = tempfile::tempdir()?;
@@ -70,9 +69,8 @@ fn connect_fails_without_a_server_once_retries_run_out() -> TestResult {
     Ok(())
 }
 
-
 #[test]
-fn client_waits_for_a_server_that_starts_late() -> TestResult {
+fn connect_waits_for_a_server_that_starts_late() -> TestResult {
     let dir = tempfile::tempdir()?;
     let path = dir.path().join("late.sock");
     let server_path = path.clone();
@@ -82,8 +80,8 @@ fn client_waits_for_a_server_that_starts_late() -> TestResult {
         server.accept()?.recv()
     });
     let backoff = Backoff::new(Duration::from_millis(20), Duration::from_millis(200));
-    let mut client = ipc::Client::new(&path, backoff);
-    client.send(&Message::ReloadConfig)?;
+    let mut link = ipc::connect(&path, backoff.take(20))?;
+    link.send(&Message::ReloadConfig)?;
     let received = server
         .join()
         .map_err(|_| io::Error::other("server thread panicked"))??;
@@ -135,36 +133,28 @@ fn watch_reports_a_new_keyboard_file() -> TestResult {
 }
 
 #[test]
-fn client_reconnects_after_the_server_restarts() -> TestResult {
+fn connect_reaches_a_server_restarted_at_the_same_path() -> TestResult {
     let dir = tempfile::tempdir()?;
     let path = dir.path().join("restart.sock");
     let first = ipc::Server::bind(&path)?;
     let (tx, rx) = mpsc::channel();
     std::thread::spawn(move || {
         let received = first.accept().and_then(|mut link| link.recv());
-        let _ = tx.send((received, first));
+        drop(first);
+        let _ = tx.send(received);
     });
-    let backoff = Backoff::new(Duration::from_millis(20), Duration::from_millis(200));
-    let mut client = ipc::Client::new(&path, backoff);
-    client.send(&Message::ReloadConfig)?;
-    let (received, first) = rx.recv_timeout(WAIT)?;
-    assert_eq!(received?, Message::ReloadConfig);
-    drop(first);
+    ipc::connect(&path, std::iter::empty::<Duration>())?.send(&Message::ReloadConfig)?;
+    assert_eq!(rx.recv_timeout(WAIT)??, Message::ReloadConfig);
 
     let second = ipc::Server::bind(&path)?;
     let (tx, rx) = mpsc::channel();
     std::thread::spawn(move || {
         let _ = tx.send(second.accept().and_then(|mut link| link.recv()));
     });
-    client.send(&Message::SetActive {
+    let message = Message::SetActive {
         id: "myanmar3".to_owned(),
-    })?;
-    let received = rx.recv_timeout(WAIT)??;
-    assert_eq!(
-        received,
-        Message::SetActive {
-            id: "myanmar3".to_owned()
-        }
-    );
+    };
+    ipc::connect(&path, std::iter::empty::<Duration>())?.send(&message)?;
+    assert_eq!(rx.recv_timeout(WAIT)??, message);
     Ok(())
 }
