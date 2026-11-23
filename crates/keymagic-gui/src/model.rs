@@ -285,8 +285,8 @@ pub fn hotkey_text(modifiers: [bool; 4], key: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Check, EditorText, Fallback, KeyboardRow, TesterText, TypedKey, hotkey_text,
-        keyboard_rows, line_diagnostics, matches_filter, parse_hotkey,
+        Check, EditorText, Fallback, KeyboardRow, TesterText, TypedKey, hotkey_text, keyboard_rows,
+        line_diagnostics, matches_filter, parse_hotkey,
     };
     use keymagic_engine::VirtualKey;
     use keymagic_host::HostAction;
@@ -335,7 +335,10 @@ mod tests {
              [[keyboards.installed]]\nid = \"a\"\nname = \"A\"\n",
         )
         .expect("valid config");
-        let rows = keyboard_rows(&config, &[found("a", "A"), found("b", "B"), found("c", "C")]);
+        let rows = keyboard_rows(
+            &config,
+            &[found("a", "A"), found("b", "B"), found("c", "C")],
+        );
         let ids: Vec<&str> = rows.iter().map(|row| row.id.as_str()).collect();
         assert_eq!(ids, ["b", "a", "c"]);
         assert_eq!(rows[0].name, "Bee");

@@ -198,9 +198,17 @@ impl View {
             }
             Action::Move(id, up) => {
                 let keyboards = &mut guard.config_mut().keyboards;
-                match keyboards.installed.iter().position(|keyboard| keyboard.id == id) {
+                match keyboards
+                    .installed
+                    .iter()
+                    .position(|keyboard| keyboard.id == id)
+                {
                     Some(index) => {
-                        let target = if up { index.saturating_sub(1) } else { index + 1 };
+                        let target = if up {
+                            index.saturating_sub(1)
+                        } else {
+                            index + 1
+                        };
                         keyboards.move_to(&id, target);
                         format!("Moved {id}.")
                     }
@@ -359,9 +367,7 @@ fn card_menu(ui: &mut Ui, row: &KeyboardRow, editing: &mut Option<Editing>) -> O
             ui.close();
         }
         if widgets::button(ui, "Remove").clicked() {
-            *editing = Some(Editing::Remove {
-                id: row.id.clone(),
-            });
+            *editing = Some(Editing::Remove { id: row.id.clone() });
             ui.close();
         }
     });
@@ -428,8 +434,11 @@ fn editor(ui: &mut Ui, row: &KeyboardRow, editing: &mut Option<Editing>) -> Opti
                     "Remove {}? Its .km2 and .kms files are deleted.",
                     row.name
                 ));
-                if widgets::button(ui, RichText::new("Remove").color(theme::color(theme::ERROR)))
-                    .clicked()
+                if widgets::button(
+                    ui,
+                    RichText::new("Remove").color(theme::color(theme::ERROR)),
+                )
+                .clicked()
                 {
                     action = Some(Action::Remove(row.id.clone()));
                     done = true;
