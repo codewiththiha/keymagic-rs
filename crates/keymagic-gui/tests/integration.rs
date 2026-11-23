@@ -58,3 +58,21 @@ fn the_current_panel_reports_the_connection() {
             .contains("does not register KeyMagic with macOS")
     );
 }
+
+#[test]
+fn windows_and_macos_offer_a_control_that_waits_for_the_install() {
+    let windows = panels(Os::Windows, None, None);
+    let macos = panels(Os::MacOs, None, None);
+    assert!(windows.iter().all(|card| card.deferred.is_some()));
+    assert!(macos.iter().all(|card| card.deferred.is_some()));
+    let action = windows.first().and_then(|card| card.deferred);
+    assert_eq!(
+        action.map(|deferred| deferred.action),
+        Some("Apply language profiles")
+    );
+    assert!(
+        panels(Os::Linux, None, None)
+            .iter()
+            .all(|card| card.deferred.is_none())
+    );
+}

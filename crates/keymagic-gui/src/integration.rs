@@ -30,6 +30,14 @@ pub struct Panel {
     pub status: String,
     pub health: Health,
     pub fix: Option<Fix>,
+    pub deferred: Option<Deferred>,
+}
+
+/// A control that works only once the platform's input method is installed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Deferred {
+    pub note: &'static str,
+    pub action: &'static str,
 }
 
 /// A repair run as the current user: never elevated, never via a shell.
@@ -167,6 +175,7 @@ pub fn panels(current: Os, connected: Option<bool>, linux_running: Option<&[bool
                     status: linux_status(running),
                     health: linux_health(running),
                     fix: Some(*fix),
+                    deferred: None,
                 }
             })
             .collect();
@@ -182,8 +191,24 @@ pub fn panels(current: Os, connected: Option<bool>, linux_running: Option<&[bool
         status: status(os == current, connected, system),
         health: health(os == current, connected),
         fix: None,
+        deferred: deferred(os),
     })
     .collect()
+}
+
+/// The language-profile or input-mode control for a system, if it has one.
+const fn deferred(os: Os) -> Option<Deferred> {
+    match os {
+        Os::Windows => Some(Deferred {
+            note: "Available once the Windows input method is installed.",
+            action: "Apply language profiles",
+        }),
+        Os::MacOs => Some(Deferred {
+            note: "Available once the macOS input method is installed.",
+            action: "Regenerate input modes",
+        }),
+        Os::Linux | Os::Other => None,
+    }
 }
 
 const fn linux_health(running: Option<bool>) -> Health {

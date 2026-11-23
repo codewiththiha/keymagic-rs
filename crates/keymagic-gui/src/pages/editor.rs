@@ -423,7 +423,7 @@ impl View {
     }
 }
 
-/// Myanmar consonants and marks, then Extended-A and assigned Extended-B.
+/// Myanmar letters and marks, Extended-B and Extended-A, then Malayalam.
 fn glyphs() -> impl Iterator<Item = char> {
     ('\u{1000}'..='\u{1021}')
         .chain([
@@ -432,6 +432,7 @@ fn glyphs() -> impl Iterator<Item = char> {
         ])
         .chain(('\u{A9E0}'..='\u{A9FE}').filter(|glyph| is_assigned(*glyph)))
         .chain('\u{AA60}'..='\u{AA7F}')
+        .chain(('\u{0D00}'..='\u{0D7F}').filter(|glyph| is_assigned(*glyph)))
 }
 
 fn is_assigned(glyph: char) -> bool {
@@ -443,11 +444,16 @@ mod tests {
     use super::{glyphs, is_assigned};
 
     #[test]
-    fn glyphs_stay_in_the_myanmar_blocks() {
+    fn glyphs_stay_in_the_supported_blocks() {
         assert!(glyphs().all(|glyph| matches!(
             u32::from(glyph),
-            0x1000..=0x109F | 0xA9E0..=0xA9FF | 0xAA60..=0xAA7F
+            0x1000..=0x109F | 0xA9E0..=0xA9FF | 0xAA60..=0xAA7F | 0x0D00..=0x0D7F
         )));
+    }
+
+    #[test]
+    fn malayalam_glyphs_are_included() {
+        assert!(glyphs().any(|glyph| matches!(u32::from(glyph), 0x0D00..=0x0D7F)));
     }
 
     #[test]

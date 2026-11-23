@@ -5,7 +5,7 @@ use crate::model::{TesterText, TypedKey};
 use crate::state::{Host, lock};
 use crate::widgets;
 use egui::{Align, Context, Event, Key, Layout, RichText, Ui};
-use keymagic_engine::{Action, Engine, KeyEvent, TraceStep};
+use keymagic_engine::{Action, Engine, KeyEvent, Modifiers, TraceStep};
 use keymagic_host::Session;
 use keymagic_types::SourceSpan;
 use std::sync::{Arc, Mutex};
@@ -160,6 +160,9 @@ impl View {
         );
         detail(ui, "Output", probe.map_or("—", |p| p.output.as_str()));
         detail(ui, "Composing", probe.map_or("—", |p| p.composing.as_str()));
+        detail(ui, "Modifiers", probe.map_or("—", |p| p.modifiers.as_str()));
+        let captures = probe.map_or_else(|| "—".to_owned(), |p| capture_list(&p.captures));
+        detail(ui, "Captures", &captures);
         let rule = probe.and_then(|p| p.rule.as_ref());
         detail(
             ui,
@@ -211,6 +214,8 @@ struct Probe {
     output: String,
     composing: String,
     rule: Option<RuleHit>,
+    captures: Vec<String>,
+    modifiers: String,
 }
 
 /// The primary rule behind the last output.
@@ -250,12 +255,16 @@ fn probe_key(
                 rule,
                 rank,
                 recursive: false,
+                captures,
                 ..
-            } => Some((*rule, *rank)),
+            } => Some((*rule, *rank, captures.clone())),
             _ => None,
         })
     });
-    let rule = applied.and_then(|(index, rank)| {
+    let captures = applied
+        .as_ref()
+        .map_or_else(Vec::new, |(_, _, captured)| captured.clone());
+    let rule = applied.and_then(|(index, rank, _)| {
         let span = spans.get(index).copied().flatten()?;
         let text = source
             .get(span.start..span.end)
@@ -275,7 +284,41 @@ fn probe_key(
         output: describe(&output.action),
         composing: output.composing,
         rule,
+        captures,
+        modifiers: held(event.mods),
     }
+}
+
+/// The modifier keys held for one key press, or `None`.
+fn held(mods: Modifiers) -> String {
+    let names: Vec<&str> = [
+        (mods.shift, "Shift"),
+        (mods.ctrl, "Ctrl"),
+        (mods.alt, "Alt"),
+        (mods.caps_lock, "Caps Lock"),
+    ]
+    .into_iter()
+    .filter(|(on, _)| *on)
+    .map(|(_, name)| name)
+    .collect();
+    if names.is_empty() {
+        "None".to_owned()
+    } else {
+        names.join(", ")
+    }
+}
+
+/// Each capture with its position, such as `$1 = k`, or `None`.
+fn capture_list(captures: &[String]) -> String {
+    if captures.is_empty() {
+        return "None".to_owned();
+    }
+    captures
+        .iter()
+        .enumerate()
+        .map(|(index, text)| format!("${} = {text}", index + 1))
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 fn describe(action: &Action) -> String {

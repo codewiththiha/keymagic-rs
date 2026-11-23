@@ -169,6 +169,12 @@ fn panel_view(ui: &mut Ui, panel: &Panel) -> bool {
             open = true;
         }
     });
+    if let Some(deferred) = panel.deferred {
+        ui.horizontal(|ui| {
+            ui.label(widgets::muted(ui, deferred.note));
+            ui.add_enabled(false, egui::Button::new(deferred.action));
+        });
+    }
     open
 }
 
