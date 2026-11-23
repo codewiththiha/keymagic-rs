@@ -74,6 +74,7 @@ pub struct Session {
     next_keyboard: Option<Hotkey>,
     cycle: Vec<(String, String)>,
     current: Option<String>,
+    show_hud: bool,
     mode: Mode,
 }
 
@@ -100,6 +101,7 @@ impl Session {
                 .map(|keyboard| (keyboard.id.clone(), keyboard.name.clone()))
                 .collect(),
             current: config.keyboards.active.clone(),
+            show_hud: config.general.show_hud,
             mode: Mode::Composition,
         }
     }
@@ -198,7 +200,9 @@ impl Session {
         self.engine.reset();
         self.current = Some(keyboard.clone());
         actions.push(HostAction::SwitchKeyboard(keyboard));
-        actions.push(HostAction::Hud(label));
+        if self.show_hud {
+            actions.push(HostAction::Hud(label));
+        }
         actions
     }
 

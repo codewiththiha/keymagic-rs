@@ -377,3 +377,31 @@ fn disabled_global_hotkeys_let_keys_through() -> TestResult {
     }
     Ok(())
 }
+
+#[test]
+fn hud_is_skipped_when_turned_off() -> TestResult {
+    let mut config = keyboard(Some("Ctrl+Space"), true);
+    config.general.show_hud = false;
+    let mut session = Session::new(engine()?, &config);
+    session.focus_in(COMPOSITION_APP);
+    session.sync("x");
+    let ctrl_space = KeyEvent {
+        mods: Modifiers {
+            ctrl: true,
+            ..Modifiers::default()
+        },
+        ..Key::Space.event()
+    };
+    let actions = session.key(ctrl_space);
+    assert!(
+        actions
+            .iter()
+            .any(|action| matches!(action, HostAction::SwitchKeyboard(_)))
+    );
+    assert!(
+        !actions
+            .iter()
+            .any(|action| matches!(action, HostAction::Hud(_)))
+    );
+    Ok(())
+}

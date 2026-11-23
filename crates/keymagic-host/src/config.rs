@@ -48,6 +48,8 @@ pub struct General {
     pub update_channel: String,
     /// Turns off interface animation.
     pub reduce_motion: bool,
+    /// Shows the keyboard name when the active keyboard changes.
+    pub show_hud: bool,
 }
 
 impl Default for General {
@@ -61,6 +63,7 @@ impl Default for General {
             enabled_languages: Vec::new(),
             update_channel: "stable".to_owned(),
             reduce_motion: false,
+            show_hud: true,
         }
     }
 }
