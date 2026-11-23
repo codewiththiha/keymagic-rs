@@ -239,3 +239,23 @@ fn author_edits_formats_saves_compiles_and_tests() -> TestResult {
     assert_eq!(format!("{}{}", text.committed(), text.preedit()), "x");
     Ok(())
 }
+
+#[test]
+fn record_case_writes_the_typed_case() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (shared, _) = host_with_tiny(&dir)?;
+    let (id, folder) = {
+        let host = shared.lock().map_err(|_| "host lock poisoned")?;
+        (host.keyboards()[0].id.clone(), host.keyboards_dir().to_owned())
+    };
+    let mut harness = app(Arc::clone(&shared));
+    open_page(&mut harness, "Tester");
+    harness.event(Event::Text("a".to_owned()));
+    harness.run();
+    harness.get_by_label("Record case").click();
+    harness.run();
+    let text = fs::read_to_string(folder.join(format!("{id}.cases.toml")))?;
+    assert!(text.contains("input = \"a\""), "{text}");
+    assert!(text.contains("expected = \"x\""), "{text}");
+    Ok(())
+}
