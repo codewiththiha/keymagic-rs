@@ -101,11 +101,11 @@ fn scan_line(line: &str, offset: usize, tokens: &mut Vec<(Range<usize>, Token)>)
             (rest.len(), Token::Comment)
         } else if rest.starts_with("=>") {
             (2, Token::Operator)
-        } else if rest.starts_with('"') {
-            let close = rest[1..].find('"').map_or(rest.len(), |close| close + 2);
+        } else if let Some(body) = rest.strip_prefix('"') {
+            let close = body.find('"').map_or(rest.len(), |close| close + 2);
             (close, Token::Str)
-        } else if rest.starts_with('$') {
-            let name = rest[1..]
+        } else if let Some(body) = rest.strip_prefix('$') {
+            let name = body
                 .find(|ch: char| !(ch.is_alphanumeric() || ch == '_'))
                 .map_or(rest.len(), |end| end + 1);
             (name, Token::Variable)
