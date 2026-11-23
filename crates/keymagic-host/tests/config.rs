@@ -231,3 +231,19 @@ fn absent_and_empty_hotkeys_both_leave_no_switch_hotkey() -> Result<(), Box<dyn 
     assert_eq!(config.shortcut_taken_by("Ctrl+K"), None);
     Ok(())
 }
+
+#[test]
+fn next_keyboard_hotkey_conflicts_with_a_keyboard_switch() -> Result<(), Box<dyn Error>> {
+    let config = Config::from_toml(
+        r#"
+        [hotkeys]
+        next_keyboard = "Ctrl+K"
+
+        [[keyboards.installed]]
+        id = "zawgyi"
+        hotkey = "Ctrl+K"
+        "#,
+    )?;
+    assert_eq!(config.hotkey_conflicts(), [("Next keyboard", "zawgyi")]);
+    Ok(())
+}
