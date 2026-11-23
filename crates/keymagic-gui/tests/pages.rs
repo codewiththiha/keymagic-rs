@@ -246,7 +246,10 @@ fn record_case_writes_the_typed_case() -> TestResult {
     let (shared, _) = host_with_tiny(&dir)?;
     let (id, folder) = {
         let host = shared.lock().map_err(|_| "host lock poisoned")?;
-        (host.keyboards()[0].id.clone(), host.keyboards_dir().to_owned())
+        (
+            host.keyboards()[0].id.clone(),
+            host.keyboards_dir().to_owned(),
+        )
     };
     let mut harness = app(Arc::clone(&shared));
     open_page(&mut harness, "Tester");
