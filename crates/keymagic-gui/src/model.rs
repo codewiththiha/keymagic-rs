@@ -379,6 +379,7 @@ mod tests {
             id: id.to_owned(),
             name: name.to_owned(),
             description: None,
+            default_hotkey: None,
             km2: PathBuf::from(format!("{id}.km2")),
             icon: None,
         }

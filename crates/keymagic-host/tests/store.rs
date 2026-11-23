@@ -178,3 +178,49 @@ fn recorded_cases_append_to_the_keyboard_case_file() -> Result<(), Box<dyn std::
     assert!(text.contains("input = \"kha\""));
     Ok(())
 }
+
+#[test]
+fn import_kms_takes_the_km2_default_hotkey() -> TestResult {
+    let fixture = Fixture::new()?;
+    let source = fixture.dir.path().join("tiny.kms");
+    std::fs::write(&source, "// @HOTKEY = \"CTRL+ALT+W\"\n\"a\" => \"x\"\n")?;
+    let mut config = Config::default();
+    let id = fixture.store().import_kms(&source, &mut config)?;
+    assert_eq!(config.keyboards.installed[0].id, id);
+    assert_eq!(
+        config.keyboards.installed[0].hotkey.as_deref(),
+        Some("CTRL+ALT+W")
+    );
+    Ok(())
+}
+
+#[test]
+fn scan_fills_an_absent_hotkey_from_the_km2_default() -> TestResult {
+    let fixture = Fixture::new()?;
+    let source = fixture.dir.path().join("tiny.kms");
+    std::fs::write(&source, "// @HOTKEY = \"CTRL+ALT+W\"\n\"a\" => \"x\"\n")?;
+    let store = fixture.store();
+    let mut config = Config::default();
+    store.import_kms(&source, &mut config)?;
+    config.keyboards.installed[0].hotkey = None;
+    store.scan(&mut config)?;
+    assert_eq!(
+        config.keyboards.installed[0].hotkey.as_deref(),
+        Some("CTRL+ALT+W")
+    );
+    Ok(())
+}
+
+#[test]
+fn scan_keeps_a_hotkey_the_user_cleared() -> TestResult {
+    let fixture = Fixture::new()?;
+    let source = fixture.dir.path().join("tiny.kms");
+    std::fs::write(&source, "// @HOTKEY = \"CTRL+ALT+W\"\n\"a\" => \"x\"\n")?;
+    let store = fixture.store();
+    let mut config = Config::default();
+    store.import_kms(&source, &mut config)?;
+    config.keyboards.installed[0].hotkey = Some(String::new());
+    store.scan(&mut config)?;
+    assert_eq!(config.keyboards.installed[0].hotkey.as_deref(), Some(""));
+    Ok(())
+}

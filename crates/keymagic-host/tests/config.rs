@@ -216,7 +216,7 @@ fn activating_a_keyboard_makes_it_the_last_used() -> Result<(), Box<dyn std::err
 }
 
 #[test]
-fn absent_and_empty_hotkeys_both_leave_no_switch_hotkey() -> Result<(), Box<dyn Error>> {
+fn empty_hotkey_disables_the_switch() -> Result<(), Box<dyn Error>> {
     let config = Config::from_toml(
         r#"
         [[keyboards.installed]]

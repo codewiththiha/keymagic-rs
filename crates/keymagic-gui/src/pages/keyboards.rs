@@ -472,7 +472,8 @@ fn editor(ui: &mut Ui, row: &KeyboardRow, editing: &mut Option<Editing>) -> Opti
                 if widgets::primary(ui, "Save").clicked() {
                     match parse_hotkey(draft.as_str()) {
                         Ok(hotkey) => {
-                            action = Some(Action::SetHotkey(row.id.clone(), hotkey));
+                            let saved = hotkey.unwrap_or_default();
+                            action = Some(Action::SetHotkey(row.id.clone(), Some(saved)));
                             done = true;
                         }
                         Err(message) => {

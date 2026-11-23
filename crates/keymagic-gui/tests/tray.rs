@@ -30,6 +30,7 @@ fn found(id: &str, name: &str) -> Found {
         id: id.to_owned(),
         name: name.to_owned(),
         description: None,
+        default_hotkey: None,
         km2: PathBuf::new(),
         icon: None,
     }

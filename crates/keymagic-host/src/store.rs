@@ -24,6 +24,8 @@ pub struct Found {
     pub name: String,
     /// Description from the KM2 info block, when it has one.
     pub description: Option<String>,
+    /// Hotkey from the KM2 info block, used while the config has none.
+    pub default_hotkey: Option<String>,
     pub km2: PathBuf,
     /// Cached PNG icon, when the keyboard has a PNG or BMP icon.
     pub icon: Option<PathBuf>,
@@ -74,11 +76,13 @@ impl KeyboardStore {
             let info = keymagic_km2::read_info_only(&fs::read(&km2)?).map_err(invalid_data)?;
             let name = info.name().unwrap_or(id.as_str()).to_owned();
             let description = info.description().map(str::to_owned);
+            let default_hotkey = info.hotkey().map(str::to_owned);
             let icon = self.cache_icon(&id, info.icon())?;
             found.push(Found {
                 id,
                 name,
                 description,
+                default_hotkey,
                 km2,
                 icon,
             });
@@ -93,9 +97,10 @@ impl KeyboardStore {
     pub fn import_km2(&self, bytes: &[u8], config: &mut Config) -> io::Result<String> {
         let keyboard = keymagic_km2::parse(bytes).map_err(invalid_data)?;
         let name = keyboard.info.name().unwrap_or("keyboard").to_owned();
+        let hotkey = keyboard.info.hotkey().map(str::to_owned);
         let id = self.unique_id(&name, config);
         self.write_file(&format!("{id}.km2"), bytes)?;
-        config.keyboards.installed.push(entry(&id, &name));
+        config.keyboards.installed.push(entry(&id, &name, hotkey));
         Ok(id)
     }
 
@@ -128,10 +133,11 @@ impl KeyboardStore {
         })?;
         let bytes = keymagic_km2::write(&keyboard).map_err(invalid_data)?;
         let name = keyboard.info.name().unwrap_or("keyboard").to_owned();
+        let hotkey = keyboard.info.hotkey().map(str::to_owned);
         let id = self.unique_id(&name, config);
         self.write_file(&format!("{id}.kms"), text.as_bytes())?;
         self.write_file(&format!("{id}.km2"), &bytes)?;
-        config.keyboards.installed.push(entry(&id, &name));
+        config.keyboards.installed.push(entry(&id, &name, hotkey));
         Ok(id)
     }
 
@@ -291,15 +297,13 @@ fn reconcile(config: &mut Config, found: &[Found]) {
     let installed = &mut config.keyboards.installed;
     installed.retain(|keyboard| found.iter().any(|item| item.id == keyboard.id));
     for item in found {
-        if installed.iter().any(|keyboard| keyboard.id == item.id) {
-            for keyboard in installed
-                .iter_mut()
-                .filter(|keyboard| keyboard.id == item.id)
-            {
-                keyboard.name.clone_from(&item.name);
+        if let Some(keyboard) = installed.iter_mut().find(|keyboard| keyboard.id == item.id) {
+            keyboard.name.clone_from(&item.name);
+            if keyboard.hotkey.is_none() {
+                keyboard.hotkey.clone_from(&item.default_hotkey);
             }
         } else {
-            installed.push(entry(&item.id, &item.name));
+            installed.push(entry(&item.id, &item.name, item.default_hotkey.clone()));
         }
     }
 }
@@ -316,12 +320,12 @@ fn ignore_missing(error: io::Error) -> io::Result<()> {
     }
 }
 
-fn entry(id: &str, name: &str) -> Installed {
+fn entry(id: &str, name: &str, hotkey: Option<String>) -> Installed {
     Installed {
         id: id.to_owned(),
         name: name.to_owned(),
         filename: format!("{id}.km2"),
-        hotkey: None,
+        hotkey,
         hash: None,
         label: None,
         enabled: true,

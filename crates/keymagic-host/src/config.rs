@@ -93,7 +93,7 @@ pub struct Installed {
     /// Name shown in place of the keyboard's own name, when set.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
-    /// `None` and `Some("")` both mean no switch hotkey.
+    /// `None` takes the KM2 default. `Some("")` disables the switch.
     pub hotkey: Option<String>,
     pub hash: Option<String>,
     #[serde(default = "enabled_by_default")]
