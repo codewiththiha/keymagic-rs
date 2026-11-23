@@ -2,7 +2,7 @@
 
 use crate::invalid_data;
 use keymagic_types::Hotkey;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
@@ -78,6 +78,7 @@ impl Default for General {
 pub struct Keyboards {
     pub active: Option<String>,
     pub last_used: Vec<String>,
+    #[serde(deserialize_with = "entries_with_an_id")]
     pub installed: Vec<Installed>,
 }
 
@@ -104,6 +105,18 @@ pub struct Installed {
 #[serde(default)]
 pub struct HostList {
     pub enabled_hosts: Vec<String>,
+}
+
+/// Skips entries without an `id`, as `KeyMagic` 3 does, rather than failing.
+fn entries_with_an_id<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<Installed>, D::Error> {
+    let values = Vec::<toml::Value>::deserialize(deserializer)?;
+    values
+        .into_iter()
+        .filter(|value| value.get("id").is_some_and(toml::Value::is_str))
+        .map(|value| Installed::deserialize(value).map_err(de::Error::custom))
+        .collect()
 }
 
 const fn enabled_by_default() -> bool {

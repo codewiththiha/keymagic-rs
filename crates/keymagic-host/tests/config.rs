@@ -6,6 +6,7 @@ use std::error::Error;
 type TestResult = Result<(), Box<dyn Error>>;
 
 const KM3_FIXTURE: &str = include_str!("fixtures/km3_config.toml");
+const KM3_SPARSE: &str = include_str!("fixtures/km3_sparse.toml");
 
 fn installed(id: &str, enabled: bool) -> Installed {
     Installed {
@@ -173,4 +174,22 @@ fn hotkey_and_label_are_per_keyboard() {
     assert!(keyboards.set_hotkey("a", Some("  ".to_owned())));
     assert_eq!(keyboards.installed[0].hotkey, None);
     assert!(!keyboards.rename("missing", None));
+}
+
+#[test]
+fn km3_defaults_apply_and_entries_without_an_id_are_skipped() -> TestResult {
+    let config = Config::from_toml(KM3_SPARSE)?;
+    assert!(config.general.check_for_updates, "KM3 defaults this to on");
+    assert!(!config.general.start_with_system);
+    let ids: Vec<&str> = config
+        .keyboards
+        .installed
+        .iter()
+        .map(|keyboard| keyboard.id.as_str())
+        .collect();
+    assert_eq!(ids, ["zawgyi", "unicode"]);
+    let zawgyi = &config.keyboards.installed[0];
+    assert_eq!(zawgyi.hotkey.as_deref(), Some(""));
+    assert!(zawgyi.enabled, "enabled defaults to true");
+    Ok(())
 }

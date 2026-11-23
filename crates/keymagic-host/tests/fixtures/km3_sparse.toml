@@ -1,0 +1,16 @@
+# Written in the layout KeyMagic 3's reader accepts. Omits the keys it defaults.
+[keyboards]
+active = "zawgyi"
+
+[[keyboards.installed]]
+name = "Without an id"
+filename = "orphan.km2"
+
+[[keyboards.installed]]
+id = "zawgyi"
+filename = "zawgyi.km2"
+hotkey = ""
+
+[[keyboards.installed]]
+id = "unicode"
+filename = "unicode.km2"
