@@ -1,9 +1,10 @@
 //! Shared widgets: cards, buttons, switches, rows and key caps.
 
+use crate::nav::Page;
 use crate::theme::{self, CONTROL_ROUNDING, ROUNDING};
 use egui::{
-    Align2, Button, Color32, CornerRadius, CursorIcon, FontId, Frame, Margin, Pos2, Rect, Response,
-    RichText, Role, Sense, Stroke, StrokeKind, Ui, Vec2, WidgetInfo, WidgetText,
+    Align2, Button, Color32, CornerRadius, CursorIcon, FontId, Frame, Margin, Painter, Pos2, Rect,
+    Response, RichText, Role, Sense, Stroke, StrokeKind, Ui, Vec2, WidgetInfo, WidgetText,
 };
 
 const SWITCH_WIDTH: f32 = 36.0;
@@ -81,11 +82,11 @@ pub fn switch(ui: &mut Ui, on: &mut bool, label: &str) -> Response {
 }
 
 /// A sidebar entry filling the rail width. The selected entry is filled.
-pub fn nav_item(ui: &mut Ui, label: &str, selected: bool) -> Response {
+pub fn nav_item(ui: &mut Ui, page: Page, selected: bool) -> Response {
     let width = ui.available_width();
     let (rect, response) =
         ui.allocate_exact_size(Vec2::new(width, NAV_ITEM_HEIGHT), Sense::click());
-    response.widget_info(|| WidgetInfo::selected(Role::Tab, true, selected, label));
+    response.widget_info(|| WidgetInfo::selected(Role::Tab, true, selected, page.label()));
     let visuals = ui.visuals();
     let fill = if selected {
         visuals.widgets.hovered.weak_bg_fill
@@ -96,15 +97,59 @@ pub fn nav_item(ui: &mut Ui, label: &str, selected: bool) -> Response {
     };
     let painter = ui.painter();
     painter.rect_filled(rect, CornerRadius::same(CONTROL_ROUNDING), fill);
+    let color = visuals.text_color();
+    let icon_center = Pos2::new(rect.left() + 22.0, rect.center().y);
+    draw_nav_icon(painter, icon_center, page, color);
     painter.text(
-        Pos2::new(rect.left() + 12.0, rect.center().y),
+        Pos2::new(rect.left() + 42.0, rect.center().y),
         Align2::LEFT_CENTER,
-        label,
+        page.label(),
         FontId::proportional(14.0),
-        visuals.text_color(),
+        color,
     );
     focus_ring(ui, &response, CONTROL_ROUNDING);
     response.on_hover_cursor(CursorIcon::PointingHand)
+}
+
+/// Draws a nav entry's glyph from simple strokes; no icon font is needed.
+fn draw_nav_icon(painter: &Painter, center: Pos2, page: Page, color: Color32) {
+    let stroke = Stroke::new(1.5, color);
+    let at = |dx: f32, dy: f32| Pos2::new(center.x + dx, center.y + dy);
+    match page {
+        Page::Keyboards => {
+            let body = Rect::from_center_size(center, Vec2::new(16.0, 11.0));
+            painter.rect_stroke(body, CornerRadius::same(3), stroke, StrokeKind::Inside);
+            for dx in [-4.0, 0.0, 4.0] {
+                painter.circle_filled(at(dx, -1.5), 1.0, color);
+            }
+            painter.line_segment([at(-3.0, 2.5), at(3.0, 2.5)], stroke);
+        }
+        Page::Tester => {
+            painter.line_segment([at(0.0, -6.0), at(0.0, 6.0)], stroke);
+            painter.line_segment([at(-3.0, -6.0), at(3.0, -6.0)], stroke);
+            painter.line_segment([at(-3.0, 6.0), at(3.0, 6.0)], stroke);
+        }
+        Page::Editor => {
+            painter.line_segment([at(-6.0, 6.0), at(5.0, -5.0)], Stroke::new(2.5, color));
+            painter.line_segment([at(-6.0, 6.0), at(-4.0, 4.0)], stroke);
+        }
+        Page::Settings => {
+            painter.circle_stroke(center, 4.5, stroke);
+            for (dx, dy) in [(0.0, -7.0), (0.0, 7.0), (-7.0, 0.0), (7.0, 0.0)] {
+                painter.line_segment([at(dx * 0.7, dy * 0.7), at(dx, dy)], stroke);
+            }
+        }
+        Page::Hotkeys => {
+            let cap = Rect::from_center_size(center, Vec2::new(14.0, 12.0));
+            painter.rect_stroke(cap, CornerRadius::same(3), stroke, StrokeKind::Inside);
+            painter.line_segment([at(-4.0, 2.5), at(4.0, 2.5)], stroke);
+        }
+        Page::About => {
+            painter.circle_stroke(center, 7.0, stroke);
+            painter.circle_filled(at(0.0, -3.5), 1.0, color);
+            painter.line_segment([at(0.0, -0.5), at(0.0, 4.0)], stroke);
+        }
+    }
 }
 
 /// A settings row: name and note on the left, a switch on the right.

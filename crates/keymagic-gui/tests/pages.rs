@@ -228,6 +228,53 @@ fn shared_shortcut_is_reported_on_the_hotkeys_page() -> TestResult {
     Ok(())
 }
 
+/// Types `text` into the Next keyboard shortcut field.
+fn type_hotkey(harness: &mut Harness<'static, KeyMagicApp>, text: &str) {
+    harness.get_by_label("Next keyboard shortcut").focus();
+    harness.run();
+    harness
+        .get_by_label("Next keyboard shortcut")
+        .replace_selected_text_accesskit(text);
+    harness.run();
+}
+
+#[test]
+fn hotkey_used_by_another_keyboard_is_refused() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    {
+        let mut guard = host.lock().map_err(|_| "host lock poisoned")?;
+        let other = dir.path().join("other.kms");
+        fs::write(&other, OTHER)?;
+        guard.import(&other)?;
+        for entry in &mut guard.config_mut().keyboards.installed {
+            entry.hotkey = Some("Ctrl+Shift+K".to_owned());
+        }
+    }
+    let mut harness = app(Arc::clone(&host));
+    open_page(&mut harness, "Hotkeys");
+    type_hotkey(&mut harness, "Ctrl+Shift+K");
+    harness.get_by_label("Save shortcut").click();
+    harness.run();
+    let stored = lock(&host).config().hotkeys.next_keyboard.clone();
+    assert_eq!(stored, None);
+    Ok(())
+}
+
+#[test]
+fn free_hotkey_is_saved_on_the_hotkeys_page() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    let mut harness = app(Arc::clone(&host));
+    open_page(&mut harness, "Hotkeys");
+    type_hotkey(&mut harness, "Ctrl+Shift+J");
+    harness.get_by_label("Save shortcut").click();
+    harness.run();
+    let stored = lock(&host).config().hotkeys.next_keyboard.clone();
+    assert_eq!(stored.as_deref(), Some("Ctrl+Shift+J"));
+    Ok(())
+}
+
 #[test]
 fn every_page_renders() -> TestResult {
     let dir = tempfile::tempdir()?;

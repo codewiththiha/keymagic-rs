@@ -230,7 +230,7 @@ impl KeyMagicApp {
     fn nav_rail(&mut self, ui: &mut Ui) {
         ui.spacing_mut().item_spacing.y = 2.0;
         for page in Page::ALL {
-            let response = widgets::nav_item(ui, page.label(), self.page == page);
+            let response = widgets::nav_item(ui, page, self.page == page);
             if response.clicked() {
                 self.page = page;
             }

@@ -5,7 +5,7 @@ use crate::model::{hotkey_text, parse_hotkey};
 use crate::state::{Host, lock};
 use crate::theme;
 use crate::widgets;
-use egui::{Event, TextEdit, Ui};
+use egui::{Event, Role, TextEdit, Ui, WidgetInfo};
 use std::sync::Mutex;
 
 /// View state of the Hotkeys page.
@@ -50,11 +50,14 @@ impl View {
             .and_then(|text| config.shortcut_taken_by(&text).map(str::to_owned));
         widgets::section(ui, "Next keyboard", |ui| {
             ui.horizontal(|ui| {
-                ui.add(
+                let field = ui.add(
                     TextEdit::singleline(&mut self.draft)
                         .hint_text("Ctrl+Shift+K")
                         .desired_width(240.0),
                 );
+                field.widget_info(|| {
+                    WidgetInfo::labeled(Role::TextInput, true, "Next keyboard shortcut")
+                });
                 let label = if self.recording {
                     "Press keys…"
                 } else {
