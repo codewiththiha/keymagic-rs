@@ -8,10 +8,26 @@ const LICENCES: &str = include_str!("../../assets/THIRD_PARTY.txt");
 
 const CHANGELOG: &str = include_str!("../../../../CHANGELOG.md");
 
+/// Turns the changelog into plain text: no title, heading marks or dashes.
+fn plain(markdown: &str) -> String {
+    markdown
+        .lines()
+        .filter(|line| !line.starts_with("# "))
+        .map(|line| {
+            let text = line.trim_start_matches('#').trim_start();
+            match text.strip_prefix("- ") {
+                Some(item) => format!("\u{2022} {item}"),
+                None => text.to_owned(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Draws the version, the project licence and the bundled licence texts.
 pub fn show(ui: &mut Ui) {
     crate::widgets::section(ui, "Changelog", |ui| {
-        ui.label(crate::widgets::muted(ui, CHANGELOG));
+        ui.label(crate::widgets::muted(ui, &plain(CHANGELOG)));
     });
     ui.add_space(16.0);
     widgets::card(ui, |ui| {
@@ -31,4 +47,17 @@ pub fn show(ui: &mut Ui) {
             ui.label(RichText::new(LICENCES).monospace());
         });
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plain;
+
+    #[test]
+    fn changelog_drops_the_title_and_marks_bullets() {
+        assert_eq!(
+            plain("# Changelog\n\n## Unreleased\n\n- one"),
+            "\nUnreleased\n\n\u{2022} one"
+        );
+    }
 }
