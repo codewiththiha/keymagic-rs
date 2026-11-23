@@ -56,7 +56,7 @@ impl View {
                 } else {
                     "Record"
                 };
-                if ui.button(label).clicked() {
+                if widgets::button(ui, label).clicked() {
                     self.recording = !self.recording;
                 }
             });

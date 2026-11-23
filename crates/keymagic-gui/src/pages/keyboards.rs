@@ -39,7 +39,7 @@ impl View {
             if widgets::primary(ui, "Import…").clicked() {
                 self.import_from_dialog(host);
             }
-            if ui.button("Scan").clicked() {
+            if widgets::button(ui, "Scan").clicked() {
                 self.scan(host);
             }
             if !rows.is_empty() {
@@ -173,23 +173,21 @@ fn keyboard_card(ui: &mut Ui, row: &KeyboardRow) -> Option<Action> {
                 let name =
                     ui.add(Label::new(RichText::new(&row.name).strong()).sense(Sense::click()));
                 name.context_menu(|ui| {
-                    if ui.button("Use this keyboard").clicked() {
+                    if widgets::button(ui, "Use this keyboard").clicked() {
                         requested = Some(Action::Use(row.id.clone()));
                         ui.close();
                     }
                     let toggle = if row.enabled { "Disable" } else { "Enable" };
-                    if ui.button(toggle).clicked() {
+                    if widgets::button(ui, toggle).clicked() {
                         requested = Some(Action::SetEnabled(row.id.clone(), !row.enabled));
                         ui.close();
                     }
-                    if ui.button("Remove").clicked() {
+                    if widgets::button(ui, "Remove").clicked() {
                         requested = Some(Action::Remove(row.id.clone()));
                         ui.close();
                     }
                 });
-                if row.id != row.name {
-                    ui.label(widgets::muted(ui, &row.id).small());
-                }
+                ui.label(widgets::muted(ui, &row.id).small());
             });
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 let mut enabled = row.enabled;
@@ -201,7 +199,7 @@ fn keyboard_card(ui: &mut Ui, row: &KeyboardRow) -> Option<Action> {
                 ui.label(widgets::muted(ui, state));
                 if row.active {
                     ui.label(RichText::new("In use").color(theme::accent_color()));
-                } else if ui.button("Use").clicked() {
+                } else if widgets::button(ui, "Use").clicked() {
                     requested = Some(Action::Use(row.id.clone()));
                 }
             });

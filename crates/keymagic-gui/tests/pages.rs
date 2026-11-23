@@ -37,8 +37,12 @@ fn host_with_tiny(dir: &tempfile::TempDir) -> Result<TinyHost, Box<dyn Error>> {
 }
 
 fn app(host: Arc<Mutex<Host>>) -> Harness<'static, KeyMagicApp> {
+    app_sized(host, 960.0, 640.0)
+}
+
+fn app_sized(host: Arc<Mutex<Host>>, width: f32, height: f32) -> Harness<'static, KeyMagicApp> {
     Harness::builder()
-        .with_size(egui::vec2(960.0, 640.0))
+        .with_size(egui::vec2(width, height))
         .with_context_setup(theme::install)
         .wgpu()
         .build_ui_state(
@@ -84,18 +88,23 @@ fn tester_types_through_the_active_keyboard() -> TestResult {
     Ok(())
 }
 
+/// Opens the Editor page, picks `name` and compiles it.
+fn compile_in_editor(harness: &mut Harness<'static, KeyMagicApp>, name: &str) {
+    open_page(harness, "Editor");
+    harness.get_by_label("Keyboard").click();
+    harness.run();
+    harness.get_by_label(name).click();
+    harness.run();
+    harness.get_by_label("Compile").click();
+    harness.run();
+}
+
 #[test]
 fn editor_compiles_the_selected_keyboard() -> TestResult {
     let dir = tempfile::tempdir()?;
     let (host, name) = host_with_tiny(&dir)?;
     let mut harness = app(host);
-    open_page(&mut harness, "Editor");
-    harness.get_by_label("Keyboard").click();
-    harness.run();
-    harness.get_by_label(&name).click();
-    harness.run();
-    harness.get_by_label("Compile").click();
-    harness.run();
+    compile_in_editor(&mut harness, &name);
     assert!(
         harness
             .state()
@@ -105,6 +114,25 @@ fn editor_compiles_the_selected_keyboard() -> TestResult {
             .is_some_and(|text| text.contains("Compiled"))
     );
     harness.snapshot("page_editor_compiled");
+    Ok(())
+}
+
+#[test]
+fn editor_fits_a_compact_window() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, name) = host_with_tiny(&dir)?;
+    let mut harness = app_sized(host, 720.0, 480.0);
+    compile_in_editor(&mut harness, &name);
+    harness.snapshot("page_editor_compact");
+    Ok(())
+}
+
+#[test]
+fn keyboards_use_a_wide_window() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let mut harness = app_sized(host_with_tiny(&dir)?.0, 1280.0, 800.0);
+    harness.run();
+    harness.snapshot("page_keyboards_wide");
     Ok(())
 }
 

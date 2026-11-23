@@ -57,3 +57,14 @@ fn nav_rail_and_shortcuts_change_the_page() -> TestResult {
     assert_eq!(harness.state().page(), Page::Tester);
     Ok(())
 }
+
+#[test]
+fn keyboard_focus_draws_a_ring() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let mut harness = shell(&dir)?;
+    harness.run();
+    harness.key_press_modifiers(Modifiers::NONE, Key::Tab);
+    harness.run();
+    harness.snapshot("shell_focus");
+    Ok(())
+}

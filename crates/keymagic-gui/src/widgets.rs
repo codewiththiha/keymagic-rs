@@ -3,13 +3,12 @@
 use crate::theme::{self, CONTROL_ROUNDING, ROUNDING};
 use egui::{
     Align2, Button, Color32, CornerRadius, CursorIcon, FontId, Frame, Margin, Pos2, Rect, Response,
-    RichText, Role, Sense, Ui, Vec2, WidgetInfo,
+    RichText, Role, Sense, Stroke, StrokeKind, Ui, Vec2, WidgetInfo, WidgetText,
 };
 
 const SWITCH_WIDTH: f32 = 36.0;
 const SWITCH_HEIGHT: f32 = 20.0;
-/// Width and height of one key, before its gap.
-pub const KEY_UNIT: f32 = 40.0;
+const SWITCH_RADIUS: u8 = 10;
 const KEY_GAP: f32 = 4.0;
 const SETTING_HEIGHT: f32 = 52.0;
 const NAV_ITEM_HEIGHT: f32 = 36.0;
@@ -44,10 +43,31 @@ pub fn section<R>(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui) -> R) -> R
 
 /// The one amber button on a view: the primary action.
 pub fn primary(ui: &mut Ui, text: &str) -> Response {
-    ui.add(
+    let response = ui.add(
         Button::new(RichText::new(text).color(theme::color(theme::ON_ACCENT)))
             .fill(theme::accent_color()),
-    )
+    );
+    focus_ring(ui, &response, CONTROL_ROUNDING);
+    response
+}
+
+/// A secondary button. Its focus ring is drawn here, since egui draws none.
+pub fn button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
+    let response = ui.add(Button::new(text));
+    focus_ring(ui, &response, CONTROL_ROUNDING);
+    response
+}
+
+/// Paints the keyboard focus ring round a focused control.
+pub fn focus_ring(ui: &Ui, response: &Response, radius: impl Into<CornerRadius>) {
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            response.rect.expand(3.0),
+            radius,
+            Stroke::new(2.0, theme::accent_color()),
+            StrokeKind::Outside,
+        );
+    }
 }
 
 /// A switch with no text. Its accessible name is `label`.
@@ -56,6 +76,7 @@ pub fn switch(ui: &mut Ui, on: &mut bool, label: &str) -> Response {
         ui.allocate_exact_size(Vec2::new(SWITCH_WIDTH, SWITCH_HEIGHT), Sense::click());
     toggle_on_click(&mut response, on, label);
     paint_switch(ui, rect, *on);
+    focus_ring(ui, &response, SWITCH_RADIUS);
     response.on_hover_cursor(CursorIcon::PointingHand)
 }
 
@@ -82,6 +103,7 @@ pub fn nav_item(ui: &mut Ui, label: &str, selected: bool) -> Response {
         FontId::proportional(14.0),
         visuals.text_color(),
     );
+    focus_ring(ui, &response, CONTROL_ROUNDING);
     response.on_hover_cursor(CursorIcon::PointingHand)
 }
 
@@ -121,6 +143,7 @@ pub fn setting(ui: &mut Ui, title: &str, note: &str, on: &mut bool) -> Response 
         Vec2::new(SWITCH_WIDTH, SWITCH_HEIGHT),
     );
     paint_switch(ui, track, *on);
+    focus_ring(ui, &response, CONTROL_ROUNDING);
     response
 }
 
@@ -151,12 +174,12 @@ fn paint_switch(ui: &Ui, rect: Rect, on: bool) {
     );
 }
 
-/// A keycap `width` keys wide, labelled with `label`.
-pub fn key_cap(ui: &mut Ui, label: &str, width: f32) {
-    let (slot, _) = ui.allocate_exact_size(Vec2::new(KEY_UNIT * width, KEY_UNIT), Sense::hover());
+/// A keycap `width` keys wide and `unit` points per key, labelled with `label`.
+pub fn key_cap(ui: &mut Ui, label: &str, width: f32, unit: f32) {
+    let (slot, _) = ui.allocate_exact_size(Vec2::new(unit * width, unit), Sense::hover());
     let cap = Rect::from_min_size(
         slot.min,
-        Vec2::new(KEY_UNIT.mul_add(width, -KEY_GAP), KEY_UNIT - KEY_GAP),
+        Vec2::new(unit.mul_add(width, -KEY_GAP), unit - KEY_GAP),
     );
     let visuals = ui.visuals();
     let painter = ui.painter();

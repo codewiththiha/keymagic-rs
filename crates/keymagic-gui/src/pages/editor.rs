@@ -15,6 +15,14 @@ use std::time::Duration;
 
 /// Width reserved left of the text for the diagnostic markers.
 const GUTTER: f32 = 18.0;
+/// Largest key in the layout preview; smaller windows shrink the keys.
+const PREVIEW_UNIT: f32 = 32.0;
+/// The widest preview row is 12 keys wide.
+const PREVIEW_ROW_KEYS: f32 = 12.0;
+/// Window height kept free below the editor: diagnostics, glyphs and margins.
+const EDITOR_RESERVE: f32 = 420.0;
+/// The editor never shrinks below this many text rows.
+const MIN_ROWS: f32 = 8.0;
 /// Layout preview rows: indent in keys, then the keys. Last row is Space.
 const LAYOUT: [(f32, &str); 5] = [
     (0.0, "1234567890-="),
@@ -61,13 +69,13 @@ impl View {
         }
         self.notice.show(ui);
         ui.add_space(8.0);
+        self.layout_preview(ui);
+        ui.add_space(16.0);
         self.editor(ui, now);
         self.run_check(ui, host, now);
         self.diagnostics_list(ui);
         ui.add_space(16.0);
         self.glyph_picker(ui, now);
-        ui.add_space(16.0);
-        self.layout_preview(ui);
     }
 
     fn choose_keyboard(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
@@ -91,6 +99,7 @@ impl View {
         picker
             .response
             .widget_info(|| egui::WidgetInfo::labeled(egui::Role::ComboBox, true, "Keyboard"));
+        widgets::focus_ring(ui, &picker.response, theme::CONTROL_ROUNDING);
         if let Some(id) = chosen {
             self.open(host, &id);
         }
@@ -129,10 +138,10 @@ impl View {
             if widgets::primary(ui, "Compile").clicked() {
                 self.compile(host);
             }
-            if ui.button("Format").clicked() {
+            if widgets::button(ui, "Format").clicked() {
                 self.format(host);
             }
-            if ui.button("Save").clicked() {
+            if widgets::button(ui, "Save").clicked() {
                 self.save(host);
             }
         });
@@ -147,8 +156,10 @@ impl View {
                     for glyph in glyphs() {
                         let cell = Button::new(RichText::new(glyph.to_string()).size(18.0))
                             .min_size(Vec2::new(36.0, 32.0));
+                        let response = ui.add(cell);
+                        widgets::focus_ring(ui, &response, theme::CONTROL_ROUNDING);
                         let hint = format!("U+{:04X}", u32::from(glyph));
-                        if ui.add(cell).on_hover_text(hint).clicked() {
+                        if response.on_hover_text(hint).clicked() {
                             self.text.source.push(glyph);
                             self.text.edited(now);
                         }
@@ -160,6 +171,7 @@ impl View {
 
     fn editor(&mut self, ui: &mut Ui, now: f64) {
         let row_height = ui.text_style_height(&TextStyle::Monospace);
+        let height = (ui.ctx().content_rect().height() - EDITOR_RESERVE).max(MIN_ROWS * row_height);
         let marks = line_diagnostics(&self.text.source, &self.diagnostics);
         let response = ui
             .horizontal_top(|ui| {
@@ -169,7 +181,8 @@ impl View {
                         .font(TextStyle::Monospace)
                         .code_editor()
                         .desired_width(f32::INFINITY)
-                        .desired_rows(14),
+                        .desired_rows(8)
+                        .min_size(Vec2::new(0.0, height)),
                 )
             })
             .inner;
@@ -292,9 +305,11 @@ impl View {
                 ));
                 return;
             };
+            let gap = ui.spacing().item_spacing.x;
+            let unit = (ui.available_width() / PREVIEW_ROW_KEYS - gap).min(PREVIEW_UNIT);
             for (indent, row) in LAYOUT {
                 ui.horizontal(|ui| {
-                    ui.add_space(indent * widgets::KEY_UNIT);
+                    ui.add_space(indent * unit);
                     for ch in row.chars() {
                         let output = engine.peek(KeyEvent {
                             ch: Some(ch),
@@ -306,7 +321,7 @@ impl View {
                             ch.to_string()
                         };
                         let width = if ch == ' ' { 6.0 } else { 1.0 };
-                        widgets::key_cap(ui, &label, width);
+                        widgets::key_cap(ui, &label, width, unit);
                     }
                 });
             }

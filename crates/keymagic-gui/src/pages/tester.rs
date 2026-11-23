@@ -36,7 +36,7 @@ impl View {
             );
             ui.label(widgets::muted(ui, &status));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if ui.button("Clear").clicked() {
+                if widgets::button(ui, "Clear").clicked() {
                     self.clear();
                 }
             });

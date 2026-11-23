@@ -4,6 +4,7 @@ use super::Notice;
 use crate::apps;
 use crate::integration::{self, Panel};
 use crate::state::{Host, lock};
+use crate::theme;
 use crate::widgets;
 use egui::{Align, Button, ComboBox, Layout, RichText, Role, Ui, WidgetInfo};
 use std::sync::Mutex;
@@ -60,7 +61,7 @@ impl View {
             );
         });
         widgets::section(ui, "Per-app input modes", |ui| {
-            if ui.button("Load running apps").clicked() {
+            if widgets::button(ui, "Load running apps").clicked() {
                 self.running = apps::running();
             }
             ui.add_space(8.0);
@@ -83,7 +84,7 @@ impl View {
             );
         });
         widgets::section(ui, "Input method integration", |ui| {
-            if ui.button("Check connection").clicked() {
+            if widgets::button(ui, "Check connection").clicked() {
                 self.connected = Some(guard.ime_connected());
             }
             ui.add_space(8.0);
@@ -136,10 +137,10 @@ fn app_list(
         picker
             .response
             .widget_info(|| WidgetInfo::labeled(Role::ComboBox, true, label));
-        if ui
-            .add_enabled(!pick.is_empty(), Button::new("Add"))
-            .clicked()
-        {
+        widgets::focus_ring(ui, &picker.response, theme::CONTROL_ROUNDING);
+        let add = ui.add_enabled(!pick.is_empty(), Button::new("Add"));
+        widgets::focus_ring(ui, &add, theme::CONTROL_ROUNDING);
+        if add.clicked() {
             apps.push(std::mem::take(pick));
         }
     });

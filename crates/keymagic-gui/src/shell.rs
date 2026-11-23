@@ -14,6 +14,8 @@ use egui::{
 use std::sync::{Arc, Mutex};
 
 const NAV_WIDTH: f32 = 176.0;
+/// Widest line length for page content, so wide windows keep readable rows.
+const CONTENT_WIDTH: f32 = 880.0;
 const DIGIT_KEYS: [Key; 6] = [
     Key::Num1,
     Key::Num2,
@@ -178,7 +180,7 @@ impl KeyMagicApp {
         ui.horizontal_centered(|ui| {
             ui.label(RichText::new("KeyMagic").size(16.0).strong());
             ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button(self.variant.switch_label()).clicked() {
+                if widgets::button(ui, self.variant.switch_label()).clicked() {
                     self.variant = self.variant.toggled();
                     theme::select(ui.ctx(), self.variant);
                 }
@@ -200,13 +202,17 @@ impl KeyMagicApp {
         ui.heading(self.page.summary());
         ui.add_space(16.0);
         self.notice.show(ui);
-        ScrollArea::vertical().show(ui, |ui| match self.page {
-            Page::Keyboards => self.pages.keyboards.show(ui, &self.host),
-            Page::Tester => self.pages.tester.show(ui, &self.host),
-            Page::Editor => self.pages.editor.show(ui, &self.host),
-            Page::Settings => self.pages.settings.show(ui, &self.host),
-            Page::Hotkeys => self.pages.hotkeys.show(ui, &self.host),
-            Page::About => about::show(ui),
+        let width = ui.available_width().min(CONTENT_WIDTH);
+        ScrollArea::vertical().show(ui, |ui| {
+            ui.set_max_width(width);
+            match self.page {
+                Page::Keyboards => self.pages.keyboards.show(ui, &self.host),
+                Page::Tester => self.pages.tester.show(ui, &self.host),
+                Page::Editor => self.pages.editor.show(ui, &self.host),
+                Page::Settings => self.pages.settings.show(ui, &self.host),
+                Page::Hotkeys => self.pages.hotkeys.show(ui, &self.host),
+                Page::About => about::show(ui),
+            }
         });
     }
 }
