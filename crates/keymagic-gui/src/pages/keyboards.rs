@@ -198,22 +198,22 @@ impl View {
             }
             Action::Move(id, up) => {
                 let keyboards = &mut guard.config_mut().keyboards;
-                match keyboards
+                keyboards
                     .installed
                     .iter()
                     .position(|keyboard| keyboard.id == id)
-                {
-                    Some(index) => {
-                        let target = if up {
-                            index.saturating_sub(1)
-                        } else {
-                            index + 1
-                        };
-                        keyboards.move_to(&id, target);
-                        format!("Moved {id}.")
-                    }
-                    None => format!("{id} is not installed."),
-                }
+                    .map_or_else(
+                        || format!("{id} is not installed."),
+                        |index| {
+                            let target = if up {
+                                index.saturating_sub(1)
+                            } else {
+                                index + 1
+                            };
+                            keyboards.move_to(&id, target);
+                            format!("Moved {id}.")
+                        },
+                    )
             }
             Action::Reveal(id) => {
                 let path = guard
@@ -221,13 +221,13 @@ impl View {
                     .iter()
                     .find(|keyboard| keyboard.id == id)
                     .map(|keyboard| keyboard.km2.clone());
-                match path {
-                    Some(path) => match reveal::show_file(&path) {
+                path.map_or_else(
+                    || format!("{id} is not installed."),
+                    |path| match reveal::show_file(&path) {
                         Ok(()) => format!("Opened {id} in the file manager."),
                         Err(error) => format!("Could not show {id}: {error}"),
                     },
-                    None => format!("{id} is not installed."),
-                }
+                )
             }
             Action::Remove(id) => match guard.remove(&id) {
                 Ok(true) => format!("Removed {id}."),
@@ -495,7 +495,7 @@ fn keyboard_art(ui: &mut Ui) {
     painter.rect_filled(rect, CornerRadius::same(ROUNDING), body);
     for (row, top) in [12.0_f32, 26.0, 40.0].into_iter().enumerate() {
         for column in 0..10_u8 {
-            let left = 16.0 + f32::from(column) * 20.0;
+            let left = f32::from(column).mul_add(20.0, 16.0);
             let fill = if row == 1 && column == 4 { accent } else { key };
             let cap = Rect::from_min_size(rect.min + vec2(left, top), vec2(14.0, 10.0));
             painter.rect_filled(cap, CornerRadius::same(3), fill);

@@ -23,17 +23,14 @@ pub struct KeyboardRow {
 #[must_use]
 pub fn keyboard_rows(config: &Config, found: &[Found]) -> Vec<KeyboardRow> {
     let installed = &config.keyboards.installed;
-    let mut order: Vec<&Found> = installed
+    let saved = installed
         .iter()
-        .filter_map(|entry| found.iter().find(|keyboard| keyboard.id == entry.id))
-        .collect();
-    order.extend(
-        found
-            .iter()
-            .filter(|keyboard| !installed.iter().any(|entry| entry.id == keyboard.id)),
-    );
-    order
-        .into_iter()
+        .filter_map(|entry| found.iter().find(|keyboard| keyboard.id == entry.id));
+    let unsaved = found
+        .iter()
+        .filter(|keyboard| !installed.iter().any(|entry| entry.id == keyboard.id));
+    saved
+        .chain(unsaved)
         .map(|keyboard| {
             let entry = installed.iter().find(|entry| entry.id == keyboard.id);
             KeyboardRow {
@@ -330,11 +327,17 @@ mod tests {
 
     #[test]
     fn rows_follow_the_saved_order_and_show_the_label() {
-        let config = Config::from_toml(
-            "[[keyboards.installed]]\nid = \"b\"\nname = \"B\"\nlabel = \"Bee\"\n\
-             [[keyboards.installed]]\nid = \"a\"\nname = \"A\"\n",
-        )
-        .expect("valid config");
+        let entry = |id: &str, label: Option<&str>| Installed {
+            id: id.to_owned(),
+            name: id.to_uppercase(),
+            filename: format!("{id}.km2"),
+            hotkey: None,
+            hash: None,
+            label: label.map(str::to_owned),
+            enabled: true,
+        };
+        let mut config = Config::default();
+        config.keyboards.installed = vec![entry("b", Some("Bee")), entry("a", None)];
         let rows = keyboard_rows(
             &config,
             &[found("a", "A"), found("b", "B"), found("c", "C")],
