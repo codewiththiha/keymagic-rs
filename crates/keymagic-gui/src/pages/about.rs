@@ -6,8 +6,14 @@ use egui::{RichText, ScrollArea, Ui};
 /// Licence texts of the bundled dependencies and fonts.
 const LICENCES: &str = include_str!("../../assets/THIRD_PARTY.txt");
 
+const CHANGELOG: &str = include_str!("../../../../CHANGELOG.md");
+
 /// Draws the version, the project licence and the bundled licence texts.
 pub fn show(ui: &mut Ui) {
+    crate::widgets::section(ui, "Changelog", |ui| {
+        ui.label(crate::widgets::muted(ui, CHANGELOG));
+    });
+    ui.add_space(16.0);
     widgets::card(ui, |ui| {
         ui.label(RichText::new(format!("KeyMagic {}", env!("CARGO_PKG_VERSION"))).strong());
         ui.label(widgets::muted(ui, "Licensed under GPL-2.0-only."));

@@ -42,3 +42,22 @@ pub fn show_file(file: &Path) -> io::Result<()> {
     };
     command.spawn().map(drop)
 }
+
+/// Opens a URI such as a system settings page.
+#[doc = "# Errors\n\nReturns an error when the handler cannot be started."]
+pub fn open_uri(uri: &str) -> io::Result<()> {
+    let mut command = if cfg!(target_os = "windows") {
+        let mut command = Command::new("explorer");
+        command.arg(uri);
+        command
+    } else if cfg!(target_os = "macos") {
+        let mut command = Command::new("open");
+        command.arg(uri);
+        command
+    } else {
+        let mut command = Command::new("xdg-open");
+        command.arg(uri);
+        command
+    };
+    command.spawn().map(drop)
+}

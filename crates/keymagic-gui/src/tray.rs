@@ -67,6 +67,7 @@ pub struct Tray {
     icon: TrayIcon,
     commands: Vec<(MenuId, Command)>,
     shown: Vec<Item>,
+    active: bool,
 }
 
 impl Tray {
@@ -77,15 +78,27 @@ impl Tray {
         gtk::init()?;
         let icon = TrayIconBuilder::new()
             .with_tooltip("KeyMagic")
-            .with_icon(badge()?)
+            .with_icon(badge(false)?)
             .build()?;
         let mut tray = Self {
             icon,
             commands: Vec::new(),
             shown: Vec::new(),
+            active: false,
         };
         tray.set_items(items)?;
         Ok(tray)
+    }
+
+    /// Shows the accent badge while a keyboard is active, a grey one otherwise.
+    #[doc = "# Errors\n\nReturns an error when the icon cannot be drawn."]
+    pub fn set_active(&mut self, active: bool) -> Result<(), Box<dyn Error>> {
+        if self.active == active {
+            return Ok(());
+        }
+        self.icon.set_icon(Some(badge(active)?))?;
+        self.active = active;
+        Ok(())
     }
 
     /// Rebuilds the menu when `items` differ from the menu on screen.
@@ -128,10 +141,12 @@ fn pump_toolkit() {
     }
 }
 
-/// A 32 by 32 amber disc.
-fn badge() -> Result<Icon, BadIcon> {
+const IDLE: [u8; 3] = [0x7A, 0x75, 0x6B];
+
+/// A 32 by 32 disc: amber while active, grey otherwise.
+fn badge(active: bool) -> Result<Icon, BadIcon> {
     const SIZE: u16 = 32;
-    let [red, green, blue] = ACCENT;
+    let [red, green, blue] = if active { ACCENT } else { IDLE };
     let mut rgba = Vec::with_capacity(usize::from(SIZE) * usize::from(SIZE) * 4);
     for y in 0..SIZE {
         for x in 0..SIZE {

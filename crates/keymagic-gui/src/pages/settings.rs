@@ -2,7 +2,8 @@
 
 use super::Notice;
 use crate::apps;
-use crate::integration::{self, Panel};
+use crate::integration::{self, Health, Panel};
+use crate::reveal;
 use crate::state::{Host, lock};
 use crate::theme;
 use crate::widgets;
@@ -20,6 +21,16 @@ pub struct View {
 }
 
 impl View {
+    fn open_settings(&mut self, os: integration::Os) {
+        let Some(uri) = integration::settings_uri(os) else {
+            return;
+        };
+        if let Err(error) = reveal::open_uri(uri) {
+            self.notice
+                .set(format!("Could not open the input settings: {error}"));
+        }
+    }
+
     /// Draws the settings. Edits reach `config.toml` only when Save is pressed.
     pub fn show(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
         let mut guard = lock(host);
@@ -89,7 +100,9 @@ impl View {
             }
             ui.add_space(8.0);
             for panel in integration::panels(integration::current(), self.connected) {
-                panel_view(ui, &panel);
+                if panel_view(ui, &panel) {
+                    self.open_settings(panel.os);
+                }
                 ui.add_space(8.0);
             }
         });
@@ -97,9 +110,33 @@ impl View {
     }
 }
 
-fn panel_view(ui: &mut Ui, panel: &Panel) {
-    ui.label(RichText::new(panel.title).strong());
-    ui.label(widgets::muted(ui, panel.status.as_str()));
+/// One integration panel; returns true when its settings button is clicked.
+fn panel_view(ui: &mut Ui, panel: &Panel) -> bool {
+    ui.horizontal(|ui| {
+        status_dot(ui, panel.health);
+        ui.label(RichText::new(panel.title).strong());
+    });
+    let mut open = false;
+    ui.horizontal(|ui| {
+        ui.label(widgets::muted(ui, panel.status.as_str()));
+        if integration::settings_uri(panel.os).is_some()
+            && panel.health == Health::Missing
+            && widgets::button(ui, "Open settings").clicked()
+        {
+            open = true;
+        }
+    });
+    open
+}
+
+fn status_dot(ui: &mut Ui, health: Health) {
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
+    let color = match health {
+        Health::Ready => crate::theme::accent_color(),
+        Health::Missing => crate::theme::color(crate::theme::ERROR),
+        Health::Unchecked | Health::Elsewhere => crate::theme::muted_color(ui.visuals()),
+    };
+    ui.painter().circle_filled(rect.center(), 4.0, color);
 }
 
 /// App names with a remove button per row, and a picker of running apps.

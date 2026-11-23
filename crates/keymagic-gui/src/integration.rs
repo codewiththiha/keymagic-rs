@@ -28,6 +28,35 @@ pub struct Panel {
     pub os: Os,
     pub title: &'static str,
     pub status: String,
+    pub health: Health,
+}
+
+/// How an integration looks right now; drives the status dot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Health {
+    Unchecked,
+    Ready,
+    Missing,
+    Elsewhere,
+}
+
+/// The OS page where the user finishes the integration, when there is one.
+#[must_use]
+pub const fn settings_uri(os: Os) -> Option<&'static str> {
+    match os {
+        Os::Windows => Some("ms-settings:regionlanguage"),
+        Os::MacOs => Some("x-apple.systempreferences:com.apple.Keyboard-Settings.extension"),
+        Os::Linux | Os::Other => None,
+    }
+}
+
+const fn health(is_current: bool, connected: Option<bool>) -> Health {
+    match (is_current, connected) {
+        (false, _) => Health::Elsewhere,
+        (true, None) => Health::Unchecked,
+        (true, Some(true)) => Health::Ready,
+        (true, Some(false)) => Health::Missing,
+    }
 }
 
 /// The three panels. `connected` is `None` until the user checks.
@@ -43,6 +72,7 @@ pub fn panels(current: Os, connected: Option<bool>) -> Vec<Panel> {
         os,
         title,
         status: status(os == current, connected, system),
+        health: health(os == current, connected),
     })
     .collect()
 }

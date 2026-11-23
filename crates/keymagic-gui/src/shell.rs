@@ -109,7 +109,7 @@ impl KeyMagicApp {
             .frame(
                 Frame::new()
                     .fill(sidebar)
-                    .inner_margin(Margin::symmetric(8, 16)),
+                    .inner_margin(Margin::symmetric(0, 16)),
             )
             .show(ui, |ui| self.nav_rail(ui));
         egui::CentralPanel::default()
@@ -130,6 +130,11 @@ impl KeyMagicApp {
             let host = lock(&self.host);
             tray::items(host.config(), host.keyboards())
         };
+        let active = lock(&self.host).config().keyboards.active.is_some();
+        if let Err(error) = tray.set_active(active) {
+            self.notice
+                .set(format!("The tray icon could not be updated: {error}"));
+        }
         if let Err(error) = tray.set_items(&items) {
             self.notice
                 .set(format!("The tray menu could not be updated: {error}"));
