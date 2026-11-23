@@ -7,4 +7,4 @@
 - Editor: KMS syntax highlighting; the layout preview shows Shift and AltGr layers while those keys are held; the glyph picker includes Myanmar Extended-A letters and the assigned Extended-B letters.
 - Settings: each integration panel has a status dot. A missing Windows or macOS integration shows an Open settings button for the system input settings. A Keyboard HUD switch turns the keyboard-switch overlay on or off. On Linux, cards for IBus, Wayland, KDE Plasma and Fcitx5 show whether each is running, with a Fix button that asks before it runs a restart command as your user.
 - Tray: the icon is accent while a keyboard is active and grey otherwise.
-- About: this changelog, and the third-party licence list.
+- About: this changelog, an update check with a Remind me later option, and the third-party licence list.

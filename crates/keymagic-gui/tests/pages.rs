@@ -5,9 +5,11 @@ use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use keymagic_gui::nav::Page;
 use keymagic_gui::shell::KeyMagicApp;
-use keymagic_gui::state::Host;
+use keymagic_gui::state::{Host, lock};
 use keymagic_gui::theme;
+use keymagic_gui::update::{Checker, Status, date};
 use keymagic_host::Paths;
+use keymagic_host::updater::Update;
 use std::error::Error;
 use std::fs;
 use std::sync::{Arc, Mutex};
@@ -40,6 +42,7 @@ fn app(host: Arc<Mutex<Host>>) -> Harness<'static, KeyMagicApp> {
     app_sized(host, 960.0, 640.0)
 }
 
+/// A checker that already ran, so page tests make no network request.
 fn app_sized(host: Arc<Mutex<Host>>, width: f32, height: f32) -> Harness<'static, KeyMagicApp> {
     Harness::builder()
         .with_size(egui::vec2(width, height))
@@ -47,8 +50,27 @@ fn app_sized(host: Arc<Mutex<Host>>, width: f32, height: f32) -> Harness<'static
         .wgpu()
         .build_ui_state(
             |ui, app: &mut KeyMagicApp| app.show(ui),
-            KeyMagicApp::new(host),
+            KeyMagicApp::new(host).with_update(Checker::with_status(Status::Current)),
         )
+}
+
+fn app_with_update(host: Arc<Mutex<Host>>, status: Status) -> Harness<'static, KeyMagicApp> {
+    Harness::builder()
+        .with_size(egui::vec2(960.0, 640.0))
+        .with_context_setup(theme::install)
+        .wgpu()
+        .build_ui_state(
+            |ui, app: &mut KeyMagicApp| app.show(ui),
+            KeyMagicApp::new(host).with_update(Checker::with_status(status)),
+        )
+}
+
+fn available(version: &str) -> Status {
+    Status::Available(Update {
+        version: version.to_owned(),
+        url: "https://example.com/KeyMagic-setup.exe".to_owned(),
+        sha256: String::new(),
+    })
 }
 
 fn open_page(harness: &mut Harness<'static, KeyMagicApp>, label: &str) {
@@ -353,5 +375,37 @@ fn record_case_writes_the_typed_case() -> TestResult {
     let text = fs::read_to_string(folder.join(format!("{id}.cases.toml")))?;
     assert!(text.contains("input = \"a\""), "{text}");
     assert!(text.contains("expected = \"x\""), "{text}");
+    Ok(())
+}
+
+#[test]
+fn about_offers_an_available_update() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let mut harness = app_with_update(host_with_tiny(&dir)?.0, available("9.9.9"));
+    open_page(&mut harness, "About");
+    assert!(
+        harness
+            .query_by_label_contains("Version 9.9.9 is available.")
+            .is_some()
+    );
+    harness.snapshot("page_about_update");
+    Ok(())
+}
+
+#[test]
+fn remind_me_later_postpones_the_update_prompt() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let (host, _) = host_with_tiny(&dir)?;
+    let mut harness = app_with_update(Arc::clone(&host), available("9.9.9"));
+    open_page(&mut harness, "About");
+    harness.get_by_label("Remind me later").click();
+    harness.run();
+    let remind = lock(&host).config().general.update_remind_after.clone();
+    assert!(remind.is_some_and(|day| day > date(0)));
+    assert!(
+        harness
+            .query_by_label_contains("Reminder postponed until")
+            .is_some()
+    );
     Ok(())
 }

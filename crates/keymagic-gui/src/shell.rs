@@ -6,6 +6,7 @@ use crate::pages::{Notice, PageStates, about};
 use crate::state::{Host, lock};
 use crate::theme::{self, Variant};
 use crate::tray::{self, Command, Tray};
+use crate::update::Checker;
 use crate::widgets;
 use egui::{
     Context, Frame, Key, Layout, Margin, Modifiers, Panel, RichText, ScrollArea, Ui,
@@ -34,6 +35,7 @@ pub struct KeyMagicApp {
     tray: Option<Tray>,
     capture: Option<Capture>,
     notice: Notice,
+    update: Checker,
 }
 
 impl KeyMagicApp {
@@ -48,6 +50,7 @@ impl KeyMagicApp {
             tray: None,
             capture: None,
             notice: Notice::default(),
+            update: Checker::default(),
         }
     }
 
@@ -62,6 +65,13 @@ impl KeyMagicApp {
     #[must_use]
     pub fn with_capture(mut self, capture: Option<Capture>) -> Self {
         self.capture = capture;
+        self
+    }
+
+    /// Replaces the update check, for tests and snapshots.
+    #[must_use]
+    pub fn with_update(mut self, update: Checker) -> Self {
+        self.update = update;
         self
     }
 
@@ -233,7 +243,7 @@ impl KeyMagicApp {
                 Page::Editor => self.pages.editor.show(ui, &self.host),
                 Page::Settings => self.pages.settings.show(ui, &self.host),
                 Page::Hotkeys => self.pages.hotkeys.show(ui, &self.host),
-                Page::About => about::show(ui),
+                Page::About => about::show(ui, &self.host, &self.update),
             }
         });
     }

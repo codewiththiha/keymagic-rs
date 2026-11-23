@@ -1,8 +1,10 @@
 //! About page: version, licence and the third-party licence texts.
 
+use crate::state::{Host, lock};
+use crate::update::{self, Checker, Status};
 use crate::widgets;
 use egui::{RichText, ScrollArea, Ui};
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock, Mutex};
 
 /// Notices for the bundled fonts.
 const FONT_NOTICE: &str = include_str!("../../assets/THIRD_PARTY.txt");
@@ -28,8 +30,24 @@ fn plain(markdown: &str) -> String {
         .join("\n")
 }
 
-/// Draws the version, the project licence and the bundled licence texts.
-pub fn show(ui: &mut Ui) {
+/// Draws the update check, the changelog, the version and the licence texts.
+pub fn show(ui: &mut Ui, host: &Arc<Mutex<Host>>, checker: &Checker) {
+    let (enabled, remind) = {
+        let guard = lock(host);
+        let general = &guard.config().general;
+        let values = (
+            general.check_for_updates,
+            general.update_remind_after.clone(),
+        );
+        drop(guard);
+        values
+    };
+    let idle = checker.status() == Status::Idle;
+    if enabled && idle && !update::postponed_now(remind.as_deref()) {
+        checker.start(host);
+    }
+    update_card(ui, host, checker, remind.as_deref());
+    ui.add_space(24.0);
     crate::widgets::section(ui, "Changelog", |ui| {
         ui.label(crate::widgets::muted(ui, &plain(CHANGELOG)));
     });
@@ -61,6 +79,68 @@ pub fn show(ui: &mut Ui) {
             },
         );
     });
+}
+
+/// Draws the update status and the buttons that act on it.
+fn update_card(ui: &mut Ui, host: &Arc<Mutex<Host>>, checker: &Checker, remind: Option<&str>) {
+    let status = checker.status();
+    let postponed = update::postponed_now(remind);
+    let mut remind_later = false;
+    let mut recheck = false;
+    widgets::section(ui, "Updates", |ui| {
+        widgets::card(ui, |ui| {
+            match &status {
+                Status::Idle => {
+                    ui.label(widgets::muted(ui, "No check has run yet."));
+                }
+                Status::Checking => {
+                    ui.label(widgets::muted(ui, "Checking for updates…"));
+                }
+                Status::Current => {
+                    ui.label(RichText::new("KeyMagic is up to date.").strong());
+                }
+                Status::Failed(message) => {
+                    let text = format!("The update check failed. {message}");
+                    ui.label(widgets::muted(ui, &text));
+                }
+                Status::Available(found) => {
+                    let text = format!("Version {} is available.", found.version);
+                    ui.label(RichText::new(text).strong());
+                    if found.url.starts_with("https://") {
+                        ui.hyperlink_to("Download", &found.url);
+                    }
+                }
+            }
+            if let Some(date) = remind.filter(|_| postponed) {
+                let text = format!("Reminder postponed until {date}.");
+                ui.label(widgets::muted(ui, &text));
+            }
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                if matches!(status, Status::Available(_)) && !postponed {
+                    remind_later = widgets::button(ui, "Remind me later").clicked();
+                }
+                if status != Status::Checking {
+                    recheck = widgets::button(ui, "Check now").clicked();
+                }
+            });
+        });
+    });
+    if remind_later {
+        save_reminder(host, checker);
+    }
+    if recheck {
+        checker.start(host);
+    }
+}
+
+/// Saves the reminder date and shows a failure if the config is not written.
+fn save_reminder(host: &Arc<Mutex<Host>>, checker: &Checker) {
+    if let Err(error) = update::remind_later(host) {
+        checker.set(Status::Failed(format!(
+            "The reminder was not saved: {error}"
+        )));
+    }
 }
 
 #[cfg(test)]
