@@ -115,6 +115,28 @@ fn repl_types_characters_through_the_engine() -> TestResult {
 }
 
 #[test]
+fn color_flag_decides_escape_codes_without_a_terminal() -> TestResult {
+    let cases = fixture("corpus/cases");
+    for (mode, coloured) in [("always", true), ("never", false)] {
+        let output = keymagic()
+            .args(["--color", mode, "test"])
+            .arg(&cases)
+            .output()?;
+        assert_eq!(
+            text(&output.stdout).contains('\u{1b}'),
+            coloured,
+            "--color {mode}"
+        );
+    }
+    let piped = keymagic().arg("test").arg(&cases).output()?;
+    assert!(
+        !text(&piped.stdout).contains('\u{1b}'),
+        "auto is off when piped"
+    );
+    Ok(())
+}
+
+#[test]
 fn test_command_counts_passes_and_fails() -> TestResult {
     let cases = fixture("corpus/cases");
     let output = keymagic().arg("--json").arg("test").arg(&cases).output()?;

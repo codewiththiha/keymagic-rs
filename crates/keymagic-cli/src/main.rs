@@ -22,6 +22,14 @@ fn cli() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Print results as JSON"),
         )
+        .arg(
+            Arg::new("color")
+                .long("color")
+                .global(true)
+                .value_parser(["auto", "always", "never"])
+                .default_value("auto")
+                .help("Colour output: auto (terminal only), always or never"),
+        )
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(
@@ -92,6 +100,11 @@ fn path(matches: &ArgMatches, id: &str) -> PathBuf {
 fn main() -> ExitCode {
     let matches = cli().get_matches();
     let json = matches.get_flag("json");
+    style::choose(
+        matches
+            .get_one::<String>("color")
+            .map_or("auto", String::as_str),
+    );
     let result = match matches.subcommand() {
         Some(("compile", args)) => compile::compile(
             &path(args, "input"),
