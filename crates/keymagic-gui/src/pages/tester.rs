@@ -3,7 +3,8 @@
 use super::Notice;
 use crate::model::{TesterText, TypedKey};
 use crate::state::{Host, lock};
-use egui::{Context, Event, Key, RichText, Ui};
+use crate::widgets;
+use egui::{Align, Context, Event, Key, Layout, RichText, Ui};
 use keymagic_engine::Engine;
 use keymagic_host::Session;
 use std::sync::{Arc, Mutex};
@@ -33,18 +34,25 @@ impl View {
                 || "No keyboard is active. Choose one on the Keyboards page.".to_owned(),
                 |id| format!("Keyboard: {id}"),
             );
-            ui.label(status);
-            if ui.button("Clear").clicked() {
-                self.clear();
-            }
+            ui.label(widgets::muted(ui, &status));
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                if ui.button("Clear").clicked() {
+                    self.clear();
+                }
+            });
         });
         self.notice.show(ui);
-        egui::Frame::group(ui.style()).show(ui, |ui| {
-            ui.set_min_size(egui::vec2(ui.available_width(), 160.0));
+        ui.add_space(8.0);
+        widgets::card(ui, |ui| {
+            ui.set_min_size(egui::vec2(ui.available_width(), 200.0));
             ui.label(RichText::new(self.text.committed()).size(28.0));
-            ui.label(RichText::new(self.text.preedit()).size(28.0).weak());
+            ui.label(widgets::muted(ui, self.text.preedit()).size(28.0));
         });
-        ui.label("Click the page and type. Keys go to the active keyboard.");
+        ui.add_space(8.0);
+        ui.label(widgets::muted(
+            ui,
+            "Click the page and type. Keys go to the active keyboard.",
+        ));
     }
 
     /// Reloads the session when the active keyboard changes.

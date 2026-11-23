@@ -29,7 +29,7 @@ impl Notice {
 
     pub fn show(&self, ui: &mut Ui) {
         if let Some(text) = &self.0 {
-            ui.label(text);
+            ui.label(crate::widgets::muted(ui, text));
         }
     }
 }

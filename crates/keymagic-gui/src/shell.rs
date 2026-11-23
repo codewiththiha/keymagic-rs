@@ -6,7 +6,11 @@ use crate::pages::{Notice, PageStates, about};
 use crate::state::{Host, lock};
 use crate::theme::{self, Variant};
 use crate::tray::{self, Command, Tray};
-use egui::{Context, Key, Layout, Modifiers, Panel, ScrollArea, Ui, ViewportCommand};
+use crate::widgets;
+use egui::{
+    Context, Frame, Key, Layout, Margin, Modifiers, Panel, RichText, ScrollArea, Ui,
+    ViewportCommand,
+};
 use std::sync::{Arc, Mutex};
 
 const NAV_WIDTH: f32 = 176.0;
@@ -86,12 +90,33 @@ impl KeyMagicApp {
         if let Some(capture) = self.capture.as_mut() {
             capture.step(ui.ctx());
         }
-        Panel::top("title_bar").show(ui, |ui| self.title_bar(ui));
+        let background = ui.visuals().panel_fill;
+        let sidebar = ui.visuals().window_fill;
+        Panel::top("title_bar")
+            .show_separator_line(false)
+            .frame(
+                Frame::new()
+                    .fill(background)
+                    .inner_margin(Margin::symmetric(24, 12)),
+            )
+            .show(ui, |ui| self.title_bar(ui));
         Panel::left("nav_rail")
             .exact_size(NAV_WIDTH)
             .resizable(false)
+            .show_separator_line(false)
+            .frame(
+                Frame::new()
+                    .fill(sidebar)
+                    .inner_margin(Margin::symmetric(8, 16)),
+            )
             .show(ui, |ui| self.nav_rail(ui));
-        egui::CentralPanel::default().show(ui, |ui| self.page_body(ui));
+        egui::CentralPanel::default()
+            .frame(
+                Frame::new()
+                    .fill(background)
+                    .inner_margin(Margin::symmetric(32, 24)),
+            )
+            .show(ui, |ui| self.page_body(ui));
     }
 
     /// Applies the tray menu's choice made since the last frame.
@@ -151,7 +176,7 @@ impl KeyMagicApp {
 
     fn title_bar(&mut self, ui: &mut Ui) {
         ui.horizontal_centered(|ui| {
-            ui.heading("KeyMagic");
+            ui.label(RichText::new("KeyMagic").size(16.0).strong());
             ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui.button(self.variant.switch_label()).clicked() {
                     self.variant = self.variant.toggled();
@@ -162,11 +187,10 @@ impl KeyMagicApp {
     }
 
     fn nav_rail(&mut self, ui: &mut Ui) {
+        ui.spacing_mut().item_spacing.y = 2.0;
         for page in Page::ALL {
-            if ui
-                .selectable_label(self.page == page, page.label())
-                .clicked()
-            {
+            let response = widgets::nav_item(ui, page.label(), self.page == page);
+            if response.clicked() {
                 self.page = page;
             }
         }
@@ -174,6 +198,7 @@ impl KeyMagicApp {
 
     fn page_body(&mut self, ui: &mut Ui) {
         ui.heading(self.page.summary());
+        ui.add_space(16.0);
         self.notice.show(ui);
         ScrollArea::vertical().show(ui, |ui| match self.page {
             Page::Keyboards => self.pages.keyboards.show(ui, &self.host),

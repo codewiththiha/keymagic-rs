@@ -3,7 +3,9 @@
 use super::Notice;
 use crate::model::{KeyboardRow, keyboard_rows};
 use crate::state::{Host, lock};
-use egui::{Context, RichText, Ui};
+use crate::theme::{self, ROUNDING};
+use crate::widgets;
+use egui::{Align, Context, CornerRadius, Frame, Label, Layout, Margin, RichText, Sense, Ui};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -29,28 +31,40 @@ impl View {
         for path in dropped_paths(ui.ctx()) {
             self.install(host, &path);
         }
+        let rows = {
+            let guard = lock(host);
+            keyboard_rows(guard.config(), guard.keyboards())
+        };
         ui.horizontal(|ui| {
-            if ui.button("Import…").clicked() {
+            if widgets::primary(ui, "Import…").clicked() {
                 self.import_from_dialog(host);
             }
             if ui.button("Scan").clicked() {
                 self.scan(host);
             }
+            if !rows.is_empty() {
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    ui.label(widgets::muted(ui, &format!("{} installed", rows.len())));
+                });
+            }
         });
         self.notice.show(ui);
-        let rows = {
-            let guard = lock(host);
-            keyboard_rows(guard.config(), guard.keyboards())
-        };
+        ui.add_space(16.0);
         if rows.is_empty() {
-            ui.add_space(16.0);
-            ui.label("No keyboards installed yet.");
-            ui.label("Import a .km2 or .kms file, or drop one onto this window.");
+            widgets::card(ui, |ui| {
+                ui.label(RichText::new("No keyboards installed").strong());
+                ui.add_space(4.0);
+                ui.label(widgets::muted(
+                    ui,
+                    "Import a .km2 or .kms file, or drop one onto this window.",
+                ));
+            });
             return;
         }
         let mut requested = None;
         for row in &rows {
-            requested = card(ui, row).or(requested);
+            requested = keyboard_card(ui, row).or(requested);
+            ui.add_space(8.0);
         }
         if let Some(action) = requested {
             self.apply(host, action);
@@ -141,38 +155,57 @@ fn has_keyboard_extension(path: &Path) -> bool {
         .is_some_and(|ext| EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()))
 }
 
-/// One keyboard card. Returns the change the user asked for, if any.
-fn card(ui: &mut Ui, row: &KeyboardRow) -> Option<Action> {
+/// One keyboard card; returns the change the user asked for, if any.
+fn keyboard_card(ui: &mut Ui, row: &KeyboardRow) -> Option<Action> {
     let mut requested = None;
-    let response = ui
-        .horizontal(|ui| {
-            let mut enabled = row.enabled;
-            if ui.checkbox(&mut enabled, "On").changed() {
-                requested = Some(Action::SetEnabled(row.id.clone(), enabled));
-            }
-            ui.label(RichText::new(&row.name).strong());
-            ui.label(RichText::new(&row.id).weak());
-            if row.active {
-                ui.label(RichText::new("Active").color(crate::theme::accent_color()));
-            } else if ui.button("Use").clicked() {
-                requested = Some(Action::Use(row.id.clone()));
-            }
-        })
-        .response;
-    response.context_menu(|ui| {
-        if ui.button("Use this keyboard").clicked() {
-            requested = Some(Action::Use(row.id.clone()));
-            ui.close();
-        }
-        let toggle = if row.enabled { "Disable" } else { "Enable" };
-        if ui.button(toggle).clicked() {
-            requested = Some(Action::SetEnabled(row.id.clone(), !row.enabled));
-            ui.close();
-        }
-        if ui.button("Remove").clicked() {
-            requested = Some(Action::Remove(row.id.clone()));
-            ui.close();
-        }
+    let fill = if row.active {
+        ui.visuals().widgets.inactive.weak_bg_fill
+    } else {
+        ui.visuals().window_fill
+    };
+    let frame = Frame::new()
+        .fill(fill)
+        .corner_radius(CornerRadius::same(ROUNDING))
+        .inner_margin(Margin::symmetric(16, 12));
+    frame.show(ui, |ui| {
+        ui.horizontal(|ui| {
+            ui.vertical(|ui| {
+                let name =
+                    ui.add(Label::new(RichText::new(&row.name).strong()).sense(Sense::click()));
+                name.context_menu(|ui| {
+                    if ui.button("Use this keyboard").clicked() {
+                        requested = Some(Action::Use(row.id.clone()));
+                        ui.close();
+                    }
+                    let toggle = if row.enabled { "Disable" } else { "Enable" };
+                    if ui.button(toggle).clicked() {
+                        requested = Some(Action::SetEnabled(row.id.clone(), !row.enabled));
+                        ui.close();
+                    }
+                    if ui.button("Remove").clicked() {
+                        requested = Some(Action::Remove(row.id.clone()));
+                        ui.close();
+                    }
+                });
+                if row.id != row.name {
+                    ui.label(widgets::muted(ui, &row.id).small());
+                }
+            });
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                let mut enabled = row.enabled;
+                let label = format!("Enable {}", row.name);
+                if widgets::switch(ui, &mut enabled, &label).changed() {
+                    requested = Some(Action::SetEnabled(row.id.clone(), enabled));
+                }
+                let state = if row.enabled { "Enabled" } else { "Disabled" };
+                ui.label(widgets::muted(ui, state));
+                if row.active {
+                    ui.label(RichText::new("In use").color(theme::accent_color()));
+                } else if ui.button("Use").clicked() {
+                    requested = Some(Action::Use(row.id.clone()));
+                }
+            });
+        });
     });
     requested
 }

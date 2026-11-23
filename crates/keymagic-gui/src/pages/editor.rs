@@ -3,15 +3,17 @@
 use super::Notice;
 use crate::model::{Check, EditorText, has_errors, line_diagnostics};
 use crate::state::{Host, lock};
+use crate::theme;
+use crate::widgets;
 use egui::{
-    Align2, Color32, CornerRadius, FontId, Pos2, RichText, Sense, TextEdit, TextStyle, Ui, Vec2,
+    Align, Button, CornerRadius, Layout, Pos2, Rect, RichText, TextEdit, TextStyle, Ui, Vec2,
 };
 use keymagic_engine::{Engine, KeyEvent};
 use keymagic_kms::{Diagnostic, Severity};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-/// Width reserved left of the text for the diagnostic gutter.
+/// Width reserved left of the text for the diagnostic markers.
 const GUTTER: f32 = 18.0;
 /// Layout preview rows: indent in keys, then the keys. Last row is Space.
 const LAYOUT: [(f32, &str); 5] = [
@@ -21,8 +23,6 @@ const LAYOUT: [(f32, &str); 5] = [
     (1.25, "zxcvbnm,./"),
     (0.0, " "),
 ];
-const KEY_SIZE: f32 = 36.0;
-const ERROR_COLOUR: Color32 = Color32::from_rgb(0xE5, 0x48, 0x4D);
 
 /// View state of the Editor page.
 #[derive(Default)]
@@ -40,25 +40,33 @@ impl View {
         self.notice.text()
     }
 
-    /// Draws the keyboard picker, toolbar, editor and diagnostics.
+    /// Draws the keyboard picker, the actions, the editor and the diagnostics.
     pub fn show(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
-        self.choose_keyboard(ui, host);
+        let now = ui.input(|input| input.time);
+        ui.horizontal(|ui| {
+            ui.label(widgets::muted(ui, "Editing"));
+            self.choose_keyboard(ui, host);
+            if self.text.id.is_some() {
+                self.actions(ui, host);
+            }
+        });
         if self.text.id.is_none() {
-            ui.label("Choose a keyboard that has a .kms source to edit.");
+            ui.add_space(8.0);
+            ui.label(widgets::muted(
+                ui,
+                "Choose a keyboard that has a .kms source to edit.",
+            ));
             self.notice.show(ui);
             return;
         }
-        let now = ui.input(|input| input.time);
-        self.toolbar(ui, host, now);
+        self.notice.show(ui);
+        ui.add_space(8.0);
         self.editor(ui, now);
         self.run_check(ui, host, now);
-        for line in line_diagnostics(&self.text.source, &self.diagnostics) {
-            let colour = match line.severity {
-                Severity::Error => ERROR_COLOUR,
-                Severity::Warning => crate::theme::accent_color(),
-            };
-            ui.label(RichText::new(format!("Line {}: {}", line.line, line.text)).color(colour));
-        }
+        self.diagnostics_list(ui);
+        ui.add_space(16.0);
+        self.glyph_picker(ui, now);
+        ui.add_space(16.0);
         self.layout_preview(ui);
     }
 
@@ -115,9 +123,10 @@ impl View {
         };
     }
 
-    fn toolbar(&mut self, ui: &mut Ui, host: &Mutex<Host>, now: f64) {
-        ui.horizontal(|ui| {
-            if ui.button("Compile").clicked() {
+    /// Compile is the one primary action. Format and Save sit to its left.
+    fn actions(&mut self, ui: &mut Ui, host: &Mutex<Host>) {
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            if widgets::primary(ui, "Compile").clicked() {
                 self.compile(host);
             }
             if ui.button("Format").clicked() {
@@ -127,16 +136,26 @@ impl View {
                 self.save(host);
             }
         });
-        ui.horizontal_wrapped(|ui| {
-            ui.label("Insert:");
-            for glyph in glyphs() {
-                if ui.small_button(glyph.to_string()).clicked() {
-                    self.text.source.push(glyph);
-                    self.text.edited(now);
-                }
-            }
+    }
+
+    /// Myanmar characters and marks, in a collapsed grid of fixed-size cells.
+    fn glyph_picker(&mut self, ui: &mut Ui, now: f64) {
+        ui.collapsing("Insert a character", |ui| {
+            widgets::card(ui, |ui| {
+                ui.spacing_mut().item_spacing = Vec2::splat(4.0);
+                ui.horizontal_wrapped(|ui| {
+                    for glyph in glyphs() {
+                        let cell = Button::new(RichText::new(glyph.to_string()).size(18.0))
+                            .min_size(Vec2::new(36.0, 32.0));
+                        let hint = format!("U+{:04X}", u32::from(glyph));
+                        if ui.add(cell).on_hover_text(hint).clicked() {
+                            self.text.source.push(glyph);
+                            self.text.edited(now);
+                        }
+                    }
+                });
+            });
         });
-        self.notice.show(ui);
     }
 
     fn editor(&mut self, ui: &mut Ui, now: f64) {
@@ -150,7 +169,7 @@ impl View {
                         .font(TextStyle::Monospace)
                         .code_editor()
                         .desired_width(f32::INFINITY)
-                        .desired_rows(12),
+                        .desired_rows(14),
                 )
             })
             .inner;
@@ -160,16 +179,20 @@ impl View {
         if response.changed() {
             self.text.edited(now);
         }
+        let warning = theme::muted_color(ui.visuals());
         let painter = ui.painter();
         for mark in &marks {
             let line = f32::from(u16::try_from(mark.line).unwrap_or(u16::MAX));
-            let y = (line - 0.5).mul_add(row_height, response.rect.top());
-            let x = response.rect.left() - GUTTER / 2.0;
+            let top = (line - 1.0).mul_add(row_height, response.rect.top());
+            let bar = Rect::from_min_size(
+                Pos2::new(response.rect.left() - 10.0, top),
+                Vec2::new(3.0, row_height),
+            );
             let colour = match mark.severity {
-                Severity::Error => ERROR_COLOUR,
-                Severity::Warning => crate::theme::accent_color(),
+                Severity::Error => theme::color(theme::ERROR),
+                Severity::Warning => warning,
             };
-            painter.circle_filled(Pos2::new(x, y), 4.0, colour);
+            painter.rect_filled(bar, CornerRadius::same(1), colour);
         }
     }
 
@@ -182,6 +205,21 @@ impl View {
             Check::Due => {
                 self.refresh(&lock(host));
                 self.text.checked();
+            }
+        }
+    }
+
+    /// One line per problem. Errors are red; warnings use the muted colour.
+    fn diagnostics_list(&self, ui: &mut Ui) {
+        for line in line_diagnostics(&self.text.source, &self.diagnostics) {
+            let text = format!("Line {}: {}", line.line, line.text);
+            match line.severity {
+                Severity::Error => {
+                    ui.colored_label(theme::color(theme::ERROR), text);
+                }
+                Severity::Warning => {
+                    ui.label(widgets::muted(ui, &text));
+                }
             }
         }
     }
@@ -244,55 +282,36 @@ impl View {
         });
     }
 
-    /// Draws five rows of keys, each labelled with its output.
+    /// Five rows of keys, each keycap labelled with the character it produces.
     fn layout_preview(&self, ui: &mut Ui) {
-        ui.label(RichText::new("Layout preview").strong());
-        let Some(engine) = &self.preview else {
-            ui.label("Compile without errors to see the layout.");
-            return;
-        };
-        for (indent, row) in LAYOUT {
-            ui.horizontal(|ui| {
-                ui.add_space(indent * KEY_SIZE);
-                for ch in row.chars() {
-                    let output = engine.peek(KeyEvent {
-                        ch: Some(ch),
-                        ..KeyEvent::default()
-                    });
-                    let label = if output.consumed {
-                        output.composing
-                    } else {
-                        ch.to_string()
-                    };
-                    let width = if ch == ' ' { 6.0 } else { 1.0 };
-                    key_cap(ui, &label, width);
-                }
-            });
-        }
+        widgets::section(ui, "Layout preview", |ui| {
+            let Some(engine) = &self.preview else {
+                ui.label(widgets::muted(
+                    ui,
+                    "Compile without errors to see the layout.",
+                ));
+                return;
+            };
+            for (indent, row) in LAYOUT {
+                ui.horizontal(|ui| {
+                    ui.add_space(indent * widgets::KEY_UNIT);
+                    for ch in row.chars() {
+                        let output = engine.peek(KeyEvent {
+                            ch: Some(ch),
+                            ..KeyEvent::default()
+                        });
+                        let label = if output.consumed {
+                            output.composing
+                        } else {
+                            ch.to_string()
+                        };
+                        let width = if ch == ' ' { 6.0 } else { 1.0 };
+                        widgets::key_cap(ui, &label, width);
+                    }
+                });
+            }
+        });
     }
-}
-
-/// A square keycap showing `label`, `width` keys wide.
-fn key_cap(ui: &mut Ui, label: &str, width: f32) {
-    let size = Vec2::new(KEY_SIZE * width, KEY_SIZE);
-    let (rect, _) = ui.allocate_exact_size(size + Vec2::new(4.0, 4.0), Sense::hover());
-    let cap = rect.shrink(2.0);
-    let visuals = ui.visuals();
-    let painter = ui.painter();
-    painter.rect(
-        cap,
-        CornerRadius::same(crate::theme::ROUNDING),
-        visuals.widgets.inactive.weak_bg_fill,
-        visuals.widgets.inactive.bg_stroke,
-        egui::StrokeKind::Inside,
-    );
-    painter.text(
-        cap.center(),
-        Align2::CENTER_CENTER,
-        label,
-        FontId::proportional(18.0),
-        visuals.text_color(),
-    );
 }
 
 /// Myanmar consonants, then the common vowel signs, marks and the virama.

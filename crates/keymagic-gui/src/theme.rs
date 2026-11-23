@@ -1,7 +1,8 @@
-//! Amber theme: palette values, spacing, fonts and egui styling.
+//! Amber theme: palette values, spacing, type scale and egui styling.
 
 use egui::{
-    Color32, Context, CornerRadius, FontData, FontDefinitions, FontFamily, Stroke, Style, Visuals,
+    Color32, Context, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, Margin, Stroke,
+    Style, TextStyle, Visuals,
 };
 use std::sync::Arc;
 
@@ -10,10 +11,16 @@ pub type Rgb = [u8; 3];
 
 /// The amber accent, #F5B53F.
 pub const ACCENT: Rgb = [0xF5, 0xB5, 0x3F];
+/// Text drawn on the accent. Dark in both variants.
+pub const ON_ACCENT: Rgb = [0x17, 0x15, 0x11];
+/// Red for errors and conflicts. The only colour besides the accent.
+pub const ERROR: Rgb = [0xE5, 0x48, 0x4D];
 /// Spacing unit in points; gaps and paddings are multiples of it.
 pub const SPACING: u8 = 8;
-/// Corner radius of panels, windows and widgets, in points.
+/// Corner radius of panels and cards, in points.
 pub const ROUNDING: u8 = 8;
+/// Corner radius of controls and inputs, in points.
+pub const CONTROL_ROUNDING: u8 = 6;
 
 const INTER: &[u8] = include_bytes!("../assets/fonts/Inter-Variable.ttf");
 const NOTO_SANS_MYANMAR: &[u8] = include_bytes!("../assets/fonts/NotoSansMyanmar-Variable.ttf");
@@ -29,8 +36,15 @@ pub enum Variant {
 /// The colours one variant paints with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Palette {
+    /// Window and page background.
     pub background: Rgb,
+    /// Sidebar and cards, one step above the background.
     pub surface: Rgb,
+    /// Inputs, resting buttons and key caps.
+    pub raised: Rgb,
+    /// Hover and pressed fills for buttons.
+    pub hover: Rgb,
+    pub pressed: Rgb,
     pub text: Rgb,
     pub muted: Rgb,
     pub accent: Rgb,
@@ -61,20 +75,26 @@ impl Variant {
     pub const fn palette(self) -> Palette {
         match self {
             Self::Dark => Palette {
-                background: [0x1B, 0x1A, 0x17],
-                surface: [0x26, 0x24, 0x1F],
-                text: [0xF2, 0xEE, 0xE6],
-                muted: [0xB4, 0xAE, 0xA2],
+                background: [0x15, 0x14, 0x11],
+                surface: [0x1E, 0x1D, 0x19],
+                raised: [0x2A, 0x28, 0x23],
+                hover: [0x34, 0x31, 0x2A],
+                pressed: [0x3E, 0x3A, 0x32],
+                text: [0xF3, 0xEF, 0xE7],
+                muted: [0xA9, 0xA3, 0x97],
                 accent: ACCENT,
-                on_accent: [0x1B, 0x1A, 0x17],
+                on_accent: ON_ACCENT,
             },
             Self::Light => Palette {
-                background: [0xFB, 0xF8, 0xF2],
-                surface: [0xFF, 0xFF, 0xFF],
-                text: [0x1F, 0x1B, 0x14],
-                muted: [0x6B, 0x64, 0x57],
+                background: [0xF6, 0xF3, 0xEC],
+                surface: [0xFD, 0xFB, 0xF6],
+                raised: [0xEC, 0xE8, 0xDF],
+                hover: [0xE2, 0xDC, 0xD0],
+                pressed: [0xD6, 0xCF, 0xC0],
+                text: [0x1E, 0x1A, 0x13],
+                muted: [0x5F, 0x58, 0x4B],
                 accent: ACCENT,
-                on_accent: [0x1F, 0x1B, 0x14],
+                on_accent: ON_ACCENT,
             },
         }
     }
@@ -109,15 +129,12 @@ fn luminance(c: Rgb) -> f32 {
     )
 }
 
-/// Loads the bundled fonts and styles for both appearances.
+/// Loads the bundled fonts, the type scale and the styles for both appearances.
 pub fn install(ctx: &Context) {
     ctx.set_fonts(fonts());
     ctx.set_visuals_of(egui::Theme::Dark, visuals(Variant::Dark));
     ctx.set_visuals_of(egui::Theme::Light, visuals(Variant::Light));
-    let spacing = f32::from(SPACING);
-    ctx.all_styles_mut(|style| {
-        style.spacing.item_spacing = egui::vec2(spacing, spacing);
-    });
+    ctx.all_styles_mut(metrics);
     select(ctx, Variant::Dark);
 }
 
@@ -125,6 +142,17 @@ pub fn install(ctx: &Context) {
 #[must_use]
 pub const fn accent_color() -> Color32 {
     color(ACCENT)
+}
+
+/// The muted text colour for the appearance behind `visuals`.
+#[must_use]
+pub const fn muted_color(visuals: &Visuals) -> Color32 {
+    let variant = if visuals.dark_mode {
+        Variant::Dark
+    } else {
+        Variant::Light
+    };
+    color(variant.palette().muted)
 }
 
 /// Sets how long egui animates; zero when motion is reduced.
@@ -140,6 +168,12 @@ pub fn set_reduced_motion(ctx: &Context, reduce: bool) {
 /// Switches the whole interface to `variant`.
 pub fn select(ctx: &Context, variant: Variant) {
     ctx.set_theme(variant.preference());
+}
+
+/// An egui colour from its bytes.
+#[must_use]
+pub const fn color(rgb: Rgb) -> Color32 {
+    Color32::from_rgb(rgb[0], rgb[1], rgb[2])
 }
 
 fn fonts() -> FontDefinitions {
@@ -162,6 +196,39 @@ fn fonts() -> FontDefinitions {
     fonts
 }
 
+/// Spacing and the type scale: four sizes, 22, 14, 12 and 13 for code.
+fn metrics(style: &mut Style) {
+    let spacing = f32::from(SPACING);
+    style.spacing.item_spacing = egui::vec2(spacing, spacing);
+    style.spacing.button_padding = egui::vec2(12.0, 6.0);
+    style.spacing.interact_size = egui::vec2(40.0, 32.0);
+    style.spacing.indent = 16.0;
+    style.spacing.window_margin = Margin::same(16);
+    style.spacing.scroll = egui::style::ScrollStyle::solid();
+    let scale = [
+        (
+            TextStyle::Heading,
+            FontId::new(22.0, FontFamily::Proportional),
+        ),
+        (TextStyle::Body, FontId::new(14.0, FontFamily::Proportional)),
+        (
+            TextStyle::Button,
+            FontId::new(14.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Small,
+            FontId::new(12.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Monospace,
+            FontId::new(13.0, FontFamily::Monospace),
+        ),
+    ];
+    for (style_name, font) in scale {
+        style.text_styles.insert(style_name, font);
+    }
+}
+
 fn visuals(variant: Variant) -> Visuals {
     let palette = variant.palette();
     let mut visuals = match variant {
@@ -169,17 +236,19 @@ fn visuals(variant: Variant) -> Visuals {
         Variant::Light => Visuals::light(),
     };
     let rounding = CornerRadius::same(ROUNDING);
-    let accent = color(palette.accent);
-    let on_accent = color(palette.on_accent);
-    visuals.override_text_color = Some(color(palette.text));
+    let control = CornerRadius::same(CONTROL_ROUNDING);
+    let text = color(palette.text);
+    visuals.override_text_color = Some(text);
     visuals.panel_fill = color(palette.background);
     visuals.window_fill = color(palette.surface);
-    visuals.extreme_bg_color = color(palette.surface);
-    visuals.hyperlink_color = accent;
-    visuals.selection.bg_fill = accent;
-    visuals.selection.stroke = Stroke::new(1.0, on_accent);
+    visuals.extreme_bg_color = color(palette.raised);
+    visuals.faint_bg_color = color(palette.surface);
+    visuals.hyperlink_color = text;
+    visuals.selection.bg_fill = color(palette.raised);
+    visuals.selection.stroke = Stroke::new(1.0, color(palette.accent));
     visuals.window_corner_radius = rounding;
     visuals.menu_corner_radius = rounding;
+    visuals.window_stroke = Stroke::NONE;
     for widget in [
         &mut visuals.widgets.noninteractive,
         &mut visuals.widgets.inactive,
@@ -187,24 +256,27 @@ fn visuals(variant: Variant) -> Visuals {
         &mut visuals.widgets.active,
         &mut visuals.widgets.open,
     ] {
-        widget.corner_radius = rounding;
+        widget.corner_radius = control;
+        widget.fg_stroke = Stroke::new(1.0, text);
+        widget.bg_stroke = Stroke::NONE;
     }
-    visuals.widgets.hovered.bg_fill = accent;
-    visuals.widgets.hovered.weak_bg_fill = accent;
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, on_accent);
-    visuals.widgets.active.bg_fill = accent;
-    visuals.widgets.active.weak_bg_fill = accent;
-    visuals.widgets.active.fg_stroke = Stroke::new(1.0, on_accent);
+    let resting = &mut visuals.widgets.inactive;
+    resting.weak_bg_fill = color(palette.raised);
+    resting.bg_fill = color(palette.raised);
+    let hovered = &mut visuals.widgets.hovered;
+    hovered.weak_bg_fill = color(palette.hover);
+    hovered.bg_fill = color(palette.hover);
+    let pressed = &mut visuals.widgets.active;
+    pressed.weak_bg_fill = color(palette.pressed);
+    pressed.bg_fill = color(palette.pressed);
     visuals
-}
-
-const fn color(rgb: Rgb) -> Color32 {
-    Color32::from_rgb(rgb[0], rgb[1], rgb[2])
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ACCENT, ROUNDING, SPACING, Variant, contrast, set_reduced_motion};
+    use super::{
+        ACCENT, CONTROL_ROUNDING, ROUNDING, SPACING, Variant, contrast, set_reduced_motion,
+    };
 
     #[test]
     fn accent_is_the_amber_from_the_design() {
@@ -220,6 +292,8 @@ mod tests {
             assert!(contrast(palette.text, palette.background) >= 4.5);
             assert!(contrast(palette.text, palette.surface) >= 4.5);
             assert!(contrast(palette.muted, palette.background) >= 4.5);
+            assert!(contrast(palette.muted, palette.surface) >= 4.5);
+            assert!(contrast(palette.text, palette.raised) >= 4.5);
         }
     }
 
@@ -261,5 +335,6 @@ mod tests {
     fn spacing_and_rounding_follow_the_scale() {
         assert_eq!(SPACING, 8);
         assert_eq!(ROUNDING, 8);
+        assert_eq!(CONTROL_ROUNDING, 6);
     }
 }

@@ -3,7 +3,9 @@
 use super::Notice;
 use crate::model::{hotkey_text, parse_hotkey};
 use crate::state::{Host, lock};
-use egui::{Color32, Event, RichText, TextEdit, Ui};
+use crate::theme;
+use crate::widgets;
+use egui::{Event, TextEdit, Ui};
 use std::sync::Mutex;
 
 /// View state of the Hotkeys page.
@@ -29,39 +31,56 @@ impl View {
             self.loaded = true;
         }
         let config = guard.config_mut();
-        ui.checkbox(&mut config.hotkeys.enabled, "Use keyboard shortcuts");
-        ui.label(RichText::new("Next keyboard").strong());
-        ui.horizontal(|ui| {
-            ui.add(TextEdit::singleline(&mut self.draft).hint_text("Ctrl+Shift+K"));
-            let label = if self.recording {
-                "Press keys…"
-            } else {
-                "Record"
-            };
-            if ui.button(label).clicked() {
-                self.recording = !self.recording;
-            }
+        widgets::section(ui, "Keyboard shortcuts", |ui| {
+            widgets::setting(
+                ui,
+                "Use keyboard shortcuts",
+                "Lets the shortcut below switch keyboards.",
+                &mut config.hotkeys.enabled,
+            );
         });
-        if self.recording {
-            self.record(ui);
-        }
-        if let Err(message) = parse_hotkey(&self.draft) {
-            ui.colored_label(Color32::from_rgb(0xE5, 0x48, 0x4D), message);
-        }
         let conflicts: Vec<String> = config
             .hotkey_conflicts()
             .into_iter()
             .map(|(first, second)| format!("{first} and {second} use the same shortcut."))
             .collect();
-        ui.separator();
-        ui.label(RichText::new("Conflicts").strong());
-        if conflicts.is_empty() {
-            ui.label("No keyboards share a shortcut.");
-        }
-        for conflict in &conflicts {
-            ui.colored_label(crate::theme::accent_color(), conflict.as_str());
-        }
-        if ui.button("Save shortcut").clicked() {
+        widgets::section(ui, "Next keyboard", |ui| {
+            ui.horizontal(|ui| {
+                ui.add(
+                    TextEdit::singleline(&mut self.draft)
+                        .hint_text("Ctrl+Shift+K")
+                        .desired_width(240.0),
+                );
+                let label = if self.recording {
+                    "Press keys…"
+                } else {
+                    "Record"
+                };
+                if ui.button(label).clicked() {
+                    self.recording = !self.recording;
+                }
+            });
+            if self.recording {
+                self.record(ui);
+            }
+            if let Err(message) = parse_hotkey(&self.draft) {
+                ui.colored_label(theme::color(theme::ERROR), message);
+            }
+            ui.add_space(8.0);
+            ui.label(widgets::muted(
+                ui,
+                "Choose Record, then press the keys. Leave the box empty for no shortcut.",
+            ));
+        });
+        widgets::section(ui, "Conflicts", |ui| {
+            if conflicts.is_empty() {
+                ui.label(widgets::muted(ui, "No keyboards share a shortcut."));
+            }
+            for conflict in &conflicts {
+                ui.colored_label(theme::color(theme::ERROR), conflict.as_str());
+            }
+        });
+        if widgets::primary(ui, "Save shortcut").clicked() {
             self.save(&mut guard);
         }
         drop(guard);
