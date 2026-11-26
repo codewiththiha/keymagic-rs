@@ -55,4 +55,10 @@ impl Paths {
     pub fn socket_path(&self) -> PathBuf {
         self.cache.join("keymagic.sock")
     }
+
+    /// Unix socket path for keyboard-switch notices from IME components.
+    #[must_use]
+    pub fn hud_socket_path(&self) -> PathBuf {
+        self.cache.join("keymagic-hud.sock")
+    }
 }

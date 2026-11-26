@@ -59,7 +59,7 @@ impl Fix {
     }
 }
 
-/// Linux cards: title, daemon process to probe, and its repair.
+/// Linux cards: title, process name (at most 15 characters), and repair.
 const LINUX_CARDS: [(&str, &str, Fix); 4] = [
     (
         "Linux: IBus",
@@ -72,7 +72,7 @@ const LINUX_CARDS: [(&str, &str, Fix); 4] = [
     ),
     (
         "Linux: Wayland",
-        "xdg-desktop-portal",
+        "xdg-desktop-por",
         Fix {
             label: "Restart the portal",
             program: "systemctl",
@@ -102,18 +102,11 @@ const LINUX_CARDS: [(&str, &str, Fix); 4] = [
 /// Whether each Linux card's process is running now.
 #[must_use]
 pub fn probe_linux() -> Vec<bool> {
+    let running = crate::apps::running();
     LINUX_CARDS
         .iter()
-        .map(|(_, process, _)| process_running(process))
+        .map(|(_, process, _)| running.iter().any(|name| name == *process))
         .collect()
-}
-
-fn process_running(name: &str) -> bool {
-    std::process::Command::new("pgrep")
-        .args(["-x", name])
-        .stdout(std::process::Stdio::null())
-        .status()
-        .is_ok_and(|status| status.success())
 }
 
 /// Runs a repair as the current user and returns the message to show.
@@ -130,6 +123,16 @@ pub fn run_fix(fix: &Fix) -> String {
         Ok(status) => format!("`{command}` exited with {status}."),
         Err(error) => format!("Could not run `{command}`: {error}."),
     }
+}
+
+/// Runs a repair off the UI thread and returns a channel with its message.
+#[must_use]
+pub fn start_fix(fix: Fix) -> std::sync::mpsc::Receiver<String> {
+    let (sender, receiver) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let _ = sender.send(run_fix(&fix));
+    });
+    receiver
 }
 
 /// How an integration looks right now; drives the status dot.
@@ -235,5 +238,19 @@ fn status(is_current: bool, connected: Option<bool>, system: &str) -> String {
         (true, Some(false)) => {
             format!("Not connected. This build does not register KeyMagic with {system} yet.")
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LINUX_CARDS;
+
+    #[test]
+    fn linux_process_names_fit_the_kernel_name_length() {
+        assert!(
+            LINUX_CARDS
+                .iter()
+                .all(|(_, process, _)| process.len() <= 15)
+        );
     }
 }

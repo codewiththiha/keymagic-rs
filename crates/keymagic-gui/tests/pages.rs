@@ -262,6 +262,55 @@ fn hotkey_used_by_another_keyboard_is_refused() -> TestResult {
 }
 
 #[test]
+fn filter_hides_keyboards_that_do_not_match() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let mut host = Host::open(&paths_in(&dir))?;
+    for name in ["Alpha Board", "Beta Board"] {
+        let source = dir.path().join(format!("{}.kms", name.replace(' ', "_")));
+        fs::write(
+            &source,
+            format!("/*\n@NAME = \"{name}\"\n*/\n\"a\" => \"x\"\n"),
+        )?;
+        host.import(&source)?;
+    }
+    let mut harness = app(Arc::new(Mutex::new(host)));
+    harness.run();
+    assert!(
+        harness
+            .query_all_by_label_contains("Alpha Board")
+            .next()
+            .is_some()
+    );
+    harness.get_by_label("Filter keyboards").focus();
+    harness.run();
+    harness
+        .get_by_label("Filter keyboards")
+        .replace_selected_text_accesskit("beta");
+    harness.run();
+    assert_eq!(
+        harness.query_all_by_label_contains("Alpha Board").count(),
+        0
+    );
+    assert!(
+        harness
+            .query_all_by_label_contains("Beta Board")
+            .next()
+            .is_some()
+    );
+    Ok(())
+}
+
+#[test]
+fn hotkey_chip_shows_the_typed_shortcut() -> TestResult {
+    let dir = tempfile::tempdir()?;
+    let mut harness = app(host_with_tiny(&dir)?.0);
+    open_page(&mut harness, "Hotkeys");
+    type_hotkey(&mut harness, "Ctrl+Shift+J");
+    assert!(harness.query_by_label("Hotkey Ctrl+Shift+J").is_some());
+    Ok(())
+}
+
+#[test]
 fn free_hotkey_is_saved_on_the_hotkeys_page() -> TestResult {
     let dir = tempfile::tempdir()?;
     let (host, _) = host_with_tiny(&dir)?;

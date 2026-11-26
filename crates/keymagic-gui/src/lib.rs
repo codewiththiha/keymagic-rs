@@ -2,6 +2,7 @@
 
 pub mod apps;
 pub mod capture;
+pub mod hud;
 pub mod integration;
 pub mod model;
 pub mod nav;

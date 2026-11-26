@@ -1,6 +1,7 @@
 //! The app window: title bar, nav rail, keyboard shortcuts and the active page.
 
 use crate::capture::Capture;
+use crate::hud::{Hud, SHOWN_FOR};
 use crate::nav::Page;
 use crate::pages::{Notice, PageStates, about};
 use crate::state::{Host, lock};
@@ -13,6 +14,7 @@ use egui::{
     ViewportCommand,
 };
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 const NAV_WIDTH: f32 = 176.0;
 /// Widest line length for page content, so wide windows keep readable rows.
@@ -36,6 +38,7 @@ pub struct KeyMagicApp {
     capture: Option<Capture>,
     notice: Notice,
     update: Checker,
+    hud: Option<Hud>,
 }
 
 impl KeyMagicApp {
@@ -49,6 +52,7 @@ impl KeyMagicApp {
             pages: PageStates::default(),
             tray: None,
             capture: None,
+            hud: None,
             notice: Notice::default(),
             update: Checker::default(),
         }
@@ -58,6 +62,13 @@ impl KeyMagicApp {
     #[must_use]
     pub fn with_tray(mut self, tray: Option<Tray>) -> Self {
         self.tray = tray;
+        self
+    }
+
+    /// Shows keyboard-switch notices from IME clients.
+    #[must_use]
+    pub fn with_hud(mut self, hud: Option<Hud>) -> Self {
+        self.hud = hud;
         self
     }
 
@@ -100,12 +111,36 @@ impl KeyMagicApp {
         self.variant
     }
 
+    /// Draws the keyboard-switch notice while it is on screen.
+    fn run_hud(&mut self, ctx: &Context) {
+        let Some(hud) = self.hud.as_mut() else {
+            return;
+        };
+        let now = Instant::now();
+        hud.poll(now);
+        let Some(text) = hud.current(now) else {
+            return;
+        };
+        ctx.request_repaint_after(SHOWN_FOR);
+        egui::Area::new(egui::Id::unique("keyboard_notice"))
+            .anchor(egui::Align2::CENTER_BOTTOM, egui::vec2(0.0, -48.0))
+            .interactable(false)
+            .show(ctx, |ui| {
+                Frame::new()
+                    .fill(ui.visuals().extreme_bg_color)
+                    .corner_radius(egui::CornerRadius::same(8))
+                    .inner_margin(Margin::symmetric(16, 8))
+                    .show(ui, |ui| ui.label(RichText::new(text).size(18.0)))
+            });
+    }
+
     /// Draws the whole window into `ui`.
     pub fn show(&mut self, ui: &mut Ui) {
         let reduce = lock(&self.host).config().general.reduce_motion;
         theme::set_reduced_motion(ui.ctx(), reduce);
         self.handle_keys(ui);
         self.run_tray(ui.ctx());
+        self.run_hud(ui.ctx());
         if let Some(capture) = self.capture.as_mut() {
             capture.step(ui.ctx());
         }

@@ -226,7 +226,8 @@ pub fn chip(ui: &mut Ui, text: &str) {
         .corner_radius(CornerRadius::same(CONTROL_ROUNDING))
         .inner_margin(Margin::symmetric(8, 2))
         .show(ui, |ui| {
-            ui.label(RichText::new(text).monospace());
+            let label = ui.label(RichText::new(text).monospace());
+            label.widget_info(|| WidgetInfo::labeled(Role::Label, true, format!("Hotkey {text}")));
         });
 }
 

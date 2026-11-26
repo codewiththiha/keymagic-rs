@@ -9,6 +9,8 @@ use crate::theme;
 use crate::widgets;
 use egui::{Align, Button, ComboBox, Layout, RichText, Role, Ui, WidgetInfo};
 use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, TryRecvError};
+use std::time::Duration;
 
 /// View state of the Settings page.
 #[derive(Default)]
@@ -20,6 +22,7 @@ pub struct View {
     connected: Option<bool>,
     linux_running: Option<Vec<bool>>,
     pending_fix: Option<usize>,
+    fix_run: Option<Receiver<String>>,
 }
 
 impl View {
@@ -105,6 +108,7 @@ impl View {
             );
         });
         widgets::section(ui, "Input method integration", |ui| {
+            self.poll_fix(ui);
             if widgets::button(ui, "Check connection").clicked() {
                 self.connected = Some(guard.ime_connected());
                 self.linux_running = Some(integration::probe_linux());
@@ -130,6 +134,24 @@ impl View {
 }
 
 impl View {
+    /// Shows a finished repair's message, and keeps checking while it runs.
+    fn poll_fix(&mut self, ui: &Ui) {
+        let outcome = match self.fix_run.as_ref() {
+            Some(run) => run.try_recv(),
+            None => return,
+        };
+        match outcome {
+            Ok(message) => {
+                self.notice.set(message);
+                self.fix_run = None;
+            }
+            Err(TryRecvError::Empty) => {
+                ui.ctx().request_repaint_after(Duration::from_millis(100));
+            }
+            Err(TryRecvError::Disconnected) => self.fix_run = None,
+        }
+    }
+
     /// The Fix button, then a confirmation before anything runs.
     fn fix_row(&mut self, ui: &mut Ui, index: usize, fix: &integration::Fix) {
         if self.pending_fix == Some(index) {
@@ -141,7 +163,7 @@ impl View {
                 if widgets::primary(ui, fix.label).clicked() {
                     self.pending_fix = None;
                     self.linux_running = None;
-                    self.notice.set(integration::run_fix(fix));
+                    self.fix_run = Some(integration::start_fix(*fix));
                 }
                 if widgets::button(ui, "Cancel").clicked() {
                     self.pending_fix = None;

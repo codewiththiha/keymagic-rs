@@ -8,7 +8,7 @@ use crate::theme::{self, CONTROL_ROUNDING, ROUNDING};
 use crate::widgets;
 use egui::{
     Align, Align2, ColorImage, Context, CornerRadius, FontId, Frame, Image, Layout, Margin, Rect,
-    RichText, Sense, TextEdit, TextureHandle, TextureOptions, Ui, vec2,
+    RichText, Role, Sense, TextEdit, TextureHandle, TextureOptions, Ui, WidgetInfo, vec2,
 };
 use std::collections::HashMap;
 use std::fs;
@@ -99,11 +99,14 @@ impl View {
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if !rows.is_empty() {
                     ui.label(widgets::muted(ui, &format!("{} installed", rows.len())));
-                    ui.add(
+                    let filter = ui.add(
                         TextEdit::singleline(&mut self.filter)
                             .hint_text("Filter keyboards")
                             .desired_width(200.0),
                     );
+                    filter.widget_info(|| {
+                        WidgetInfo::labeled(Role::TextInput, true, "Filter keyboards")
+                    });
                 }
             });
         });

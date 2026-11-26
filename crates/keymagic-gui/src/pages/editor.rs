@@ -39,9 +39,14 @@ const LAYOUT: [(f32, &str); 5] = [
 
 /// Colours KMS source for the editor; the monospace font is kept.
 fn highlight(ui: &Ui, text: &dyn TextBuffer, wrap_width: f32) -> Arc<Galley> {
-    let source = text.as_str();
-    let visuals = ui.visuals();
-    let font = TextStyle::Monospace.resolve(ui.style());
+    ui.painter()
+        .layout_job(kms_job(ui.style(), text.as_str(), wrap_width))
+}
+
+/// The KMS source as a layout job, one colour per token kind.
+fn kms_job(style: &egui::Style, source: &str, wrap_width: f32) -> LayoutJob {
+    let visuals = &style.visuals;
+    let font = TextStyle::Monospace.resolve(style);
     let mut job = LayoutJob::default();
     job.wrap.max_width = wrap_width;
     let mut cursor = 0;
@@ -56,24 +61,24 @@ fn highlight(ui: &Ui, text: &dyn TextBuffer, wrap_width: f32) -> Arc<Galley> {
             &mut job,
             &font,
             &source[range.clone()],
-            token_color(token, ui),
+            token_color(token, visuals),
         );
         cursor = range.end;
     }
     append_text(&mut job, &font, &source[cursor..], visuals.text_color());
-    ui.painter().layout_job(job)
+    job
 }
 
 fn append_text(job: &mut LayoutJob, font: &FontId, text: &str, color: Color32) {
     job.append(text, 0.0, TextFormat::simple(font.clone(), color));
 }
 
-fn token_color(token: Token, ui: &Ui) -> Color32 {
+fn token_color(token: Token, visuals: &egui::Visuals) -> Color32 {
     match token {
-        Token::Comment | Token::Operator => theme::muted_color(ui.visuals()),
+        Token::Comment | Token::Operator => theme::muted_color(visuals),
         Token::Directive => theme::accent_color(),
-        Token::Str => ui.visuals().hyperlink_color,
-        Token::Variable => ui.visuals().strong_text_color(),
+        Token::Str => visuals.hyperlink_color,
+        Token::Variable => visuals.strong_text_color(),
     }
 }
 
@@ -462,6 +467,31 @@ mod tests {
             glyphs()
                 .filter(|glyph| matches!(u32::from(*glyph), 0xA9E0..=0xA9FF))
                 .all(is_assigned)
+        );
+    }
+
+    #[test]
+    fn kms_tokens_get_their_own_colors() {
+        let style = egui::Style::default();
+        let visuals = &style.visuals;
+        let source = "&NAME = \"x\"\n// note\nA => $v \"y\"";
+        let job = super::kms_job(&style, source, f32::INFINITY);
+        let coloured: Vec<egui::Color32> = job
+            .sections
+            .iter()
+            .map(|section| section.format.color)
+            .filter(|color| *color != visuals.text_color())
+            .collect();
+        let muted = crate::theme::muted_color(visuals);
+        assert_eq!(
+            coloured,
+            [
+                crate::theme::accent_color(),
+                muted,
+                muted,
+                visuals.strong_text_color(),
+                visuals.hyperlink_color,
+            ]
         );
     }
 }

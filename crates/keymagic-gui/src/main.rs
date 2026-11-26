@@ -1,6 +1,7 @@
 //! The `KeyMagic` desktop app.
 
 use keymagic_gui::capture::{Capture, Outcome};
+use keymagic_gui::hud::Hud;
 use keymagic_gui::shell::KeyMagicApp;
 use keymagic_gui::state::{Host, lock, watch_keyboards};
 use keymagic_gui::theme;
@@ -15,6 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let capturing = capture_path.is_some();
     let paths = Paths::for_user().ok_or("no user folders for this account")?;
     let host = Arc::new(Mutex::new(Host::open(&paths)?));
+    let hud_socket = paths.hud_socket_path();
     let outcome: Outcome = Arc::new(Mutex::new(None));
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -32,6 +34,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             theme::install(&cc.egui_ctx);
             let ctx = cc.egui_ctx.clone();
             watch_keyboards(&host, move || ctx.request_repaint())?;
+            let wake = cc.egui_ctx.clone();
+            let hud = match Hud::listen(&hud_socket, move || wake.request_repaint()) {
+                Ok(hud) => Some(hud),
+                Err(error) => {
+                    eprintln!("keyboard notices unavailable: {error}");
+                    None
+                }
+            };
             // The window works without a tray, e.g. with no AppIndicator.
             let tray = {
                 let items = {
@@ -50,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let app = KeyMagicApp::new(host)
                 .with_launch_check()
                 .with_tray(tray)
+                .with_hud(hud)
                 .with_capture(capture);
             Ok(Box::new(app))
         }),
