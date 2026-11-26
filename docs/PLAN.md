@@ -65,9 +65,9 @@ Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS 
 ## Phase 05: egui GUI
 
 - [x] p5-1: App shell + theme (windowed launch on ubuntu, macos, windows in `gui-launch` `45230830954` at `e808335`; shell kittest snapshots `shell_dark`, `shell_focus`, `shell_light`; nav rail icons drawn from strokes. See progress.md checkpoint 8.)
-- [ ] p5-2: Keyboards page (import-then-appears test, keyboards snapshots, context menu, reorder and bundled banner exist in Dev CI `45230841433` at `e808335`. Open: filter and a hotkey-chip assertion. See progress.md checkpoint 8)
-- [ ] p5-3: Tester + Editor pages (round-trip test, Record case, 150 ms check, Shift/AltGr layer test and snapshots exist in Dev CI `45230841433`. Open: syntax-highlight check. See progress.md checkpoint 8)
-- [ ] p5-4: Settings, Hotkeys, About, Tray (app picker test, hotkey save and refusal tests, update check, tray IPC tests, About changelog and licences in Dev CI `45230841433`. Open: Linux cards on a real desktop, HUD, Linux desktop checks. Cross-platform is green on `5cf8325`, run `45742171209`. See progress.md)
+- [x] p5-2: Keyboards page (import test, `page_keyboards_empty` and `page_keyboards_wide` snapshots, context menu, reorder, bundled banner, filter test `filter_hides_keyboards_that_do_not_match`, hotkey chip test `hotkey_chip_shows_the_typed_shortcut`. Green on `9786d5e`. See progress.md checkpoint 9.)
+- [x] p5-3: Tester + Editor pages (round-trip test, Record case, 150 ms check, Shift/AltGr layer test and snapshots, KMS colour test `kms_tokens_get_their_own_colors`, Malayalam picker test `malayalam_glyphs_are_included`. Green on `9786d5e`. See progress.md checkpoint 9.)
+- [ ] p5-4: Settings, Hotkeys, About, Tray. Done: HUD notice path (`hud.rs`, fake-IME test `tests/hud.rs`, in-window overlay), Linux probe through the shared process list with Fix off the UI thread, About update check, tray IPC tests. Open: Linux cards on a real desktop (user check needed); Windows language profiles (p7-3); macOS input-mode regeneration (p8-2); desktop-wide HUD window (phase 7). Green on `9786d5e`. See progress.md checkpoint 9.)
 
 ## Phase 06: Linux (IBus → Wayland → KDE → Arch)
 
