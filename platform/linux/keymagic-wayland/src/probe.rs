@@ -228,8 +228,10 @@ impl Probe {
             self.keyboard.key(time, code, 1);
             return;
         };
-        let (consumed, steps) = self.composer.key(keymap.key_event(code));
-        println!("key consumed: {consumed}");
+        let event = keymap.key_event(code);
+        println!("diag key {code} {event:?}");
+        let (consumed, steps) = self.composer.key(event);
+        println!("key consumed: {consumed} steps {steps:?}");
         if consumed {
             self.send(&steps);
         } else {
