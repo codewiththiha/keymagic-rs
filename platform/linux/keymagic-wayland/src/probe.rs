@@ -333,13 +333,26 @@ impl Probe {
         }
     }
 
-    fn set_modifiers(&mut self, serial: u32, depressed: u32, latched: u32, locked: u32, group: u32) {
+    fn set_modifiers(
+        &mut self,
+        serial: u32,
+        depressed: u32,
+        latched: u32,
+        locked: u32,
+        group: u32,
+    ) {
         if let Some(keymap) = self.keymap.as_mut() {
             keymap.set_modifiers(depressed, latched, locked, group);
         }
         match (&self.v2, &self.v1) {
             (Some(v2), _) => v2.keyboard.modifiers(depressed, latched, locked, group),
-            (None, Some(V1 { context: Some(context), .. })) => {
+            (
+                None,
+                Some(V1 {
+                    context: Some(context),
+                    ..
+                }),
+            ) => {
                 context.modifiers(serial, depressed, latched, locked, group);
             }
             _ => {}
@@ -369,7 +382,13 @@ impl Probe {
     fn forward_key(&self, serial: u32, time: u32, code: u32, state: u32) {
         match (&self.v2, &self.v1) {
             (Some(v2), _) => v2.keyboard.key(time, code, state),
-            (None, Some(V1 { context: Some(context), .. })) => {
+            (
+                None,
+                Some(V1 {
+                    context: Some(context),
+                    ..
+                }),
+            ) => {
                 context.key(serial, time, code, state);
             }
             _ => {}
@@ -382,7 +401,14 @@ impl Probe {
         }
         match (&self.v2, &self.v1) {
             (Some(v2), _) => send_v2(&v2.input_method, self.tracker.dones(), steps),
-            (None, Some(V1 { context: Some(context), serial, .. })) => {
+            (
+                None,
+                Some(V1 {
+                    context: Some(context),
+                    serial,
+                    ..
+                }),
+            ) => {
                 send_v1(context, *serial, steps);
             }
             _ => {}
