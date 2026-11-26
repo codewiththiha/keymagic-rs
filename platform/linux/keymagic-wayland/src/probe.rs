@@ -1,6 +1,9 @@
-//! Binds the input-method-v2 manager and seat, then reports the result.
+//! Binds input-method-v2, adds a virtual keyboard, and commits text.
 
 use crate::tracker::{Surrounding, Tracker};
+use std::fs::{self, File, OpenOptions};
+use std::io::Write;
+use std::os::fd::AsFd;
 use std::process::ExitCode;
 use wayland_client::{
     Connection, Dispatch, EventQueue, QueueHandle,
@@ -14,6 +17,14 @@ use wayland_protocols_misc::zwp_input_method_v2::client::{
     zwp_input_method_manager_v2::{self, ZwpInputMethodManagerV2},
     zwp_input_method_v2::{self, ZwpInputMethodV2},
 };
+use wayland_protocols_misc::zwp_virtual_keyboard_v1::client::{
+    zwp_virtual_keyboard_manager_v1::{self, ZwpVirtualKeyboardManagerV1},
+    zwp_virtual_keyboard_v1::{self, ZwpVirtualKeyboardV1},
+};
+use xkbcommon::xkb;
+
+/// Text the probe commits into the focused text input.
+const PROBE_TEXT: &str = "ခ";
 
 /// Protocol state for one probe run.
 #[derive(Default)]
@@ -58,6 +69,30 @@ impl Dispatch<ZwpInputMethodManagerV2, ()> for Probe {
     }
 }
 
+impl Dispatch<ZwpVirtualKeyboardManagerV1, ()> for Probe {
+    fn event(
+        _: &mut Self,
+        _: &ZwpVirtualKeyboardManagerV1,
+        _: zwp_virtual_keyboard_manager_v1::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+    }
+}
+
+impl Dispatch<ZwpVirtualKeyboardV1, ()> for Probe {
+    fn event(
+        _: &mut Self,
+        _: &ZwpVirtualKeyboardV1,
+        _: zwp_virtual_keyboard_v1::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+    }
+}
+
 impl Dispatch<ZwpInputMethodV2, ()> for Probe {
     fn event(
         state: &mut Self,
@@ -74,13 +109,11 @@ impl Dispatch<ZwpInputMethodV2, ()> for Probe {
                 text,
                 cursor,
                 anchor,
-            } => {
-                state.tracker.surrounding(Surrounding {
-                    text,
-                    cursor,
-                    anchor,
-                });
-            }
+            } => state.tracker.surrounding(Surrounding {
+                text,
+                cursor,
+                anchor,
+            }),
             zwp_input_method_v2::Event::Done => state.tracker.done(),
             zwp_input_method_v2::Event::Unavailable => state.unavailable = true,
             _ => {}
@@ -88,7 +121,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for Probe {
     }
 }
 
-/// Connects, binds the first seat, and reports whether it can be used.
+/// Connects, binds the protocols, commits text after activation, and reports.
 pub fn run() -> ExitCode {
     let Ok(connection) = Connection::connect_to_env() else {
         eprintln!("error: cannot connect to the Wayland display");
@@ -103,10 +136,21 @@ pub fn run() -> ExitCode {
         eprintln!("error: the compositor has no input-method-v2 manager");
         return ExitCode::FAILURE;
     };
+    let Ok(keyboards) = globals.bind::<ZwpVirtualKeyboardManagerV1, _, _>(&handle, 1..=1, ())
+    else {
+        eprintln!("error: the compositor has no virtual keyboard manager");
+        return ExitCode::FAILURE;
+    };
     let Ok(seat) = globals.bind::<WlSeat, _, _>(&handle, 1..=1, ()) else {
         eprintln!("error: the compositor has no seat");
         return ExitCode::FAILURE;
     };
+    let Some((keymap, size)) = keymap_file() else {
+        eprintln!("error: cannot write the default keymap");
+        return ExitCode::FAILURE;
+    };
+    let keyboard = keyboards.create_virtual_keyboard(&seat, &handle, ());
+    keyboard.keymap(xkb::KEYMAP_FORMAT_TEXT_V1, keymap.as_fd(), size);
     let input_method = manager.get_input_method(&seat, &handle, ());
     let mut probe = Probe::default();
     if queue.roundtrip(&mut probe).is_err() {
@@ -132,8 +176,33 @@ pub fn run() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-/// Text the probe commits into the focused text input.
-const PROBE_TEXT: &str = "ခ";
+/// Writes the default keymap to an unlinked file, with a NUL terminator.
+fn keymap_file() -> Option<(File, u32)> {
+    let context = xkb::Context::new(xkb::CONTEXT_NO_FLAGS);
+    let keymap = xkb::Keymap::new_from_names(
+        &context,
+        "",
+        "",
+        "",
+        "",
+        None,
+        xkb::KEYMAP_COMPILE_NO_FLAGS,
+    )?;
+    let mut bytes = keymap
+        .get_as_string(xkb::KEYMAP_FORMAT_TEXT_V1)
+        .into_bytes();
+    bytes.push(0);
+    let path = std::env::temp_dir().join(format!("keymagic-keymap-{}.xkb", std::process::id()));
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .ok()?;
+    fs::remove_file(&path).ok()?;
+    file.write_all(&bytes).ok()?;
+    Some((file, u32::try_from(bytes.len()).ok()?))
+}
 
 /// Dispatches until activation; `false` if dispatching fails.
 fn wait_for_activation(queue: &mut EventQueue<Probe>, probe: &mut Probe) -> bool {
