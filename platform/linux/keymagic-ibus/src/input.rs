@@ -124,12 +124,9 @@ fn virtual_key(keycode: u32) -> Option<VirtualKey> {
         .map(|(_, key)| *key)
 }
 
-const fn char_for_keysym(keyval: u32) -> Option<char> {
-    match keyval {
-        0x20..=0x7e | 0xa0..=0xff => char::from_u32(keyval),
-        0x0100_0001..=0x0110_ffff => char::from_u32(keyval - 0x0100_0000),
-        _ => None,
-    }
+fn char_for_keysym(keyval: u32) -> Option<char> {
+    let code = xkbcommon::xkb::keysym_to_utf32(xkbcommon::xkb::Keysym::new(keyval));
+    char::from_u32(code).filter(|ch| !ch.is_control())
 }
 
 #[cfg(test)]

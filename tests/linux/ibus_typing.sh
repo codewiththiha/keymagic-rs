@@ -73,6 +73,9 @@ window=$(timeout 30 xdotool search --sync --name "CI Probe" | head -n 1) \
     || fail "no CI Probe window"
 xdotool windowfocus --sync "$window"
 sleep 1
+# The keyboard menu is registered when the engine gains focus.
+grep -q "member=RegisterProperties" "$work/monitor.log" \
+    || fail "no keyboard menu was registered"
 xdotool type --delay 300 kk
 # Composed text stays in the preedit until Return commits it (Trigger::Enter).
 sleep 1

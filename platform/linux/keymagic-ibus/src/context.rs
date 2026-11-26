@@ -1,8 +1,9 @@
 //! One `IBus` input context: key handling and the signals it emits.
 
-use crate::{input, text};
+use crate::{input, menu, text};
+use keymagic_host::integration::ibus::engines;
 use keymagic_host::session::HostAction;
-use keymagic_host::{Config, KeyboardStore, Session};
+use keymagic_host::{Config, KeyboardStore, Paths, Session};
 use std::path::PathBuf;
 use std::sync::Arc;
 use zbus::Connection;
@@ -15,6 +16,7 @@ pub struct Context {
     store: Arc<KeyboardStore>,
     config_path: PathBuf,
     path: ObjectPath<'static>,
+    keyboard: String,
 }
 
 impl Context {
@@ -34,15 +36,35 @@ impl Context {
             store,
             config_path,
             path,
+            keyboard: id,
         })
     }
 
-    fn switch(&mut self, id: &str) -> Result<(), String> {
-        let config =
-            Config::load_or_default(&self.config_path).map_err(|error| error.to_string())?;
-        self.session = session_for(&self.store, &config, id)?;
+    async fn switch(&mut self, id: &str, emitter: &SignalEmitter<'_>) -> zbus::Result<()> {
+        let config = Config::load_or_default(&self.config_path)
+            .map_err(|error| zbus::Error::Failure(error.to_string()))?;
+        self.session = session_for(&self.store, &config, id).map_err(zbus::Error::Failure)?;
         self.session.focus_in("");
-        Ok(())
+        id.clone_into(&mut self.keyboard);
+        self.register_menu(emitter).await
+    }
+
+    /// Shows the keyboard menu, then starts composing in the field.
+    async fn engage(&mut self, emitter: &SignalEmitter<'_>) -> zbus::fdo::Result<()> {
+        self.session.focus_in("");
+        self.register_menu(emitter)
+            .await
+            .map_err(|error| zbus::fdo::Error::Failed(error.to_string()))
+    }
+
+    async fn register_menu(&self, emitter: &SignalEmitter<'_>) -> zbus::Result<()> {
+        let config = Config::load_or_default(&self.config_path)
+            .map_err(|error| zbus::Error::Failure(error.to_string()))?;
+        let paths = Paths::for_user().ok_or_else(|| {
+            zbus::Error::Failure("no user folders for this account".to_owned())
+        })?;
+        let menu = menu::menu(&engines(&config, &paths), &self.keyboard)?;
+        Self::register_properties(emitter, menu).await
     }
 
     async fn apply(&mut self, action: HostAction, emitter: &SignalEmitter<'_>) -> zbus::Result<()> {
@@ -56,7 +78,7 @@ impl Context {
                 Self::delete_surrounding_text(emitter, offset, count).await?;
                 Self::commit_text(emitter, text::ibus_text(&insert)).await
             }
-            HostAction::SwitchKeyboard(id) => self.switch(&id).map_err(zbus::Error::Failure),
+            HostAction::SwitchKeyboard(id) => self.switch(&id, emitter).await,
         }
     }
 
@@ -92,13 +114,19 @@ impl Context {
     }
 
     /// Starts composing in a newly focused field.
-    fn focus_in(&mut self) {
-        self.session.focus_in("");
+    async fn focus_in(
+        &mut self,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) -> zbus::fdo::Result<()> {
+        self.engage(&emitter).await
     }
 
     /// Starts composing when `IBus` enables this engine.
-    fn enable(&mut self) {
-        self.session.focus_in("");
+    async fn enable(
+        &mut self,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) -> zbus::fdo::Result<()> {
+        self.engage(&emitter).await
     }
 
     /// Commits pending text when `IBus` disables this engine.
@@ -121,9 +149,22 @@ impl Context {
         let _ = (self, x, y, width, height);
     }
 
-    /// Accepts property clicks; this engine exposes no properties.
-    const fn property_activate(&self, name: &str, state: u32) {
-        let _ = (self, name, state);
+    /// Switches to the keyboard whose menu option was checked.
+    async fn property_activate(
+        &mut self,
+        name: &str,
+        state: u32,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) -> zbus::fdo::Result<()> {
+        let Some(id) = name.strip_prefix(menu::KEY_PREFIX) else {
+            return Ok(());
+        };
+        if state != menu::CHECKED {
+            return Ok(());
+        }
+        self.switch(id, &emitter)
+            .await
+            .map_err(|error| zbus::fdo::Error::Failed(error.to_string()))
     }
 
     /// Commits pending text when the field loses focus.
@@ -160,6 +201,9 @@ impl Context {
 
     #[zbus(signal)]
     async fn commit_text(emitter: &SignalEmitter<'_>, text: Variant<'_>) -> zbus::Result<()>;
+
+    #[zbus(signal)]
+    async fn register_properties(emitter: &SignalEmitter<'_>, props: Variant<'_>) -> zbus::Result<()>;
 
     #[zbus(signal)]
     async fn update_preedit_text(

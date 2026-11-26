@@ -14,7 +14,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config dbus dbus-user-session dbus-x11 ibus ibus-gtk3 xvfb xdotool python3-gi gir1.2-gtk-3.0
+          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config dbus dbus-user-session dbus-x11 ibus ibus-gtk3 libxkbcommon-dev xvfb xdotool python3-gi gir1.2-gtk-3.0
           curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
       - uses: actions/checkout@v4
         with:
