@@ -2,7 +2,7 @@
 pkgname=keymagic
 pkgver=0.1.0
 pkgrel=1
-pkgdesc='KeyMagic keyboard input for Linux: IBus engine, Wayland input method and tools'
+pkgdesc='Keyboard input for Linux: IBus engine, Wayland input method and tools'
 arch=('x86_64')
 url='https://github.com/codewiththiha/keymagic-rs'
 license=('GPL-2.0-only')
