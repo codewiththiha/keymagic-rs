@@ -1880,6 +1880,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "keymagic-engine",
+ "keymagic-host",
  "keymagic-km2",
  "keymagic-kms",
  "owo-colors",

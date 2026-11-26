@@ -151,11 +151,36 @@ fn test_command_counts_passes_and_fails() -> TestResult {
 }
 
 #[test]
-fn doctor_and_install_are_stubs() -> TestResult {
-    for command in ["doctor", "install"] {
-        let output = keymagic().arg(command).output()?;
+fn doctor_is_still_a_stub() -> TestResult {
+    let output = keymagic().arg("doctor").output()?;
+    assert_eq!(output.status.code(), Some(2));
+    assert!(text(&output.stderr).contains("not implemented yet"));
+    Ok(())
+}
+
+#[test]
+fn install_needs_the_user_flag() -> TestResult {
+    let output = keymagic().arg("install").output()?;
+    assert_eq!(output.status.code(), Some(2));
+    assert!(text(&output.stderr).contains("--user"));
+    Ok(())
+}
+
+#[test]
+fn install_user_writes_the_ibus_component() -> TestResult {
+    let data = std::env::temp_dir().join(format!("keymagic-install-{}", std::process::id()));
+    let output = keymagic()
+        .args(["install", "--user"])
+        .env("XDG_DATA_HOME", &data)
+        .output()?;
+    if cfg!(target_os = "linux") {
+        assert_eq!(output.status.code(), Some(0), "{}", text(&output.stderr));
+        let xml = fs::read_to_string(data.join("ibus/component/keymagic.xml"))?;
+        assert!(xml.contains("<name>org.freedesktop.IBus.KeyMagic</name>"));
+    } else {
         assert_eq!(output.status.code(), Some(2));
-        assert!(text(&output.stderr).contains("not implemented yet"));
+        assert!(text(&output.stderr).contains("Linux only"));
     }
+    let _ = fs::remove_dir_all(&data);
     Ok(())
 }

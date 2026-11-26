@@ -4,6 +4,7 @@
 
 pub mod bundled;
 pub mod config;
+pub mod integration;
 pub mod ipc;
 pub mod paths;
 pub mod session;

@@ -1,6 +1,7 @@
 //! Command-line tools for KMS compilation, KM2 inspection and corpus replay.
 
 mod compile;
+mod install;
 mod json;
 mod repl;
 mod replay;
@@ -83,7 +84,17 @@ fn cli() -> Command {
                 .arg(path_arg("keyboard", "KM2 or KMS keyboard")),
         )
         .subcommand(Command::new("doctor").about("Check the local setup (not implemented yet)."))
-        .subcommand(Command::new("install").about("Install a keyboard (not implemented yet)."))
+        .subcommand(
+            Command::new("install")
+                .about("Write the IBus component file for this user.")
+                .arg(
+                    Arg::new("user")
+                        .long("user")
+                        .action(ArgAction::SetTrue)
+                        .required(true)
+                        .help("Install for the current user only"),
+                ),
+        )
 }
 
 fn path_arg(id: &'static str, help: &'static str) -> Arg {
@@ -122,7 +133,7 @@ fn main() -> ExitCode {
         Some(("test", args)) => replay::run(&path(args, "cases"), json),
         Some(("repl", args)) => repl::run(&path(args, "keyboard"), json),
         Some(("doctor", _)) => Err("doctor is not implemented yet".to_owned()),
-        Some(("install", _)) => Err("install is not implemented yet".to_owned()),
+        Some(("install", _)) => install::user(),
         _ => Err("no command given".to_owned()),
     };
     result.unwrap_or_else(|message| {
