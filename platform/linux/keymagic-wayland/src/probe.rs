@@ -1,20 +1,24 @@
-//! Binds input-method-v2, grabs the keyboard, and sends engine output.
+//! Binds an input-method protocol, grabs the keyboard, and sends engine output.
 
 use crate::engine::{Composer, Step};
 use crate::keys::{self, Keymap};
 use crate::tracker::{Surrounding, Tracker};
-use std::collections::HashSet;
+use crate::wire::{Passed, v1_delete_index};
 use std::fs::File;
 use std::os::fd::{AsFd, OwnedFd};
 use std::process::ExitCode;
 use wayland_client::{
     Connection, Dispatch, QueueHandle, WEnum,
-    globals::{GlobalListContents, registry_queue_init},
+    globals::{GlobalList, GlobalListContents, registry_queue_init},
     protocol::{
-        wl_keyboard,
+        wl_keyboard::{self, WlKeyboard},
         wl_registry::{self, WlRegistry},
         wl_seat::{self, WlSeat},
     },
+};
+use wayland_protocols::input_method::zv1::client::{
+    zwp_input_method_context_v1::{self, ZwpInputMethodContextV1},
+    zwp_input_method_v1::{self, ZwpInputMethodV1},
 };
 use wayland_protocols_misc::zwp_input_method_v2::client::{
     zwp_input_method_keyboard_grab_v2::{self, ZwpInputMethodKeyboardGrabV2},
@@ -27,17 +31,35 @@ use wayland_protocols_misc::zwp_virtual_keyboard_v1::client::{
 };
 use xkbcommon::xkb;
 
+/// The input-method-v2 session: the method, a virtual keyboard, and a grab.
+struct V2 {
+    input_method: ZwpInputMethodV2,
+    keyboard: ZwpVirtualKeyboardV1,
+    grab: Option<ZwpInputMethodKeyboardGrabV2>,
+}
+
+/// The input-method-v1 session, used when the compositor offers only v1.
+struct V1 {
+    _global: ZwpInputMethodV1,
+    context: Option<ZwpInputMethodContextV1>,
+    serial: u32,
+    keyboard: Option<WlKeyboard>,
+}
+
 /// Protocol state for one probe run.
 struct Probe {
     tracker: Tracker,
     composer: Composer,
-    input_method: ZwpInputMethodV2,
-    keyboard: ZwpVirtualKeyboardV1,
-    grab: Option<ZwpInputMethodKeyboardGrabV2>,
     keymap: Option<Keymap>,
     keymap_file: File,
-    forwarded: HashSet<u32>,
+    passed: Passed,
     unavailable: bool,
+    v2: Option<V2>,
+    v1: Option<V1>,
+}
+
+fn pressed(state: WEnum<wl_keyboard::KeyState>) -> bool {
+    matches!(state, WEnum::Value(wl_keyboard::KeyState::Pressed))
 }
 
 impl Dispatch<WlRegistry, GlobalListContents> for Probe {
@@ -142,21 +164,87 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for Probe {
                 state.load_keymap(fd, size);
             }
             zwp_input_method_keyboard_grab_v2::Event::Key {
+                serial,
+                time,
+                key,
+                state: key_state,
+            } => state.key(serial, time, key, pressed(key_state)),
+            zwp_input_method_keyboard_grab_v2::Event::Modifiers {
+                serial,
+                mods_depressed,
+                mods_latched,
+                mods_locked,
+                group,
+            } => state.set_modifiers(serial, mods_depressed, mods_latched, mods_locked, group),
+            _ => {}
+        }
+    }
+}
+
+impl Dispatch<ZwpInputMethodV1, ()> for Probe {
+    fn event(
+        state: &mut Self,
+        _: &ZwpInputMethodV1,
+        event: zwp_input_method_v1::Event,
+        _: &(),
+        _: &Connection,
+        qh: &QueueHandle<Self>,
+    ) {
+        match event {
+            zwp_input_method_v1::Event::Activate { id } => state.activate_v1(id, qh),
+            zwp_input_method_v1::Event::Deactivate { .. } => state.deactivate_v1(),
+            _ => {}
+        }
+    }
+
+    wayland_client::event_created_child!(Probe, ZwpInputMethodV1, [
+        0 => (ZwpInputMethodContextV1, ())
+    ]);
+}
+
+impl Dispatch<ZwpInputMethodContextV1, ()> for Probe {
+    fn event(
+        state: &mut Self,
+        _: &ZwpInputMethodContextV1,
+        event: zwp_input_method_context_v1::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+        if let zwp_input_method_context_v1::Event::CommitState { serial } = event
+            && let Some(v1) = state.v1.as_mut()
+        {
+            v1.serial = serial;
+        }
+    }
+}
+
+impl Dispatch<WlKeyboard, ()> for Probe {
+    fn event(
+        state: &mut Self,
+        _: &WlKeyboard,
+        event: wl_keyboard::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+        match event {
+            wl_keyboard::Event::Keymap { fd, size, .. } => state.load_keymap(fd, size),
+            wl_keyboard::Event::Key {
+                serial,
                 time,
                 key,
                 state: key_state,
                 ..
-            } => {
-                let pressed = matches!(key_state, WEnum::Value(wl_keyboard::KeyState::Pressed));
-                state.key(time, key, pressed);
-            }
-            zwp_input_method_keyboard_grab_v2::Event::Modifiers {
+            } => state.key(serial, time, key, pressed(key_state)),
+            wl_keyboard::Event::Modifiers {
+                serial,
                 mods_depressed,
                 mods_latched,
                 mods_locked,
                 group,
                 ..
-            } => state.set_modifiers(mods_depressed, mods_latched, mods_locked, group),
+            } => state.set_modifiers(serial, mods_depressed, mods_latched, mods_locked, group),
             _ => {}
         }
     }
@@ -167,24 +255,58 @@ impl Probe {
         let was_active = self.tracker.is_active();
         self.tracker.done();
         match (was_active, self.tracker.is_active()) {
-            (false, true) => self.activate(qh),
-            (true, false) => self.deactivate(),
+            (false, true) => self.activate_v2(qh),
+            (true, false) => self.deactivate_v2(),
             _ => {}
         }
     }
 
-    fn activate(&mut self, qh: &QueueHandle<Self>) {
+    fn activate_v2(&mut self, qh: &QueueHandle<Self>) {
         self.composer.focus_in();
         println!("input method active");
-        self.grab = Some(self.input_method.grab_keyboard(qh, ()));
+        if let Some(v2) = self.v2.as_mut() {
+            v2.grab = Some(v2.input_method.grab_keyboard(qh, ()));
+        }
         println!("keyboard grab ready");
     }
 
-    fn deactivate(&mut self) {
-        if let Some(grab) = self.grab.take() {
+    fn deactivate_v2(&mut self) {
+        let grab = self.v2.as_mut().and_then(|v2| v2.grab.take());
+        if let Some(grab) = grab {
             grab.release();
         }
-        self.forwarded.clear();
+        self.finish_session();
+    }
+
+    fn activate_v1(&mut self, context: ZwpInputMethodContextV1, qh: &QueueHandle<Self>) {
+        self.composer.focus_in();
+        println!("input method active");
+        let keyboard = context.grab_keyboard(qh, ());
+        if let Some(v1) = self.v1.as_mut() {
+            v1.context = Some(context);
+            v1.keyboard = Some(keyboard);
+        }
+        println!("keyboard grab ready");
+    }
+
+    fn deactivate_v1(&mut self) {
+        let Some(v1) = self.v1.as_mut() else {
+            return;
+        };
+        let keyboard = v1.keyboard.take();
+        let context = v1.context.take();
+        if let Some(keyboard) = keyboard {
+            keyboard.release();
+        }
+        self.finish_session();
+        if let Some(context) = context {
+            context.destroy();
+        }
+    }
+
+    /// Flushes pending text and forgets the keys sent to the application.
+    fn finish_session(&mut self) {
+        self.passed.clear();
         let steps = self.composer.focus_out();
         self.send(&steps);
     }
@@ -198,8 +320,10 @@ impl Probe {
             eprintln!("error: cannot write the keymap for the keyboard");
             return;
         };
-        self.keyboard
-            .keymap(xkb::KEYMAP_FORMAT_TEXT_V1, file.as_fd(), size);
+        if let Some(v2) = self.v2.as_ref() {
+            v2.keyboard
+                .keymap(xkb::KEYMAP_FORMAT_TEXT_V1, file.as_fd(), size);
+        }
         self.keymap_file = file;
         self.keymap = Keymap::compile(text);
         if self.keymap.is_some() {
@@ -209,30 +333,46 @@ impl Probe {
         }
     }
 
-    fn set_modifiers(&mut self, depressed: u32, latched: u32, locked: u32, group: u32) {
+    fn set_modifiers(&mut self, serial: u32, depressed: u32, latched: u32, locked: u32, group: u32) {
         if let Some(keymap) = self.keymap.as_mut() {
             keymap.set_modifiers(depressed, latched, locked, group);
         }
-        self.keyboard.modifiers(depressed, latched, locked, group);
+        match (&self.v2, &self.v1) {
+            (Some(v2), _) => v2.keyboard.modifiers(depressed, latched, locked, group),
+            (None, Some(V1 { context: Some(context), .. })) => {
+                context.modifiers(serial, depressed, latched, locked, group);
+            }
+            _ => {}
+        }
     }
 
-    fn key(&mut self, time: u32, code: u32, pressed: bool) {
+    fn key(&mut self, serial: u32, time: u32, code: u32, pressed: bool) {
         if !pressed {
-            if self.forwarded.remove(&code) {
-                self.keyboard.key(time, code, 0);
+            let forwarded = self.passed.release(code);
+            if forwarded {
+                self.forward_key(serial, time, code, 0);
             }
             return;
         }
-        let Some(keymap) = self.keymap.as_ref() else {
-            self.keyboard.key(time, code, 1);
-            return;
+        let (consumed, steps) = match self.keymap.as_ref() {
+            Some(keymap) => self.composer.key(keymap.key_event(code)),
+            None => (false, Vec::new()),
         };
-        let (consumed, steps) = self.composer.key(keymap.key_event(code));
         if consumed {
             self.send(&steps);
         } else {
-            self.forwarded.insert(code);
-            self.keyboard.key(time, code, 1);
+            self.passed.press(code);
+            self.forward_key(serial, time, code, 1);
+        }
+    }
+
+    fn forward_key(&self, serial: u32, time: u32, code: u32, state: u32) {
+        match (&self.v2, &self.v1) {
+            (Some(v2), _) => v2.keyboard.key(time, code, state),
+            (None, Some(V1 { context: Some(context), .. })) => {
+                context.key(serial, time, code, state);
+            }
+            _ => {}
         }
     }
 
@@ -240,22 +380,65 @@ impl Probe {
         if steps.is_empty() {
             return;
         }
-        for step in steps {
-            match step {
-                Step::Preedit(text) => {
-                    let cursor = i32::try_from(text.len()).unwrap_or(i32::MAX);
-                    self.input_method
-                        .set_preedit_string(text.clone(), cursor, cursor);
-                }
-                Step::Commit(text) => {
-                    println!("commit sent: {} bytes", text.len());
-                    self.input_method.commit_string(text.clone());
-                }
-                Step::DeleteBefore(bytes) => self.input_method.delete_surrounding_text(*bytes, 0),
+        match (&self.v2, &self.v1) {
+            (Some(v2), _) => send_v2(&v2.input_method, self.tracker.dones(), steps),
+            (None, Some(V1 { context: Some(context), serial, .. })) => {
+                send_v1(context, *serial, steps);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn send_v2(input_method: &ZwpInputMethodV2, dones: u32, steps: &[Step]) {
+    for step in steps {
+        match step {
+            Step::Preedit(text) => {
+                let cursor = i32::try_from(text.len()).unwrap_or(i32::MAX);
+                input_method.set_preedit_string(text.clone(), cursor, cursor);
+            }
+            Step::Commit(text) => {
+                println!("commit sent: {} bytes", text.len());
+                input_method.commit_string(text.clone());
+            }
+            Step::DeleteBefore(bytes) => input_method.delete_surrounding_text(*bytes, 0),
+        }
+    }
+    input_method.commit(dones);
+}
+
+fn send_v1(context: &ZwpInputMethodContextV1, serial: u32, steps: &[Step]) {
+    for step in steps {
+        match step {
+            Step::Preedit(text) => context.preedit_string(serial, text.clone(), String::new()),
+            Step::Commit(text) => {
+                println!("commit sent: {} bytes", text.len());
+                context.commit_string(serial, text.clone());
+            }
+            Step::DeleteBefore(bytes) => {
+                context.delete_surrounding_text(v1_delete_index(*bytes), *bytes);
             }
         }
-        self.input_method.commit(self.tracker.dones());
     }
+}
+
+/// Binds the input-method-v2 pieces; `None` after printing the error.
+fn bind_v2(
+    globals: &GlobalList,
+    handle: &QueueHandle<Probe>,
+    manager: &ZwpInputMethodManagerV2,
+    keymap: &File,
+    size: u32,
+) -> Option<V2> {
+    let seat: WlSeat = globals.bind(handle, 1..=1, ()).ok()?;
+    let keyboards: ZwpVirtualKeyboardManagerV1 = globals.bind(handle, 1..=1, ()).ok()?;
+    let keyboard = keyboards.create_virtual_keyboard(&seat, handle, ());
+    keyboard.keymap(xkb::KEYMAP_FORMAT_TEXT_V1, keymap.as_fd(), size);
+    Some(V2 {
+        input_method: manager.get_input_method(&seat, handle, ()),
+        keyboard,
+        grab: None,
+    })
 }
 
 /// Connects, binds the protocols, and serves the grab until it ends.
@@ -272,19 +455,6 @@ pub fn run() -> ExitCode {
         return ExitCode::FAILURE;
     };
     let handle = queue.handle();
-    let Ok(manager) = globals.bind::<ZwpInputMethodManagerV2, _, _>(&handle, 1..=1, ()) else {
-        eprintln!("error: the compositor has no input-method-v2 manager");
-        return ExitCode::FAILURE;
-    };
-    let Ok(keyboards) = globals.bind::<ZwpVirtualKeyboardManagerV1, _, _>(&handle, 1..=1, ())
-    else {
-        eprintln!("error: the compositor has no virtual keyboard manager");
-        return ExitCode::FAILURE;
-    };
-    let Ok(seat) = globals.bind::<WlSeat, _, _>(&handle, 1..=1, ()) else {
-        eprintln!("error: the compositor has no seat");
-        return ExitCode::FAILURE;
-    };
     let Some(text) = keys::default_text() else {
         eprintln!("error: cannot build the default keymap");
         return ExitCode::FAILURE;
@@ -293,20 +463,34 @@ pub fn run() -> ExitCode {
         eprintln!("error: cannot write the default keymap");
         return ExitCode::FAILURE;
     };
-    let keyboard = keyboards.create_virtual_keyboard(&seat, &handle, ());
-    keyboard.keymap(xkb::KEYMAP_FORMAT_TEXT_V1, keymap_file.as_fd(), size);
-    let input_method = manager.get_input_method(&seat, &handle, ());
     let mut probe = Probe {
         tracker: Tracker::default(),
         composer,
-        input_method,
-        keyboard,
-        grab: None,
         keymap: None,
         keymap_file,
-        forwarded: HashSet::new(),
+        passed: Passed::default(),
         unavailable: false,
+        v2: None,
+        v1: None,
     };
+    if let Ok(manager) = globals.bind::<ZwpInputMethodManagerV2, _, _>(&handle, 1..=1, ()) {
+        let Some(v2) = bind_v2(&globals, &handle, &manager, &probe.keymap_file, size) else {
+            return ExitCode::FAILURE;
+        };
+        probe.v2 = Some(v2);
+        println!("protocol: input-method-v2");
+    } else if let Ok(global) = globals.bind::<ZwpInputMethodV1, _, _>(&handle, 1..=1, ()) {
+        probe.v1 = Some(V1 {
+            _global: global,
+            context: None,
+            serial: 0,
+            keyboard: None,
+        });
+        println!("protocol: input-method-v1");
+    } else {
+        eprintln!("error: the compositor has no input method protocol");
+        return ExitCode::FAILURE;
+    }
     if queue.roundtrip(&mut probe).is_err() {
         eprintln!("error: the Wayland round trip failed");
         return ExitCode::FAILURE;

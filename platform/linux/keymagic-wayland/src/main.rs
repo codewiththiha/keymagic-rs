@@ -8,6 +8,8 @@ mod keys;
 mod probe;
 #[cfg(target_os = "linux")]
 mod tracker;
+#[cfg(target_os = "linux")]
+mod wire;
 
 #[cfg(target_os = "linux")]
 fn main() -> std::process::ExitCode {
