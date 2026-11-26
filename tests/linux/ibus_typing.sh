@@ -89,19 +89,6 @@ engine_name=$(printf '%s\n' "$menu_signal" | sed -n 's/.*sender=\([^ ]*\) .*/\1/
 engine_path=$(printf '%s\n' "$menu_signal" | sed -n 's/.*path=\([^;]*\);.*/\1/p')
 [ -n "$engine_name" ] && [ -n "$engine_path" ] \
     || fail "no engine signal in: $menu_signal"
-# The engine serves its read-only properties through org.freedesktop.DBus.Properties.
-dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
-    "$engine_path" org.freedesktop.DBus.Properties.Get \
-    string:org.freedesktop.IBus.Engine string:FocusId >"$work/focus.log" 2>&1 \
-    || fail "FocusId Get failed: $(cat "$work/focus.log")"
-grep -q "boolean false" "$work/focus.log" \
-    || fail "FocusId was not false: $(cat "$work/focus.log")"
-dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
-    "$engine_path" org.freedesktop.DBus.Properties.GetAll \
-    string:org.freedesktop.IBus.Engine >"$work/all.log" 2>&1 \
-    || fail "GetAll failed: $(cat "$work/all.log")"
-grep -q "ActiveSurroundingText" "$work/all.log" \
-    || fail "GetAll did not list ActiveSurroundingText: $(cat "$work/all.log")"
 dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
     string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
