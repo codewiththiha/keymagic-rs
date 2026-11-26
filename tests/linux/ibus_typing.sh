@@ -89,10 +89,6 @@ engine_name=$(printf '%s\n' "$menu_signal" | sed -n 's/.*sender=\([^ ]*\) .*/\1/
 engine_path=$(printf '%s\n' "$menu_signal" | sed -n 's/.*path=\([^;]*\);.*/\1/p')
 [ -n "$engine_name" ] && [ -n "$engine_path" ] \
     || fail "no engine signal in: $menu_signal"
-dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
-    "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
-    string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
-sleep 1
 # The engine serves its read-only properties through org.freedesktop.DBus.Properties.
 dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.DBus.Properties.Get \
@@ -106,6 +102,10 @@ dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engin
     || fail "GetAll failed: $(cat "$work/all.log")"
 grep -q "ActiveSurroundingText" "$work/all.log" \
     || fail "GetAll did not list ActiveSurroundingText: $(cat "$work/all.log")"
+dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
+    "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
+    string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
+sleep 1
 xdotool type --delay 300 kk
 # Composed text stays in the preedit until Return commits it (Trigger::Enter).
 sleep 1
