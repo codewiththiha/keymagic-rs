@@ -1992,6 +1992,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "keymagic-linux-wayland"
+version = "0.1.0"
+dependencies = [
+ "wayland-client",
+ "wayland-protocols-misc",
+]
+
+[[package]]
 name = "keymagic-types"
 version = "0.1.0"
 dependencies = [
