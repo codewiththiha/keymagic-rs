@@ -72,15 +72,8 @@ fn char_for(sym: xkb::Keysym) -> Option<char> {
 #[must_use]
 pub fn default_text() -> Option<String> {
     let context = xkb::Context::new(xkb::CONTEXT_NO_FLAGS);
-    let keymap = xkb::Keymap::new_from_names(
-        &context,
-        "",
-        "",
-        "",
-        "",
-        None,
-        xkb::KEYMAP_COMPILE_NO_FLAGS,
-    )?;
+    let keymap =
+        xkb::Keymap::new_from_names(&context, "", "", "", "", None, xkb::KEYMAP_COMPILE_NO_FLAGS)?;
     Some(keymap.get_as_string(xkb::KEYMAP_FORMAT_TEXT_V1))
 }
 
@@ -91,7 +84,10 @@ pub fn read_text(fd: OwnedFd, size: u32) -> Option<String> {
     file.seek(SeekFrom::Start(0)).ok()?;
     let mut bytes = vec![0; usize::try_from(size).ok()?];
     file.read_exact(&mut bytes).ok()?;
-    let end = bytes.iter().position(|byte| *byte == 0).unwrap_or(bytes.len());
+    let end = bytes
+        .iter()
+        .position(|byte| *byte == 0)
+        .unwrap_or(bytes.len());
     bytes.truncate(end);
     String::from_utf8(bytes).ok()
 }

@@ -29,7 +29,9 @@ impl Composer {
     /// Opens the active keyboard; prints the error and gives `None`.
     #[must_use]
     pub fn open() -> Option<Self> {
-        Self::load().inspect_err(|error| eprintln!("error: {error}")).ok()
+        Self::load()
+            .inspect_err(|error| eprintln!("error: {error}"))
+            .ok()
     }
 
     fn load() -> Result<Self, String> {
@@ -138,12 +140,7 @@ pub fn plan(actions: &[HostAction], tail: &mut String) -> Vec<Step> {
 /// Bytes taken by the last `chars` characters of `text`.
 #[must_use]
 pub fn delete_bytes(text: &str, chars: usize) -> u32 {
-    let bytes: usize = text
-        .chars()
-        .rev()
-        .take(chars)
-        .map(char::len_utf8)
-        .sum();
+    let bytes: usize = text.chars().rev().take(chars).map(char::len_utf8).sum();
     u32::try_from(bytes).unwrap_or(u32::MAX)
 }
 

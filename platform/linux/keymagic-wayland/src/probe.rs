@@ -142,7 +142,10 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for Probe {
                 state.load_keymap(fd, size);
             }
             zwp_input_method_keyboard_grab_v2::Event::Key {
-                time, key, state: key_state, ..
+                time,
+                key,
+                state: key_state,
+                ..
             } => {
                 let pressed = matches!(key_state, WEnum::Value(wl_keyboard::KeyState::Pressed));
                 state.key(time, key, pressed);
