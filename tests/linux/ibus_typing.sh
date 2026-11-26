@@ -84,10 +84,11 @@ sleep 1
 grep -q "member=RegisterProperties" "$work/monitor.log" \
     || fail "no keyboard menu was registered"
 # Choose the second keyboard through the menu, as the panel does.
-menu_signal=$(grep "member=RegisterProperties" "$work/monitor.log" | head -n 1 || true)
-engine_name=$(printf '%s\n' "$menu_signal" | sed -n 's/.*sender=\(:[^ ]*\) .*/\1/p')
+menu_signal=$(grep "^signal .*member=RegisterProperties" "$work/monitor.log" | head -n 1 || true)
+engine_name=$(printf '%s\n' "$menu_signal" | sed -n 's/.*sender=\([^ ]*\) .*/\1/p')
 engine_path=$(printf '%s\n' "$menu_signal" | sed -n 's/.*path=\([^;]*\);.*/\1/p')
-[ -n "$engine_name" ] && [ -n "$engine_path" ] || fail "cannot find the engine in the menu signal"
+[ -n "$engine_name" ] && [ -n "$engine_path" ] \
+    || fail "no engine signal in: $menu_signal"
 dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
     string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
