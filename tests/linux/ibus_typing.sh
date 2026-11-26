@@ -96,12 +96,16 @@ sleep 1
 # The engine serves its read-only properties through org.freedesktop.DBus.Properties.
 dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.DBus.Properties.Get \
-    string:org.freedesktop.IBus.Engine string:FocusId 2>&1 \
-    | grep -q "boolean false" || fail "the engine did not serve FocusId"
+    string:org.freedesktop.IBus.Engine string:FocusId >"$work/focus.log" 2>&1 \
+    || fail "FocusId Get failed: $(cat "$work/focus.log")"
+grep -q "boolean false" "$work/focus.log" \
+    || fail "FocusId was not false: $(cat "$work/focus.log")"
 dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.DBus.Properties.GetAll \
-    string:org.freedesktop.IBus.Engine 2>&1 \
-    | grep -q "ActiveSurroundingText" || fail "the engine did not list its properties"
+    string:org.freedesktop.IBus.Engine >"$work/all.log" 2>&1 \
+    || fail "GetAll failed: $(cat "$work/all.log")"
+grep -q "ActiveSurroundingText" "$work/all.log" \
+    || fail "GetAll did not list ActiveSurroundingText: $(cat "$work/all.log")"
 xdotool type --delay 300 kk
 # Composed text stays in the preedit until Return commits it (Trigger::Enter).
 sleep 1
