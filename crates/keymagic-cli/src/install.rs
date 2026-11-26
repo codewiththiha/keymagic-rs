@@ -7,9 +7,6 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-/// The engine program `IBus` starts from the component file.
-const ENGINE_EXEC: &str = "keymagic-ibus --ibus";
-
 /// Writes the component file under the user's data folder.
 pub fn user() -> Result<ExitCode, String> {
     if !cfg!(target_os = "linux") {
@@ -23,14 +20,34 @@ pub fn user() -> Result<ExitCode, String> {
     if let Some(folder) = file.parent() {
         fs::create_dir_all(folder).map_err(|error| error.to_string())?;
     }
-    fs::write(&file, ibus::component_xml(ENGINE_EXEC, &engines))
-        .map_err(|error| error.to_string())?;
+    let exec = engine_exec()?;
+    fs::write(&file, ibus::component_xml(&exec, &engines)).map_err(|error| error.to_string())?;
     println!(
         "Wrote {} with {} engine(s). Restart IBus so it reads the file.",
         file.display(),
         engines.len()
     );
     Ok(ExitCode::SUCCESS)
+}
+
+/// Engine path and argument; `IBus` has no PATH lookup and splits on spaces.
+fn engine_exec() -> Result<String, String> {
+    let exe = std::env::current_exe().map_err(|error| error.to_string())?;
+    let engine = exe
+        .parent()
+        .ok_or("cannot find the keymagic program folder")?
+        .join("keymagic-ibus");
+    if !engine.is_file() {
+        return Err(format!(
+            "{} is missing; install keymagic-ibus beside keymagic",
+            engine.display()
+        ));
+    }
+    let path = engine.to_string_lossy();
+    if path.contains(char::is_whitespace) {
+        return Err(format!("{path} has spaces; IBus cannot start it there"));
+    }
+    Ok(format!("{path} --ibus"))
 }
 
 /// `$XDG_DATA_HOME`, or `~/.local/share` when it is unset.

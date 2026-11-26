@@ -96,6 +96,36 @@ impl Context {
         self.session.focus_in("");
     }
 
+    /// Starts composing when `IBus` enables this engine.
+    fn enable(&mut self) {
+        self.session.focus_in("");
+    }
+
+    /// Commits pending text when `IBus` disables this engine.
+    async fn disable(
+        &mut self,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) -> zbus::fdo::Result<()> {
+        self.finish(&emitter)
+            .await
+            .map_err(|error| zbus::fdo::Error::Failed(error.to_string()))
+    }
+
+    /// Accepts client capabilities; this engine needs none of them.
+    const fn set_capabilities(&self, capabilities: u32) {
+        let _ = (self, capabilities);
+    }
+
+    /// Accepts the caret position; this engine draws no candidate window.
+    const fn set_cursor_location(&self, x: i32, y: i32, width: i32, height: i32) {
+        let _ = (self, x, y, width, height);
+    }
+
+    /// Accepts property clicks; this engine exposes no properties.
+    const fn property_activate(&self, name: &str, state: u32) {
+        let _ = (self, name, state);
+    }
+
     /// Commits pending text when the field loses focus.
     async fn focus_out(
         &mut self,
@@ -137,6 +167,7 @@ impl Context {
         text: Variant<'_>,
         cursor: u32,
         visible: bool,
+        mode: u32,
     ) -> zbus::Result<()>;
 
     #[zbus(signal)]
@@ -176,12 +207,15 @@ fn session_for(store: &KeyboardStore, config: &Config, id: &str) -> Result<Sessi
     Ok(Session::new(engine, config))
 }
 
+/// `IBus` preedit focus mode that drops the text when focus leaves.
+const PREEDIT_CLEAR: u32 = 0;
+
 async fn preedit(emitter: &SignalEmitter<'_>, text: &str) -> zbus::Result<()> {
     if text.is_empty() {
         return Context::hide_preedit_text(emitter).await;
     }
     let cursor = u32::try_from(text.chars().count()).unwrap_or(u32::MAX);
-    Context::update_preedit_text(emitter, text::ibus_text(text), cursor, true).await
+    Context::update_preedit_text(emitter, text::ibus_text(text), cursor, true, PREEDIT_CLEAR).await
 }
 
 #[cfg(test)]

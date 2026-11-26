@@ -58,3 +58,14 @@ fn user_file_sits_in_the_ibus_component_folder() {
         Path::new("/home/me/.local/share/ibus/component/keymagic.xml")
     );
 }
+
+#[test]
+fn engine_without_cached_icon_names_the_default_icon() {
+    let engines = [Engine {
+        id: "probe".to_owned(),
+        label: "Probe".to_owned(),
+        icon: None,
+    }];
+    let xml = component_xml("keymagic-ibus --ibus", &engines);
+    assert!(xml.contains("<icon>input-keyboard</icon>"));
+}

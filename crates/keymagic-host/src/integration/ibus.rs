@@ -7,6 +7,9 @@ use std::path::{Path, PathBuf};
 /// Bus name the `IBus` engine process claims.
 pub const COMPONENT_NAME: &str = "org.freedesktop.IBus.KeyMagic";
 
+/// Icon name used when no keyboard icon is cached.
+const DEFAULT_ICON: &str = "input-keyboard";
+
 /// One engine in the component file, named `keymagic:<id>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Engine {
@@ -44,12 +47,14 @@ pub fn component_xml(exec: &str, engines: &[Engine]) -> String {
     let entries = engines
         .iter()
         .map(|engine| {
-            let icon = engine.icon.as_deref().map_or_else(String::new, |path| {
-                format!("      <icon>{}</icon>\n", escape(&path.to_string_lossy()))
-            });
+            let icon = engine.icon.as_deref().map_or_else(
+                || DEFAULT_ICON.to_owned(),
+                |path| path.to_string_lossy().into_owned(),
+            );
             format!(
-                "    <engine>\n      <name>keymagic:{id}</name>\n      <language>other</language>\n      <license>GPL-2.0-only</license>\n      <author>codewiththiha</author>\n{icon}      <layout>default</layout>\n      <longname>{label}</longname>\n      <description>{label}</description>\n      <rank>0</rank>\n    </engine>\n",
+                "    <engine>\n      <name>keymagic:{id}</name>\n      <language>other</language>\n      <license>GPL-2.0-only</license>\n      <author>codewiththiha</author>\n      <icon>{icon}</icon>\n      <layout>default</layout>\n      <longname>{label}</longname>\n      <description>{label}</description>\n      <rank>0</rank>\n    </engine>\n",
                 id = escape(&engine.id),
+                icon = escape(&icon),
                 label = escape(&engine.label),
             )
         })

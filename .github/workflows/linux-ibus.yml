@@ -1,0 +1,27 @@
+name: Linux IBus typing
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ibus:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    timeout-minutes: 45
+    steps:
+      - name: Install git, IBus, X, GTK and Rust
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config dbus dbus-user-session dbus-x11 ibus ibus-gtk3 xvfb xdotool python3-gi gir1.2-gtk-3.0
+          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build keymagic and the IBus engine
+        run: |
+          . "$HOME/.cargo/env"
+          cargo build --locked -p keymagic-cli -p keymagic-linux-ibus
+      - name: Type through IBus into a GTK entry
+        run: bash tests/linux/ibus_typing.sh
