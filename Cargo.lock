@@ -1995,6 +1995,9 @@ dependencies = [
 name = "keymagic-linux-wayland"
 version = "0.1.0"
 dependencies = [
+ "keymagic-engine",
+ "keymagic-host",
+ "keymagic-types",
  "wayland-client",
  "wayland-protocols-misc",
  "xkbcommon",
