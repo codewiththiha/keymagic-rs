@@ -1,0 +1,32 @@
+name: Arch package lint
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  arch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: archlinux:base-devel
+    steps:
+      - name: Install lint tools
+        run: |
+          pacman -Syu --noconfirm namcap desktop-file-utils git
+          useradd -m builder
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate the desktop entry
+        run: desktop-file-validate packaging/data/keymagic-kwin.desktop
+      - name: Lint the PKGBUILD
+        run: namcap packaging/arch/PKGBUILD
+      - name: Generate .SRCINFO
+        run: |
+          chown -R builder .
+          su builder -c 'cd packaging/arch && makepkg --printsrcinfo' > packaging/arch/.SRCINFO
+      - uses: actions/upload-artifact@v4
+        with:
+          name: srcinfo
+          path: packaging/arch/.SRCINFO
+          include-hidden-files: true
+          if-no-files-found: error
