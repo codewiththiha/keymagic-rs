@@ -93,6 +93,15 @@ dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
     "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
     string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
 sleep 1
+# The engine serves its read-only properties through org.freedesktop.DBus.Properties.
+dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
+    "$engine_path" org.freedesktop.DBus.Properties.Get \
+    string:org.freedesktop.IBus.Engine string:FocusId 2>&1 \
+    | grep -q "boolean false" || fail "the engine did not serve FocusId"
+dbus-send --address="$ibus_addr" --print-reply --type=method_call --dest="$engine_name" \
+    "$engine_path" org.freedesktop.DBus.Properties.GetAll \
+    string:org.freedesktop.IBus.Engine 2>&1 \
+    | grep -q "ActiveSurroundingText" || fail "the engine did not list its properties"
 xdotool type --delay 300 kk
 # Composed text stays in the preedit until Return commits it (Trigger::Enter).
 sleep 1
