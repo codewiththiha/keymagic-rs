@@ -1,0 +1,27 @@
+name: Linux Wayland input method
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wayland:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    timeout-minutes: 45
+    steps:
+      - name: Install git, sway and Rust
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config sway
+          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build the Wayland probe
+        run: |
+          . "$HOME/.cargo/env"
+          cargo build --locked -p keymagic-linux-wayland
+      - name: Bind input-method-v2 under headless sway
+        run: bash tests/linux/wayland_probe.sh
