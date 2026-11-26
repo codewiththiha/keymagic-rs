@@ -14,7 +14,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config libxkbcommon-dev sway xkb-data python3-gi gir1.2-gtk-3.0
+          apt-get install -y --no-install-recommends ca-certificates curl git build-essential pkg-config libxkbcommon-dev sway wtype xkb-data python3-gi gir1.2-gtk-3.0
           curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
       - uses: actions/checkout@v4
         with:
@@ -22,6 +22,6 @@ jobs:
       - name: Build the Wayland probe
         run: |
           . "$HOME/.cargo/env"
-          cargo build --locked -p keymagic-linux-wayland
+          cargo build --locked -p keymagic-linux-wayland -p keymagic-cli
       - name: Commit text through input-method-v2 into a GTK entry
         run: bash tests/linux/wayland_probe.sh

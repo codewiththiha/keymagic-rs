@@ -1,5 +1,9 @@
-//! Wayland input-method client for `KeyMagic`, using input-method-v2.
+//! Wayland input-method client for keymagic, using input-method-v2.
 
+#[cfg(target_os = "linux")]
+mod engine;
+#[cfg(target_os = "linux")]
+mod keys;
 #[cfg(target_os = "linux")]
 mod probe;
 #[cfg(target_os = "linux")]
