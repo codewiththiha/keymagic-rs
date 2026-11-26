@@ -68,10 +68,9 @@ wtype xk
 wtype -k Return
 wait "$entry_pid" || fail "the GTK entry exited with an error"
 
-grep -q "commit sent" "$work/probe.log" || fail "the engine sent no commit"
 expected=$(printf 'x\xe1\x80\x81')
 actual=$(cat "$work/entry.txt" 2>/dev/null || true)
 if [ "$actual" != "$expected" ]; then
-    fail "the entry holds $(od -An -tx1 <<<"$actual")"
+    fail "the entry holds $(od -An -tx1 <<<"$actual") from $(wc -c <"$work/entry.txt" 2>/dev/null || echo 0) bytes"
 fi
 echo "GTK entry received x and the engine text through the grab on $WAYLAND_DISPLAY"

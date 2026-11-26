@@ -202,6 +202,11 @@ impl Probe {
             .keymap(xkb::KEYMAP_FORMAT_TEXT_V1, file.as_fd(), size);
         self.keymap_file = file;
         self.keymap = Keymap::compile(text);
+        if self.keymap.is_some() {
+            println!("keymap ready");
+        } else {
+            eprintln!("error: xkb rejected the grabbed keymap");
+        }
     }
 
     fn set_modifiers(&mut self, depressed: u32, latched: u32, locked: u32, group: u32) {
@@ -219,10 +224,12 @@ impl Probe {
             return;
         }
         let Some(keymap) = self.keymap.as_ref() else {
+            println!("key forwarded without a keymap");
             self.keyboard.key(time, code, 1);
             return;
         };
         let (consumed, steps) = self.composer.key(keymap.key_event(code));
+        println!("key consumed: {consumed}");
         if consumed {
             self.send(&steps);
         } else {
