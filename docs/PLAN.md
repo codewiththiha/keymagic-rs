@@ -78,6 +78,8 @@ Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS 
 
 Phase 06 evidence: at code head `14f9147`, the Linux container typing test passes (`linux-ibus.yml` `45787551512`: `kk` types to `ကက` through IBus into GTK). Dev CI `45787117523` and cross-platform `45786291472` are green on the same head. p6-1 stays open: the GNOME manual typing check (gedit and Firefox) and the keyboard menu (step 3) are not done. Details are in `progress.md`.
 
+At `cca1a30` the IBus engine also registers a keyboard menu (`RegisterProperties`). Dev CI `45794413268`, Linux typing `45794424916` and cross-platform `45794780711` are green on that head. Switching through the menu and the GNOME check are still open, so p6-1 stays unticked.
+
 ## Phase 07: Windows TSF in Rust
 
 - [ ] p7-1: COM skeleton + registration
