@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=KeyMagic
+GenericName=Keyboard input method
+Comment=Type with KeyMagic keyboards on KDE Plasma Wayland
+Exec=keymagic-wayland
+Icon=keymagic
+Categories=Utility;
+NoDisplay=false
+X-KDE-Wayland-VirtualKeyboard=true

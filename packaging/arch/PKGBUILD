@@ -1,0 +1,43 @@
+# Maintainer: codewiththiha <kt007441@gmail.com>
+pkgname=keymagic
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='KeyMagic keyboard input for Linux: IBus engine, Wayland input method and tools'
+arch=('x86_64')
+url='https://github.com/codewiththiha/keymagic-rs'
+license=('GPL-2.0-only')
+depends=('ibus' 'libxkbcommon' 'wayland' 'mesa' 'fontconfig' 'gcc-libs' 'glibc')
+makedepends=('cargo' 'git')
+provides=('keymagic')
+install=keymagic.install
+source=("$pkgname::git+$url.git#branch=main")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  printf '%s.r%s.g%s' "$(sed -n 1p version.txt)" \
+    "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "$pkgname"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname"
+  cargo build --frozen --release \
+    -p keymagic-cli -p keymagic-gui -p keymagic-linux-ibus -p keymagic-linux-wayland
+}
+
+package() {
+  cd "$pkgname"
+  for bin in keymagic keymagic-gui keymagic-ibus keymagic-wayland; do
+    install -Dm755 "target/release/$bin" "$pkgdir/usr/bin/$bin"
+  done
+  install -Dm644 packaging/data/keymagic-kwin.desktop \
+    "$pkgdir/usr/share/applications/keymagic-kwin.desktop"
+  install -Dm644 packaging/data/icons/keymagic.svg \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/keymagic.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

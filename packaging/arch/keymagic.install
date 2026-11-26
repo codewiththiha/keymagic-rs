@@ -1,0 +1,9 @@
+post_install() {
+  echo 'Run "keymagic install --user" as your login user to register the IBus engines.'
+  echo 'On KDE Plasma Wayland, choose KeyMagic or IBus Wayland under'
+  echo 'System Settings > Keyboard > Virtual Keyboard. Only one can be active.'
+}
+
+post_upgrade() {
+  post_install
+}
