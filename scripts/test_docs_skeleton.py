@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REQUIRED = (
     'AGENTS.md', 'CONTRIBUTING.md', 'LICENSE', 'docs/ARCHITECTURE.md',
     'docs/KMS_FORMAT.md', 'docs/KM2_FORMAT.md', 'docs/ENGINE_LOGIC.md',
-    'docs/VIRTUAL_KEYS.md', 'docs/ADR/0001-engine-first.md',
+    'docs/VIRTUAL_KEYS.md', 'docs/ADR/0001-engine-first.md', 'docs/ADR/0002-dependency-unsafe.md',
     'docs/TESTING_LINUX.md', 'docs/TESTING_WINDOWS.md', 'docs/TESTING_MACOS.md',
 )
 
