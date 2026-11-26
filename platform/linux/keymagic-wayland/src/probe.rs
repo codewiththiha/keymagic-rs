@@ -179,15 +179,8 @@ pub fn run() -> ExitCode {
 /// Writes the default keymap to an unlinked file, with a NUL terminator.
 fn keymap_file() -> Option<(File, u32)> {
     let context = xkb::Context::new(xkb::CONTEXT_NO_FLAGS);
-    let keymap = xkb::Keymap::new_from_names(
-        &context,
-        "",
-        "",
-        "",
-        "",
-        None,
-        xkb::KEYMAP_COMPILE_NO_FLAGS,
-    )?;
+    let keymap =
+        xkb::Keymap::new_from_names(&context, "", "", "", "", None, xkb::KEYMAP_COMPILE_NO_FLAGS)?;
     let mut bytes = keymap
         .get_as_string(xkb::KEYMAP_FORMAT_TEXT_V1)
         .into_bytes();
