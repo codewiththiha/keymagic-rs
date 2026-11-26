@@ -16,7 +16,7 @@ use wayland_client::{
         wl_seat::{self, WlSeat},
     },
 };
-use wayland_protocols::input_method::zv1::client::{
+use wayland_protocols::wp::input_method::zv1::client::{
     zwp_input_method_context_v1::{self, ZwpInputMethodContextV1},
     zwp_input_method_v1::{self, ZwpInputMethodV1},
 };
