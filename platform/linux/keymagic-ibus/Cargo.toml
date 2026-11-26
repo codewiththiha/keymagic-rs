@@ -1,0 +1,20 @@
+[package]
+name = "keymagic-linux-ibus"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "keymagic-ibus"
+path = "src/main.rs"
+
+[dependencies]
+keymagic-engine = { path = "../../../crates/keymagic-engine", version = "0.1.0" }
+keymagic-host = { path = "../../../crates/keymagic-host", version = "0.1.0" }
+keymagic-types = { path = "../../../crates/keymagic-types", version = "0.1.0" }
+tokio = { version = "1", features = ["macros", "rt"] }
+zbus = "6"
+
+[lints]
+workspace = true
