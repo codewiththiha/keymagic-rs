@@ -47,7 +47,11 @@ pub fn prop_list(props: &[Variant<'static>]) -> zbus::Result<Variant<'static>> {
         .iter()
         .map(Variant::try_to_owned)
         .collect::<zbus::Result<Vec<OwnedVariant>>>()?;
-    let fields = ("IBusPropList", HashMap::<String, OwnedVariant>::new(), items);
+    let fields = (
+        "IBusPropList",
+        HashMap::<String, OwnedVariant>::new(),
+        items,
+    );
     Ok(Variant::Structure(Structure::from(fields)))
 }
 

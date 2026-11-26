@@ -60,9 +60,8 @@ impl Context {
     async fn register_menu(&self, emitter: &SignalEmitter<'_>) -> zbus::Result<()> {
         let config = Config::load_or_default(&self.config_path)
             .map_err(|error| zbus::Error::Failure(error.to_string()))?;
-        let paths = Paths::for_user().ok_or_else(|| {
-            zbus::Error::Failure("no user folders for this account".to_owned())
-        })?;
+        let paths = Paths::for_user()
+            .ok_or_else(|| zbus::Error::Failure("no user folders for this account".to_owned()))?;
         let menu = menu::menu(&engines(&config, &paths), &self.keyboard)?;
         Self::register_properties(emitter, menu).await
     }
@@ -203,7 +202,10 @@ impl Context {
     async fn commit_text(emitter: &SignalEmitter<'_>, text: Variant<'_>) -> zbus::Result<()>;
 
     #[zbus(signal)]
-    async fn register_properties(emitter: &SignalEmitter<'_>, props: Variant<'_>) -> zbus::Result<()>;
+    async fn register_properties(
+        emitter: &SignalEmitter<'_>,
+        props: Variant<'_>,
+    ) -> zbus::Result<()>;
 
     #[zbus(signal)]
     async fn update_preedit_text(

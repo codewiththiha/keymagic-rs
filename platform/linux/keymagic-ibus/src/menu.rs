@@ -20,7 +20,11 @@ const DEFAULT_LABEL: &str = "KeyMagic";
 pub fn menu(engines: &[Engine], current: &str) -> zbus::Result<Variant<'static>> {
     let mut options = Vec::with_capacity(engines.len());
     for engine in engines {
-        let state = if engine.id == current { CHECKED } else { UNCHECKED };
+        let state = if engine.id == current {
+            CHECKED
+        } else {
+            UNCHECKED
+        };
         let key = format!("{KEY_PREFIX}{}", engine.id);
         let no_sub_props = prop_list(&[])?;
         options.push(property(&key, RADIO, &engine.label, state, no_sub_props));
