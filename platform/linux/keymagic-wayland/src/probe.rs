@@ -3,7 +3,7 @@
 use crate::tracker::{Surrounding, Tracker};
 use std::process::ExitCode;
 use wayland_client::{
-    Connection, Dispatch, QueueHandle,
+    Connection, Dispatch, EventQueue, QueueHandle,
     globals::{GlobalListContents, registry_queue_init},
     protocol::{
         wl_registry::{self, WlRegistry},
@@ -107,7 +107,7 @@ pub fn run() -> ExitCode {
         eprintln!("error: the compositor has no seat");
         return ExitCode::FAILURE;
     };
-    let _input_method = manager.get_input_method(&seat, &handle, ());
+    let input_method = manager.get_input_method(&seat, &handle, ());
     let mut probe = Probe::default();
     if queue.roundtrip(&mut probe).is_err() {
         eprintln!("error: the Wayland round trip failed");
@@ -118,5 +118,29 @@ pub fn run() -> ExitCode {
         return ExitCode::FAILURE;
     }
     println!("input method bound; done events: {}", probe.tracker.dones());
+    if !wait_for_activation(&mut queue, &mut probe) {
+        eprintln!("error: no text input activated the input method");
+        return ExitCode::FAILURE;
+    }
+    input_method.commit_string(PROBE_TEXT.to_owned());
+    input_method.commit(probe.tracker.dones());
+    if queue.roundtrip(&mut probe).is_err() {
+        eprintln!("error: the commit round trip failed");
+        return ExitCode::FAILURE;
+    }
+    println!("committed {PROBE_TEXT} after activation");
     ExitCode::SUCCESS
+}
+
+/// Text the probe commits into the focused text input.
+const PROBE_TEXT: &str = "ခ";
+
+/// Dispatches until activation; `false` if dispatching fails.
+fn wait_for_activation(queue: &mut EventQueue<Probe>, probe: &mut Probe) -> bool {
+    while !probe.tracker.is_active() {
+        if queue.blocking_dispatch(probe).is_err() {
+            return false;
+        }
+    }
+    true
 }
