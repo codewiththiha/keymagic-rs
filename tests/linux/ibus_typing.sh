@@ -93,11 +93,12 @@ engine_path=$(printf '%s\n' "$menu_signal" | sed -n 's/.*path=\([^;]*\);.*/\1/p'
 for method in org.freedesktop.DBus.Peer.Ping org.freedesktop.DBus.Introspectable.Introspect org.freedesktop.DBus.Properties.Get; do
     args=()
     [ "$method" = org.freedesktop.DBus.Properties.Get ] && args=(string:org.freedesktop.IBus.Engine string:FocusId)
-    if dbus-send --address="$ibus_addr" --print-reply --reply-timeout=5000 --type=method_call \
+    start=$(date +%s)
+    if dbus-send --address="$ibus_addr" --print-reply --reply-timeout=60000 --type=method_call \
         --dest="$engine_name" "$engine_path" "$method" "${args[@]}" >"$work/diag.log" 2>&1; then
-        echo "diag ok: $method"
+        echo "diag ok after $(( $(date +%s) - start ))s: $method"
     else
-        echo "diag failed: $method: $(head -c 200 "$work/diag.log")"
+        echo "diag failed after $(( $(date +%s) - start ))s: $method: $(head -c 120 "$work/diag.log")"
     fi
 done
 dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
