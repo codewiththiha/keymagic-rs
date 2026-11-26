@@ -51,22 +51,10 @@ impl Tracker {
         self.dones += 1;
     }
 
-    /// Whether a commit with `serial` may change the current state.
-    #[must_use]
-    pub const fn accepts_serial(&self, serial: u32) -> bool {
-        serial == self.dones
-    }
-
     /// Whether the applied state is active.
     #[must_use]
     pub const fn is_active(&self) -> bool {
         self.current.active
-    }
-
-    /// Surrounding text in the applied state.
-    #[must_use]
-    pub const fn current_surrounding(&self) -> Option<&Surrounding> {
-        self.current.surrounding.as_ref()
     }
 
     /// Number of `done` events received.
@@ -104,7 +92,7 @@ mod tests {
         tracker.surrounding(text("ab"));
         tracker.activate();
         tracker.done();
-        assert_eq!(tracker.current_surrounding(), None);
+        assert_eq!(tracker.current.surrounding, None);
     }
 
     #[test]
@@ -116,14 +104,5 @@ mod tests {
         assert!(tracker.is_active());
         tracker.done();
         assert!(!tracker.is_active());
-    }
-
-    #[test]
-    fn commit_serial_must_match_the_done_count() {
-        let mut tracker = Tracker::default();
-        assert!(tracker.accepts_serial(0));
-        tracker.done();
-        assert!(tracker.accepts_serial(1));
-        assert!(!tracker.accepts_serial(0));
     }
 }
