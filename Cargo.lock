@@ -1999,6 +1999,7 @@ dependencies = [
  "keymagic-host",
  "keymagic-types",
  "wayland-client",
+ "wayland-protocols",
  "wayland-protocols-misc",
  "xkbcommon",
 ]
