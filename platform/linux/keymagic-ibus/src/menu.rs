@@ -15,6 +15,7 @@ const MENU: u32 = 3;
 const RADIO: u32 = 2;
 const UNCHECKED: u32 = 0;
 const DEFAULT_LABEL: &str = "KeyMagic";
+const DEFAULT_ICON: &str = "input-keyboard";
 
 /// Menu of `engines` with the keyboard `current` checked, as an `IBusPropList`.
 pub fn menu(engines: &[Engine], current: &str) -> zbus::Result<Variant<'static>> {
@@ -27,14 +28,18 @@ pub fn menu(engines: &[Engine], current: &str) -> zbus::Result<Variant<'static>>
         };
         let key = format!("{KEY_PREFIX}{}", engine.id);
         let no_sub_props = prop_list(&[])?;
-        options.push(property(&key, RADIO, &engine.label, state, no_sub_props));
+        let icon = engine.icon.as_ref().map_or_else(
+            || DEFAULT_ICON.to_owned(),
+            |path| path.to_string_lossy().into_owned(),
+        );
+        options.push(property(&key, RADIO, &engine.label, &icon, state, no_sub_props));
     }
     let label = engines
         .iter()
         .find(|engine| engine.id == current)
         .map_or(DEFAULT_LABEL, |engine| engine.label.as_str());
     let sub_props = prop_list(&options)?;
-    let top = property(MENU_KEY, MENU, label, UNCHECKED, sub_props);
+    let top = property(MENU_KEY, MENU, label, DEFAULT_ICON, UNCHECKED, sub_props);
     prop_list(&[top])
 }
 
@@ -61,6 +66,16 @@ mod tests {
         let text = list.to_string();
         assert!(text.contains("keymagic:unicode"));
         assert!(text.contains("keymagic:zawgyi"));
+    }
+
+    #[test]
+    fn menu_shows_the_keyboard_icon_when_cached() {
+        let mut keyboard = engine("unicode", "Unicode");
+        keyboard.icon = Some(std::path::PathBuf::from("/cache/unicode.png"));
+        let Ok(list) = menu(&[keyboard], "unicode") else {
+            panic!("the menu must build");
+        };
+        assert!(list.to_string().contains("/cache/unicode.png"));
     }
 
     #[test]

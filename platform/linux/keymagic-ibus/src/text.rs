@@ -15,12 +15,13 @@ pub fn ibus_text(text: &str) -> Variant<'static> {
     Variant::Structure(Structure::from(fields))
 }
 
-/// Builds an `IBusProperty` (`(sa{sv}suvsvbbuvv)`) with no icon or tooltip.
+/// Builds an `IBusProperty` (`(sa{sv}suvsvbbuvv)`) with no tooltip.
 #[must_use]
 pub fn property(
     key: &str,
     kind: u32,
     label: &str,
+    icon: &str,
     state: u32,
     sub_props: Variant<'static>,
 ) -> Variant<'static> {
@@ -30,7 +31,7 @@ pub fn property(
         key.to_owned(),
         kind,
         ibus_text(label),
-        String::new(),
+        icon.to_owned(),
         ibus_text(""),
         true,
         true,
@@ -79,7 +80,7 @@ mod tests {
         let Ok(sub_props) = prop_list(&[]) else {
             panic!("an empty list must build");
         };
-        let value = property("key", 2, "label", 1, sub_props);
+        let value = property("key", 2, "label", "", 1, sub_props);
         assert_eq!(value.value_signature().to_string(), "(sa{sv}suvsvbbuvv)");
     }
 

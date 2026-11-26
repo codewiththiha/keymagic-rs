@@ -30,6 +30,8 @@ dbus-update-activation-environment XDG_CONFIG_HOME XDG_DATA_HOME XDG_CACHE_HOME 
 
 keymagic compile "$root/tests/linux/probe.kms" \
     --output "$XDG_CONFIG_HOME/keymagic/keyboards/probe.km2"
+keymagic compile "$root/tests/linux/probe2.kms" \
+    --output "$XDG_CONFIG_HOME/keymagic/keyboards/probe2.km2"
 cat > "$XDG_CONFIG_HOME/keymagic/config.toml" <<'TOML'
 [keyboards]
 active = "probe"
@@ -38,6 +40,11 @@ active = "probe"
 id = "probe"
 name = "Probe"
 filename = "probe.km2"
+
+[[keyboards.installed]]
+id = "probe2"
+name = "Probe Two"
+filename = "probe2.km2"
 TOML
 keymagic install --user
 
@@ -76,16 +83,25 @@ sleep 1
 # The keyboard menu is registered when the engine gains focus.
 grep -q "member=RegisterProperties" "$work/monitor.log" \
     || fail "no keyboard menu was registered"
+# Choose the second keyboard through the menu, as the panel does.
+menu_signal=$(grep "^signal sender=:.*member=RegisterProperties" "$work/monitor.log" | head -n 1)
+engine_name=$(printf '%s\n' "$menu_signal" | sed -n 's/^signal sender=\(:[^ ]*\) .*/\1/p')
+engine_path=$(printf '%s\n' "$menu_signal" | sed -n 's/.*path=\([^;]*\);.*/\1/p')
+[ -n "$engine_name" ] && [ -n "$engine_path" ] || fail "cannot find the engine in the menu signal"
+dbus-send --address="$ibus_addr" --type=method_call --dest="$engine_name" \
+    "$engine_path" org.freedesktop.IBus.Engine.PropertyActivate \
+    string:keymagic:probe2 uint32:1 || fail "the menu did not switch keyboards"
+sleep 1
 xdotool type --delay 300 kk
 # Composed text stays in the preedit until Return commits it (Trigger::Enter).
 sleep 1
 xdotool key --delay 300 Return
 
-expected=$(printf '\xe1\x80\x80\xe1\x80\x80')
+expected=$(printf '\xe1\x80\x81\xe1\x80\x81')
 for _ in $(seq 50); do
     kill -USR1 "$probe" 2>/dev/null || true
     if [ -f "$work/out.txt" ] && [ "$(cat "$work/out.txt")" = "$expected" ]; then
-        echo "typed text matches: kk -> ကက"
+        echo "typed text matches after the menu switch: kk -> ခခ"
         exit 0
     fi
     sleep 0.2

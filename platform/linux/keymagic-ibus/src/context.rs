@@ -148,6 +148,25 @@ impl Context {
         let _ = (self, x, y, width, height);
     }
 
+    /// Accepts the panel's extension keys; this engine binds none of them.
+    fn panel_extension_register_keys(&self, data: Variant<'_>) {
+        let _ = (self, data);
+    }
+
+    /// Reports no focus id, so IBus sends `FocusIn` without one.
+    #[zbus(property)]
+    const fn focus_id(&self) -> bool {
+        let _ = self;
+        false
+    }
+
+    /// Reports no surrounding text, so IBus does not send it.
+    #[zbus(property)]
+    const fn active_surrounding_text(&self) -> bool {
+        let _ = self;
+        false
+    }
+
     /// Switches to the keyboard whose menu option was checked.
     async fn property_activate(
         &mut self,
