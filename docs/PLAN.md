@@ -76,6 +76,10 @@ Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS 
 - [ ] p6-3: Arch, Debian, Fedora packaging
 - [ ] p6-4: Fcitx5 shim (optional)
 
+Phase 06 packaging evidence: `packaging.yml` `45860595219` on `3c90585`: desktop entry validates, namcap gives no warnings for `packaging/arch/PKGBUILD`, and `.SRCINFO` is generated. The makepkg build, deb/rpm metadata and AUR publish are not done. p6-3 stays unticked.
+
+KDE: `docs/linux-kde.md` lists the p6-1 and p6-2 KDE steps. p6-4 is blocked on the unsafe FFI boundary in `keymagic-ffi`; see `progress.md` checkpoint 19.
+
 Phase 06 evidence: at code head `14f9147`, the Linux container typing test passes (`linux-ibus.yml` `45787551512`: `kk` types to `ကက` through IBus into GTK). Dev CI `45787117523` and cross-platform `45786291472` are green on the same head. p6-1 stays open: the GNOME manual typing check (gedit and Firefox) and the keyboard menu (step 3) are not done. Details are in `progress.md`.
 
 At `cca1a30` the IBus engine also registers a keyboard menu (`RegisterProperties`). Dev CI `45794413268`, Linux typing `45794424916` and cross-platform `45794780711` are green on that head. Switching through the menu and the GNOME check are still open, so p6-1 stays unticked.
