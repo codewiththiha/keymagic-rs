@@ -1,7 +1,7 @@
 //! Keymap state for the keys that the input-method grab delivers.
 
 use keymagic_engine::{KeyEvent, Modifiers};
-use keymagic_types::evdev;
+use keymagic_types::{VirtualKey, evdev, xkb_keysym};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::os::fd::OwnedFd;
@@ -43,7 +43,7 @@ impl Keymap {
         let keycode = xkb::Keycode::new(code.saturating_add(X_OFFSET));
         let sym = self.state.key_get_one_sym(keycode);
         KeyEvent {
-            key: u16::try_from(code).ok().and_then(evdev::from_code),
+            key: xkb_keysym::from_code(sym.raw()).or_else(|| evdev_key(code)),
             ch: char_for(sym),
             mods: self.modifiers(),
         }
@@ -62,6 +62,11 @@ impl Keymap {
         self.state
             .mod_name_is_active(name, xkb::STATE_MODS_EFFECTIVE)
     }
+}
+
+/// The key for an evdev code, used when the keysym has no key.
+fn evdev_key(code: u32) -> Option<VirtualKey> {
+    u16::try_from(code).ok().and_then(evdev::from_code)
 }
 
 fn char_for(sym: xkb::Keysym) -> Option<char> {

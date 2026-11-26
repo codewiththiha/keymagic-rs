@@ -14,7 +14,7 @@ wayland-client = "0.31"
 wayland-protocols-misc = { version = "0.3", features = ["client"] }
 keymagic-engine = { path = "../../../crates/keymagic-engine", version = "0.1.0" }
 keymagic-host = { path = "../../../crates/keymagic-host", version = "0.1.0" }
-keymagic-types = { path = "../../../crates/keymagic-types", version = "0.1.0", features = ["evdev"] }
+keymagic-types = { path = "../../../crates/keymagic-types", version = "0.1.0", features = ["evdev", "xkb_keysym"] }
 xkbcommon = { version = "0.9", default-features = false }
 
 [lints]
