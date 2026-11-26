@@ -1,0 +1,17 @@
+[package]
+name = "keymagic-linux-wayland"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "keymagic-wayland"
+path = "src/main.rs"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+wayland-client = "0.31"
+wayland-protocols-misc = { version = "0.3", features = ["client"] }
+
+[lints]
+workspace = true
