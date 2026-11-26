@@ -76,3 +76,17 @@ fn windows_and_macos_offer_a_control_that_waits_for_the_install() {
             .all(|card| card.deferred.is_none())
     );
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+fn probe_sees_a_running_linux_card_process() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempfile::tempdir()?;
+    let fake = dir.path().join("ibus-daemon");
+    std::fs::copy("/bin/sleep", &fake)?;
+    let mut child = std::process::Command::new(&fake).arg("30").spawn()?;
+    let probed = keymagic_gui::integration::probe_linux();
+    child.kill()?;
+    child.wait()?;
+    assert_eq!(probed.first(), Some(&true), "IBus card should be running");
+    Ok(())
+}
