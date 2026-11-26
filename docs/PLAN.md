@@ -67,7 +67,7 @@ Phase 04 evidence is in `progress.md`. Open items: Windows named pipe and macOS 
 - [x] p5-1: App shell + theme (windowed launch on ubuntu, macos, windows in `gui-launch` `45230830954` at `e808335`; shell kittest snapshots `shell_dark`, `shell_focus`, `shell_light`; nav rail icons drawn from strokes. See progress.md checkpoint 8.)
 - [ ] p5-2: Keyboards page (import-then-appears test, keyboards snapshots, context menu, reorder and bundled banner exist in Dev CI `45230841433` at `e808335`. Open: filter and a hotkey-chip assertion. See progress.md checkpoint 8)
 - [ ] p5-3: Tester + Editor pages (round-trip test, Record case, 150 ms check, Shift/AltGr layer test and snapshots exist in Dev CI `45230841433`. Open: syntax-highlight check. See progress.md checkpoint 8)
-- [ ] p5-4: Settings, Hotkeys, About, Tray (app picker test, hotkey save and refusal tests, update check, tray IPC tests, About changelog and licences in Dev CI `45230841433`. Open: Linux cards on a real desktop, Windows cross-platform on `e808335` (hosted runners failing before steps), HUD. See progress.md checkpoint 8)
+- [ ] p5-4: Settings, Hotkeys, About, Tray (app picker test, hotkey save and refusal tests, update check, tray IPC tests, About changelog and licences in Dev CI `45230841433`. Open: Linux cards on a real desktop, HUD, Linux desktop checks. Cross-platform is green on `5cf8325`, run `45742171209`. See progress.md)
 
 ## Phase 06: Linux (IBus → Wayland → KDE → Arch)
 
