@@ -35,7 +35,15 @@ impl Dispatch<WlRegistry, GlobalListContents> for Probe {
 }
 
 impl Dispatch<WlSeat, ()> for Probe {
-    fn event(_: &mut Self, _: &WlSeat, _: wl_seat::Event, _: &(), _: &Connection, _: &QueueHandle<Self>) {}
+    fn event(
+        _: &mut Self,
+        _: &WlSeat,
+        _: wl_seat::Event,
+        _: &(),
+        _: &Connection,
+        _: &QueueHandle<Self>,
+    ) {
+    }
 }
 
 impl Dispatch<ZwpInputMethodManagerV2, ()> for Probe {
@@ -62,8 +70,16 @@ impl Dispatch<ZwpInputMethodV2, ()> for Probe {
         match event {
             zwp_input_method_v2::Event::Activate => state.tracker.activate(),
             zwp_input_method_v2::Event::Deactivate => state.tracker.deactivate(),
-            zwp_input_method_v2::Event::SurroundingText { text, cursor, anchor } => {
-                state.tracker.surrounding(Surrounding { text, cursor, anchor });
+            zwp_input_method_v2::Event::SurroundingText {
+                text,
+                cursor,
+                anchor,
+            } => {
+                state.tracker.surrounding(Surrounding {
+                    text,
+                    cursor,
+                    anchor,
+                });
             }
             zwp_input_method_v2::Event::Done => state.tracker.done(),
             zwp_input_method_v2::Event::Unavailable => state.unavailable = true,

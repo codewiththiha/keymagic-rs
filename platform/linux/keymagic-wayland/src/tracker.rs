@@ -29,7 +29,10 @@ pub struct Tracker {
 impl Tracker {
     /// Stages an activation and drops staged surrounding text.
     pub fn activate(&mut self) {
-        self.pending = Buffer { active: true, surrounding: None };
+        self.pending = Buffer {
+            active: true,
+            surrounding: None,
+        };
     }
 
     /// Stages a deactivation.
@@ -78,7 +81,11 @@ mod tests {
     use super::{Surrounding, Tracker};
 
     fn text(value: &str) -> Surrounding {
-        Surrounding { text: value.to_owned(), cursor: 1, anchor: 1 }
+        Surrounding {
+            text: value.to_owned(),
+            cursor: 1,
+            anchor: 1,
+        }
     }
 
     #[test]
