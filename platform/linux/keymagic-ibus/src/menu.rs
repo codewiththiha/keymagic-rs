@@ -32,7 +32,14 @@ pub fn menu(engines: &[Engine], current: &str) -> zbus::Result<Variant<'static>>
             || DEFAULT_ICON.to_owned(),
             |path| path.to_string_lossy().into_owned(),
         );
-        options.push(property(&key, RADIO, &engine.label, &icon, state, no_sub_props));
+        options.push(property(
+            &key,
+            RADIO,
+            &engine.label,
+            &icon,
+            state,
+            no_sub_props,
+        ));
     }
     let label = engines
         .iter()
